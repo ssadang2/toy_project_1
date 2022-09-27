@@ -15,13 +15,16 @@ public class Reservation {
     @GeneratedValue
     private Long id;
 
+    private Long fee;
+
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
     @OneToOne(fetch = LAZY)
-    @JoinColumn(name = "train_id")
-    private Train train;
+    @JoinColumn(name = "deploy_id")
+    private Deploy deploy;
 
-
+    @OneToOne(fetch = LAZY, mappedBy = "reservation")
+    private Passenger passenger;
 }

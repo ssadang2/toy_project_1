@@ -1,9 +1,6 @@
 package toy.ktx.domain.mugunhwa;
 
-import lombok.Data;
 import toy.ktx.domain.Train;
-import toy.ktx.domain.ktx.KtxRoom;
-
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;

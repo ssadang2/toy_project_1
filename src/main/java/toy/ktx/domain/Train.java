@@ -17,26 +17,8 @@ public class Train {
     @Id @GeneratedValue
     private Long id;
 
-    @Column(name = "departure_time")
-    @NotBlank
-    private LocalDateTime departureTime;
-
-    @Column(name = "arrival_time")
-    @NotBlank
-    private LocalDateTime arrivalTime;
-
-    @Column(name = "departure_place")
-    @NotBlank
-    private String departurePlace;
-
-    @Column(name = "arrival_place")
-    @NotBlank
-    private String arrivalPlace;
-
-    @NotBlank
-    private Long charge;
-
-    @OneToOne(mappedBy = "train")
-    private Reservation reservation;
+    @ManyToOne
+    @JoinColumn(name = "deploy_id")
+    private Deploy deploy;
 
 }
