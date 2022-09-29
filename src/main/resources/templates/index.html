@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--for bootstrap-->
 <link href = "../css/bootstrap.min.css" rel = "stylesheet">
+<!--for autocomplete-->
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
 <head>
     <meta charset="UTF-8">
     <title>기차 예약</title>
@@ -17,7 +23,7 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text">출발</span>
                     </div>
-                    <input type="text" class="form-control" aria-label="Username">
+                    <input type="text" id = "departure" class="form-control">
                 </div>
             </div>
 
@@ -26,7 +32,7 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text">도착</span>
                     </div>
-                    <input type="text" class="form-control" aria-label="Username">
+                    <input type="text" id = "arrival" class="form-control">
                 </div>
             </div>
         </div>
@@ -35,6 +41,60 @@
         </div>
     </div>
 
+    <script>
+    //for departure autocomplete
+    $(function() {
+        var stations = ['서울역', '부산역', '동대구역', '익산역'];
 
+
+
+        $('#departure').autocomplete({
+            source : stations,
+            select : function(event, ui) {
+                console.log(ui.item);
+            },
+            focus : function(event, ui) {
+                return false;
+            },
+            minLength : 1,
+            autoFocus : true,
+            classes : {
+                'ui-autocomplete' : 'highlight'
+            },
+            delay : 100,
+            disable : false,
+            position : { my : 'right top', at : 'right bottom'},
+            close : function(event) {
+                console.log(event);
+            }
+        });
+    });
+
+    //for arrival autocomplete
+    $(function() {
+        var stations = ['서울역', '부산역', '동대구역', '익산역'];
+
+        $('#arrival').autocomplete({
+            source : stations,
+            select : function(event, ui) {
+                console.log(ui.item);
+            },
+            focus : function(event, ui) {
+                return false;
+            },
+            minLength : 1,
+            autoFocus : true,
+            classes : {
+                'ui-autocomplete' : 'highlight'
+            },
+            delay : 100,
+            disable : false,
+            position : { my : 'right top', at : 'right bottom'},
+            close : function(event) {
+                console.log(event);
+            }
+        });
+    });
+    </script>
 </body>
 </html>
