@@ -6,6 +6,7 @@ import javax.persistence.*;
 
 @Entity
 @Data
+@Table(name = "ktx_seat")
 public class KtxSeat {
 
     @Id

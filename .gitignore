@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### 코테용 Main 클래스 ###
+src/main/java/toy/ktx/Main.java

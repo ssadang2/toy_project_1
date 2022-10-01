@@ -1,12 +1,12 @@
 package toy.ktx.domain.saemaul;
 
 import lombok.Data;
-import toy.ktx.domain.mugunhwa.MugunhwaRoom;
 
 import javax.persistence.*;
 
 @Entity
 @Data
+@Table(name = "saemaul_seat")
 public class SaemaulSeat {
 
     @Id

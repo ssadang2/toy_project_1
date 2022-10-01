@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "mugunhwa")
-public class Mugunhwa extends Train {
+//@Table(name = "mugunghwa")
+public class Mugunghwa extends Train {
 
-    @OneToMany(mappedBy = "mugunhwa")
-    private List<MugunhwaRoom> mugunhwaRoomList = new ArrayList<>();
+    @OneToMany(mappedBy = "mugunghwa")
+    private List<MugunghwaRoom> mugunhwaRoomList = new ArrayList<>();
 }

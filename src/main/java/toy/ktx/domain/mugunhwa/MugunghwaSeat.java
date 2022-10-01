@@ -5,7 +5,8 @@ import javax.persistence.*;
 
 @Entity
 @Data
-public class MugunhwaSeat {
+@Table(name = "mugunghwa_seat")
+public class MugunghwaSeat {
 
     @Id
     @GeneratedValue
@@ -13,7 +14,7 @@ public class MugunhwaSeat {
 
     @ManyToOne
     @JoinColumn(name = "room_id")
-    private MugunhwaRoom mugunhwaRoom;
+    private MugunghwaRoom mugunghwaRoom;
 
     private Boolean m1;
     private Boolean m2;

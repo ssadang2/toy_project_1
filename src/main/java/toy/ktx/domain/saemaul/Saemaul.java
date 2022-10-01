@@ -1,7 +1,6 @@
 package toy.ktx.domain.saemaul;
 
 import toy.ktx.domain.Train;
-import toy.ktx.domain.mugunhwa.MugunhwaRoom;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
@@ -10,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "saemaul")
+//@Table(name = "saemaul")
 public class Saemaul extends Train {
 
     @OneToMany(mappedBy = "saemaul")

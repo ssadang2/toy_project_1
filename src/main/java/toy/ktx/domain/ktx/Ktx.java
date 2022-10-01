@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "ktx")
+//@Table(name = "ktx")
 public class Ktx extends Train {
 
     @OneToMany(mappedBy = "ktx")

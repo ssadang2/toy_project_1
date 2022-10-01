@@ -2,12 +2,12 @@ package toy.ktx.domain.saemaul;
 
 import lombok.Data;
 import toy.ktx.domain.enums.Grade;
-import toy.ktx.domain.mugunhwa.Mugunhwa;
 
 import javax.persistence.*;
 
 @Entity
 @Data
+@Table(name = "saemaul_room")
 public class SaemaulRoom {
 
     @Id
