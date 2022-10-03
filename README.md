@@ -3,7 +3,7 @@
 <br>
 
 ### ERD
-![ERD](../ERD.png)
+<img width="1023" alt="ERD" src="https://user-images.githubusercontent.com/95601414/193593894-c55ff239-8494-42dd-8731-25c656e57d00.png">
 <br>
 
 ### Reference
