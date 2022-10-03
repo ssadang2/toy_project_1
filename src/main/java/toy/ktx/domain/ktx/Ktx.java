@@ -9,10 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-//@Table(name = "ktx")
 public class Ktx extends Train {
 
     @OneToMany(mappedBy = "ktx")
-    private List<KtxRoom> ktxRoomList = new ArrayList<>();
+    private List<KtxRoom> ktxRooms = new ArrayList<>();
 
 }

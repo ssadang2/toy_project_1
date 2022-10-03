@@ -1,11 +1,9 @@
 package toy.ktx.domain;
 
 import lombok.Data;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Data
@@ -34,6 +32,7 @@ public class Deploy {
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "deploy")
     private Reservation reservation;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "deploy")
-    private List<Train> trains;
+    @ManyToOne
+    @JoinColumn(name = "train_id")
+    private Train train;
 }

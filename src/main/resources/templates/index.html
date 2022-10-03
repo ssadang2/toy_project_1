@@ -24,6 +24,23 @@
     <h2 class="text-center">기차 조회 · 예매</h2>
     <br><br>
 
+    <div class="container">
+        <div th:if="${notLogin}" class="d-flex flex-row-reverse bd-highlight">
+            <div class="p-2 bd-highlight">
+                <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/sign-up}'|">회원가입</button>
+            </div>
+            <div class="p-2 bd-highlight">
+                <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/sign-in}'|">로그인</button>
+            </div>
+        </div>
+
+        <div th:if="${login}" class="d-flex flex-row-reverse bd-highlight">
+            <div class="p-2 bd-highlight">
+                <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/logout}'|">로그아웃</button>
+            </div>
+        </div>
+    </div><br><br>
+
     <form th:action = "@{/schedule}" method="post">
         <div class="container">
             <div class="row">
@@ -65,6 +82,9 @@
                                th:max="${#temporals.format(maxDateTime, 'yyyy-MM-dd')}" >
                         &nbsp;&nbsp;
                         <input type="text" id="departureTime" name="departureTime" class="form-control" style="width:200px">
+                        <div class="input-group-append">
+                            <span class="input-group-text">이후 출발</span>
+                        </div>
                     </div>
                 </div>
 
@@ -79,6 +99,9 @@
                                th:max="${#temporals.format(maxDateTime, 'yyyy-MM-dd')}">
                         &nbsp;&nbsp;
                         <input type="text" id="arrivalTime" name="arrivalTime" class="form-control" style="width:200px">
+                        <div class="input-group-append">
+                            <span class="input-group-text">이후 출발</span>
+                        </div>
                     </div>
                 </div>
             </div><br>

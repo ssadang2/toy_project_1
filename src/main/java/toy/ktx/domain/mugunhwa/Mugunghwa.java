@@ -8,9 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-//@Table(name = "mugunghwa")
 public class Mugunghwa extends Train {
 
     @OneToMany(mappedBy = "mugunghwa")
-    private List<MugunghwaRoom> mugunhwaRoomList = new ArrayList<>();
+    private List<MugunghwaRoom> mugunghwaRooms = new ArrayList<>();
 }

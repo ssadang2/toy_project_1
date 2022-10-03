@@ -3,7 +3,7 @@
 <br>
 
 ### ERD
-<img width="1031" alt="스크린샷 2022-09-27 오후 2 52 08" src="https://user-images.githubusercontent.com/95601414/192443793-6e699af6-77be-420e-8c99-97379e5abcd7.png">
+![ERD](../ERD.png)
 <br>
 
 ### Reference

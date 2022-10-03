@@ -1,14 +1,12 @@
 package toy.ktx.domain;
 
 import lombok.Data;
-
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "train")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+//@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 @Data
 public class Train {
@@ -16,8 +14,9 @@ public class Train {
     @Id @GeneratedValue
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "deploy_id")
-    private Deploy deploy;
+    private String trainName;
+
+    @OneToMany(mappedBy = "train")
+    private List<Deploy> deploys;
 
 }
