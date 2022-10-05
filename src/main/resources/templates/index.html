@@ -41,16 +41,22 @@
         </div>
     </div><br><br>
 
-    <form th:action = "@{/schedule}" method="post">
+    <form th:action = "@{/schedule}" th:object="${scheduleForm}" method="post">
         <div class="container">
+
+            <div th:if="${#fields.hasGlobalErrors()}">
+                <h4 th:each="err : ${#fields.globalErrors()}" th:text = "${err}" class="text-danger text-center"></h4>
+            </div><br>
+
             <div class="row">
                 <div class="col">
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <span class="input-group-text">출발</span>
                         </div>
-                        <input type="text" id="departurePlace" name="departurePlace" class="form-control">
+                        <input type="text" th:field="*{departurePlace}" class="form-control" th:errorclass="border-danger">
                     </div>
+                    <div th:errors="*{departurePlace}" class="text-danger"></div>
                 </div>
 
                 <div class="col">
@@ -58,8 +64,9 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text">도착</span>
                         </div>
-                        <input type="text" id="arrivalPlace" name="arrivalPlace" class="form-control">
+                        <input type="text" th:field="*{arrivalPlace}" class="form-control" th:errorclass="border-danger">
                     </div>
+                    <div th:errors="*{arrivalPlace}" class="text-danger"></div>
                 </div>
             </div><br>
 
@@ -67,8 +74,8 @@
                 <span>일정 · 인원 선택</span>
                 &nbsp;&nbsp;
                 <span class="form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="oneOrRound" name="oneOrRound" data-bs-toggle="collapse" data-bs-target="#round">
-                    <label class="form-check-label" for="oneOrRound" >왕복</label>
+                    <input class="form-check-input" type="checkbox" role="switch" th:field="*{round}" data-bs-toggle="collapse" data-bs-target="#round">
+                    <label class="form-check-label" for="round" >왕복</label>
                 </span><br><br>
 
                 <div>
@@ -76,33 +83,33 @@
                         <div class= "input-group-prepend">
                             <span class="input-group-text">가는날</span>
                         </div>&nbsp;&nbsp;
-                        <input type="date" id = "departureDate" name="departureDate"
-                               th:value="${#temporals.format(minDateTime, 'yyyy-MM-dd')}"
+                        <input type="date" th:field="*{departureDate}"
                                th:min="${#temporals.format(minDateTime, 'yyyy-MM-dd')}"
                                th:max="${#temporals.format(maxDateTime, 'yyyy-MM-dd')}" >
                         &nbsp;&nbsp;
-                        <input type="text" id="departureTime" name="departureTime" class="form-control" style="width:200px">
+                        <input type="text" th:field="*{departureTime}" class="form-control" style="width:200px" th:errorclass="border-danger">
                         <div class="input-group-append">
                             <span class="input-group-text">이후 출발</span>
                         </div>
                     </div>
-                </div>
+                    <div th:errors="*{departureDate}" class="text-danger"></div>
+                </div><br>
 
                 <div class="collapse" id="round">
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <span class="input-group-text">오는날</span>
                         </div>&nbsp;&nbsp;
-                        <input type="date" id="arrivalDate" name="arrivalDate"
-                               th:value="${#temporals.format(minDateTime, 'yyyy-MM-dd')}"
+                        <input type="date" th:field="*{arrivalDate}"
                                th:min="${#temporals.format(minDateTime, 'yyyy-MM-dd')}"
-                               th:max="${#temporals.format(maxDateTime, 'yyyy-MM-dd')}">
+                               th:max="${#temporals.format(maxDateTime, 'yyyy-MM-dd')}" >
                         &nbsp;&nbsp;
-                        <input type="text" id="arrivalTime" name="arrivalTime" class="form-control" style="width:200px">
+                        <input type="text" th:field="*{arrivalTime}" class="form-control" style="width:200px" th:errorclass="border-danger">
                         <div class="input-group-append">
                             <span class="input-group-text">이후 출발</span>
                         </div>
                     </div>
+                    <div th:errors="*{arrivalDate}" class="text-danger"></div>
                 </div>
             </div><br>
 
@@ -112,11 +119,12 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text">유아</span>
                         </div>
-                        <input type="text" id = "toddler" name="toddler" placeholder="0" class="form-control">
+                        <input type="text" th:field="*{toddler}" placeholder="0" class="form-control" th:errorclass="border-danger">
                         <div class="input-group-append">
                             <span class="input-group-text">명</span>
                         </div>
                     </div>
+                    <div th:errors="*{toddler}" class="text-danger"></div>
                 </div>
 
                 <div class="col-6">
@@ -124,11 +132,12 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text">어린이</span>
                         </div>
-                        <input type="text" id = "kids" name="kids" placeholder="0" class="form-control">
+                        <input type="text" th:field="*{kids}" placeholder="0" class="form-control" th:errorclass="border-danger">
                         <div class="input-group-append">
                             <span class="input-group-text">명</span>
                         </div>
                     </div>
+                    <div th:errors="*{kids}" class="text-danger"></div>
                 </div>
             </div>
 
@@ -138,11 +147,12 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text">어른</span>
                         </div>
-                        <input type="text" id = "adult" name="adult" placeholder="0" class="form-control">
+                        <input type="text" th:field="*{adult}" placeholder="0" class="form-control" th:errorclass="border-danger">
                         <div class="input-group-append">
                             <span class="input-group-text">명</span>
                         </div>
                     </div>
+                    <div th:errors="*{adult}" class="text-danger"></div>
                 </div>
 
                 <div class="col-6">
@@ -150,11 +160,12 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text">경로</span>
                         </div>
-                        <input type="text" id = "senior" name="senior" placeholder="0" class="form-control">
+                        <input type="text" th:field="*{senior}" placeholder="0" class="form-control" th:errorclass="border-danger">
                         <div class="input-group-append">
                             <span class="input-group-text">명</span>
                         </div>
                     </div>
+                    <div th:errors="*{senior}" class="text-danger"></div>
                 </div>
             </div><br><br>
 
@@ -270,7 +281,7 @@
             $("#departureTime").timepicker({
                 timeFormat: 'HH:mm',
                 interval: 60,
-                minTime: '[[${#temporals.format(minDateTime, 'HH')}]]',
+                minTime: '00',
                 maxTime: '23',
                 defaultTime: '[[${#temporals.format(minDateTime, 'HH')}]]',
                 startTime: '00:00',
@@ -284,9 +295,9 @@
             $("#arrivalTime").timepicker({
                 timeFormat: 'HH:mm',
                 interval: 60,
-                minTime: '[[${#temporals.format(minDateTime, 'HH')}]]',
+                minTime: '00',
                 maxTime: '23',
-                defaultTime: '[[${#temporals.format(minDateTime, 'HH')}]]',
+                defaultTime: '00',
                 startTime: '00:00',
                 dynamic: false,
                 dropdown: true,

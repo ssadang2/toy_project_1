@@ -38,3 +38,7 @@ out/
 
 ### 코테용 Main 클래스 ###
 src/main/java/toy/ktx/Main.java
+
+
+### 필요 없는 Test ###
+src/test/java/toy/ktx/TempTest.java

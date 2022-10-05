@@ -3,12 +3,8 @@ package toy.ktx.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Repository;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import toy.ktx.domain.Member;
 import toy.ktx.domain.constant.SessionConst;
 import toy.ktx.domain.dto.LoginForm;
@@ -31,7 +27,9 @@ public class LoginController {
     }
 
     @PostMapping("/sign-in")
-    public String completeLogin(@Valid @ModelAttribute("loginForm") LoginForm loginForm, BindingResult bindingResult,
+    public String completeLogin(@Valid @ModelAttribute("loginForm") LoginForm loginForm,
+                                @RequestParam(defaultValue = "/") String redirectURL,
+                                BindingResult bindingResult,
                                 HttpServletRequest request) {
         if(bindingResult.hasErrors()) {
             log.info("errors={}", bindingResult);
@@ -47,7 +45,7 @@ public class LoginController {
 
         HttpSession session = request.getSession();
         session.setAttribute(SessionConst.LOGIN_MEMBER, member);
-        return "redirect:/";
+        return "redirect:" + redirectURL;
     }
 
     @GetMapping("/logout")
