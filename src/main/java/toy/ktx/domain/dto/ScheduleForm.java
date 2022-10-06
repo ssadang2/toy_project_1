@@ -15,14 +15,13 @@ public class ScheduleForm {
 
     private Boolean round;
 
-    @NotBlank
-    private String departureDate;
+    private String dateOfGoing;
 
-    private String departureTime;
+    private String timeOfGoing;
 
-    private String arrivalDate;
+    private String dateOfLeaving;
 
-    private String arrivalTime;
+    private String timeOfLeaving;
 
     private Integer toddler;
 

@@ -8,9 +8,12 @@
 <body>
     <h4 class="text-center">시간표</h4><br><br>
 
-    <form th:action="@{/reservation}" method="post">
+    <form th:object="${deployForm}" th:action="@{/reservation}" method="post">
         <div class="container">
-            <p>가는 날 시간표</p>
+            <p th:text="*{departureTime}">가는 날 시간표</p>
+            <p th:text="*{arrivalTime}">가는 날 시간표</p>
+            <p th:text="*{departurePlace}">가는 날 시간표</p>
+            <p th:text="*{arrivalPlace}">가는 날 시간표</p>
         </div><br><br>
 
         <div class="container">

@@ -70,46 +70,51 @@
                 </div>
             </div><br>
 
-            <div>
-                <span>일정 · 인원 선택</span>
-                &nbsp;&nbsp;
-                <span class="form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" th:field="*{round}" data-bs-toggle="collapse" data-bs-target="#round">
-                    <label class="form-check-label" for="round" >왕복</label>
-                </span><br><br>
+            <div class="row">
+                <div class="col-2">
+                    <span>일정 · 인원 선택</span>
+                </div>
+                <div class="col-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="round" th:field="*{round}" data-bs-toggle="collapse" data-bs-target="#roundOn">
+                        <label class="form-check-label" for="round">왕복</label>
+                    </div>
+                </div>
+            </div><br>
 
+            <div>
                 <div>
                     <div class="input-group mb-3">
                         <div class= "input-group-prepend">
                             <span class="input-group-text">가는날</span>
                         </div>&nbsp;&nbsp;
-                        <input type="date" th:field="*{departureDate}"
+                        <input type="date" th:field="*{dateOfGoing}"
                                th:min="${#temporals.format(minDateTime, 'yyyy-MM-dd')}"
                                th:max="${#temporals.format(maxDateTime, 'yyyy-MM-dd')}" >
                         &nbsp;&nbsp;
-                        <input type="text" th:field="*{departureTime}" class="form-control" style="width:200px" th:errorclass="border-danger">
+                        <input type="text" th:field="*{timeOfGoing}" class="form-control" style="width:200px">
                         <div class="input-group-append">
                             <span class="input-group-text">이후 출발</span>
                         </div>
                     </div>
-                    <div th:errors="*{departureDate}" class="text-danger"></div>
+                    <div th:errors="*{dateOfGoing}" class="text-danger"></div>
                 </div><br>
 
-                <div class="collapse" id="round">
+                <div class="collapse" id="roundOn">
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <span class="input-group-text">오는날</span>
                         </div>&nbsp;&nbsp;
-                        <input type="date" th:field="*{arrivalDate}"
+                        <input type="date" th:field="*{dateOfLeaving}"
                                th:min="${#temporals.format(minDateTime, 'yyyy-MM-dd')}"
                                th:max="${#temporals.format(maxDateTime, 'yyyy-MM-dd')}" >
                         &nbsp;&nbsp;
-                        <input type="text" th:field="*{arrivalTime}" class="form-control" style="width:200px" th:errorclass="border-danger">
+                        <input type="text" th:field="*{timeOfLeaving}" class="form-control" style="width:200px">
                         <div class="input-group-append">
                             <span class="input-group-text">이후 출발</span>
                         </div>
                     </div>
-                    <div th:errors="*{arrivalDate}" class="text-danger"></div>
+                    <div th:errors="*{dateOfLeaving}" class="text-danger"></div>
                 </div>
             </div><br>
 
@@ -278,7 +283,7 @@
     <!--  for timepicker  -->
     <script>
         $(function() {
-            $("#departureTime").timepicker({
+            $("#timeOfGoing").timepicker({
                 timeFormat: 'HH:mm',
                 interval: 60,
                 minTime: '00',
@@ -292,7 +297,7 @@
         });
 
         $(function() {
-            $("#arrivalTime").timepicker({
+            $("#timeOfLeaving").timepicker({
                 timeFormat: 'HH:mm',
                 interval: 60,
                 minTime: '00',
