@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-
 <!--for bootstrap css-->
 <link th:href = "@{../css/bootstrap.min.css}" rel = "stylesheet">
 
@@ -29,6 +28,7 @@
             <div class="p-2 bd-highlight">
                 <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/sign-up}'|">회원가입</button>
             </div>
+
             <div class="p-2 bd-highlight">
                 <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/sign-in}'|">로그인</button>
             </div>
@@ -37,6 +37,10 @@
         <div th:if="${login}" class="d-flex flex-row-reverse bd-highlight">
             <div class="p-2 bd-highlight">
                 <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/logout}'|">로그아웃</button>
+            </div>
+
+            <div class="p-2 bd-highlight">
+                <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/my-page}'|">마이페이지</button>
             </div>
         </div>
     </div><br><br>

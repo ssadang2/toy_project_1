@@ -28,9 +28,10 @@ public class LoginController {
 
     @PostMapping("/sign-in")
     public String completeLogin(@Valid @ModelAttribute("loginForm") LoginForm loginForm,
-                                @RequestParam(defaultValue = "/") String redirectURL,
                                 BindingResult bindingResult,
+                                @RequestParam(defaultValue = "/") String redirectURL,
                                 HttpServletRequest request) {
+
         if(bindingResult.hasErrors()) {
             log.info("errors={}", bindingResult);
             return "loginPage";

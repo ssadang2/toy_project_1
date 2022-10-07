@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Table(name = "deploy")
 public class Deploy {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "departure_time")

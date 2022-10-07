@@ -10,7 +10,7 @@ import javax.persistence.*;
 @Table(name = "ktx_room")
 public class KtxRoom {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne

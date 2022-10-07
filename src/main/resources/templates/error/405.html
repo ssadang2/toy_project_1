@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<link th:href = "@{../css/bootstrap.min.css}" rel = "stylesheet">
+<head>
+    <meta charset="UTF-8">
+    <title>ERROR 405</title>
+</head>
+<body>
+    <h2 class="text-center text-danger">잘못된 접근 방식입니다</h2><br><br>
+
+    <div class="container">
+        <div class="d-flex flex-row-reverse bd-highlight">
+            <div class="p-2 bd-highlight">
+                <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/}'|">홈으로 가기</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

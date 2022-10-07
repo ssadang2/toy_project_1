@@ -10,7 +10,7 @@ import javax.persistence.*;
 public class SaemaulSeat {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne

@@ -9,7 +9,7 @@ import javax.persistence.*;
 public class MugunghwaSeat {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
