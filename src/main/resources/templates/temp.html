@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<link th:href = "@{../css/bootstrap.min.css}" rel = "stylesheet">
+<!--더보기 버튼을 위한 jquery source-->
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .list {
+        }
+        .list li {
+          opacity: 1;
+        }
+        .list li.is-hidden {
+          opacity: 0;
+          height: 0;
+          margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <ul class="list">
+        <li>item1</li>
+        <li>item2</li>
+        <li>item3</li>
+        <li>item4</li>
+        <li>item5</li>
+        <li>item6</li>
+        <li>item7</li>
+        <li>item8</li>
+        <li>item9</li>
+        <li>item10</li>
+        <li>item11</li>
+        <li>item12</li>
+        <li>item13</li>
+        <li>item14</li>
+        <li>item15</li>
+        <li>item16</li>
+        <li>item17</li>
+        <li>item18</li>
+        <li>item19</li>
+        <li>item20</li>
+        <li>item21</li>
+    </ul>
+
+    <div class="more">
+        <button>더보기</button>
+    </div>
+
+    <!-- jquery를 이용한 더보기 버튼 구현    -->
+    <script>
+        var moreNum = 6; //6개 씩 보여주기
+        $(".list li:nth-child(n + " + (moreNum + 1) + ")").addClass("is-hidden");
+        $(".more").on("click", function () {
+          $(".list li.is-hidden").slice(0, moreNum).removeClass("is-hidden");
+          if ($(".list li.is-hidden").length == 0) {
+            $(".more").fadeOut();
+          }
+        });
+    </script>
+    <script src="../js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

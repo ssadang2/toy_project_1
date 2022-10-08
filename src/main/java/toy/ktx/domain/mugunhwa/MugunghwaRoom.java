@@ -15,7 +15,9 @@ public class MugunghwaRoom {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    private String roomName;
+
+    @OneToOne
     @JoinColumn(name = "mugunghwa_id")
     private Mugunghwa mugunghwa;
 

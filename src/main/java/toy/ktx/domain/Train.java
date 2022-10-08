@@ -19,4 +19,10 @@ public class Train {
     @OneToMany(mappedBy = "train")
     private List<Deploy> deploys;
 
+    public Train() {
+    }
+
+    public Train(String trainName) {
+        this.trainName = trainName;
+    }
 }

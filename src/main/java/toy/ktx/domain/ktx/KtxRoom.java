@@ -4,6 +4,7 @@ import lombok.Data;
 import toy.ktx.domain.enums.Grade;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Data
@@ -13,11 +14,24 @@ public class KtxRoom {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "ktx_id")
-    private Ktx ktx;
+    private String roomName;
 
     @Enumerated(EnumType.STRING)
     private Grade grade;
 
+    @ManyToOne
+    @JoinColumn(name = "ktx_id")
+    private Ktx ktx;
+
+    @OneToOne(mappedBy = "ktxRoom")
+    private KtxSeat ktxSeat;
+
+    public KtxRoom() {
+    }
+
+    public KtxRoom(String roomName, Ktx ktx, Grade grade) {
+        this.roomName = roomName;
+        this.ktx = ktx;
+        this.grade = grade;
+    }
 }

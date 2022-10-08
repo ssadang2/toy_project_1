@@ -12,7 +12,7 @@ public class MugunghwaSeat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "room_id")
     private MugunghwaRoom mugunghwaRoom;
 

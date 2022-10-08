@@ -14,7 +14,9 @@ public class SaemaulRoom {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    private String roomName;
+
+    @OneToOne
     @JoinColumn(name = "saemaul_id")
     private Saemaul saemaul;
 

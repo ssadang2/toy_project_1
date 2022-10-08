@@ -1,30 +1,35 @@
 package toy.ktx.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import toy.ktx.domain.Deploy;
 import toy.ktx.domain.Member;
 import toy.ktx.domain.constant.SessionConst;
 import toy.ktx.domain.constant.StationsConst;
-import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.ScheduleForm;
+import toy.ktx.service.DeployService;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
 
 @Controller
 @Slf4j
+@RequiredArgsConstructor
 public class ScheduleController {
+
+    private final DeployService deployService;
 
     @PostMapping("/schedule")
     public String getSchedule(@Valid @ModelAttribute ScheduleForm scheduleForm,
                               BindingResult bindingResult,
-                              @ModelAttribute DeployForm deployForm,
                               Model model,
                               @SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member member) {
 
@@ -83,10 +88,42 @@ public class ScheduleController {
             return "index";
         }
 
-        deployForm.setDeparturePlace(scheduleForm.getDeparturePlace());
-        deployForm.setDepartureTime(before);
-        deployForm.setArrivalPlace(scheduleForm.getArrivalPlace());
-        deployForm.setArrivalTime(null);
+        if(scheduleForm.getRound() == true) {
+            List<Deploy> deploysWhenGoing = deployService.searchDeploy(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
+            //오는 날에는 가는 날의 출발지가 도착지고 도착지가 출발지임 따라서 getArrivalPlace가 departurePlace(출발지)에 위치해야 됨
+            List<Deploy> deploysWhenComing = deployService.searchDeploy(scheduleForm.getArrivalPlace(), scheduleForm.getDeparturePlace(), after);
+
+            if(deploysWhenGoing.isEmpty() == true || deploysWhenComing.isEmpty() == true) {
+                if(deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
+                    model.addAttribute("emptyWhenGoing", true);
+                    model.addAttribute("emptyWhenComing", true);
+
+                }
+                if(deploysWhenGoing.isEmpty() == true) {
+                    model.addAttribute("emptyWhenGoing", true);
+                    model.addAttribute("deploysWhenComing", deploysWhenComing);
+                }
+                if(deploysWhenComing.isEmpty() == true) {
+                    model.addAttribute("emptyWhenComing", true);
+                    model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+                }
+                return "schedule";
+            }
+
+            if(deploysWhenGoing.isEmpty() == false && deploysWhenComing.isEmpty() == false) {
+                model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+                model.addAttribute("deploysWhenComing", deploysWhenComing);
+                return "schedule";
+            }
+        }
+
+        List<Deploy> deploysWhenGoing = deployService.searchDeploy(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
+
+        if(deploysWhenGoing.isEmpty() == true) {
+            model.addAttribute("emptyWhenGoing", true);
+            return "schedule";
+        }
+        model.addAttribute("deploysWhenGoing", deploysWhenGoing);
         return "schedule";
     }
 

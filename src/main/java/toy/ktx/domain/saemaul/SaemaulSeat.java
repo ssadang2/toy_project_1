@@ -13,7 +13,7 @@ public class SaemaulSeat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "room_id")
     private SaemaulRoom saemaulRoom;
 

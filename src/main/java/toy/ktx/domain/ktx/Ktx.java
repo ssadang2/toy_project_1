@@ -14,4 +14,10 @@ public class Ktx extends Train {
     @OneToMany(mappedBy = "ktx")
     private List<KtxRoom> ktxRooms = new ArrayList<>();
 
+    public Ktx() {
+    }
+
+    public Ktx(String trainName) {
+        super(trainName);
+    }
 }

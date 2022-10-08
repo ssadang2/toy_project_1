@@ -3,6 +3,7 @@ package toy.ktx.domain;
 import lombok.Data;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,11 +15,11 @@ public class Deploy {
     private Long id;
 
     @Column(name = "departure_time")
-    @NotBlank
+    @NotNull
     private LocalDateTime departureTime;
 
     @Column(name = "arrival_time")
-    @NotBlank
+    @NotNull
     private LocalDateTime arrivalTime;
 
     @Column(name = "departure_place")
@@ -35,4 +36,15 @@ public class Deploy {
     @ManyToOne
     @JoinColumn(name = "train_id")
     private Train train;
+
+    public Deploy() {
+    }
+
+    public Deploy(LocalDateTime departureTime, LocalDateTime arrivalTime, String departurePlace, String arrivalPlace, Train train) {
+        this.departureTime = departureTime;
+        this.arrivalTime = arrivalTime;
+        this.departurePlace = departurePlace;
+        this.arrivalPlace = arrivalPlace;
+        this.train = train;
+    }
 }

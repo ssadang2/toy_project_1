@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<link th:href = "@{../css/bootstrap.min.css}" rel = "stylesheet">
+<head>
+    <meta charset="UTF-8">
+    <title>ERROR 404</title>
+</head>
+<body>
+    <h2 class="text-center text-danger">해당 페이지를 찾지 못했습니다.
+    </h2>
+    <h2 class="text-center text-danger">
+        주소가 잘못되었거나 더 이상 제공되지 않는 페이지입니다.
+    </h2>
+    <br><br>
+
+    <div class="container">
+        <div class="d-flex flex-row-reverse bd-highlight">
+            <div class="p-2 bd-highlight">
+                <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/}'|">홈으로 가기</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
