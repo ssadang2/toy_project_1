@@ -1,14 +1,17 @@
 package toy.ktx.domain;
 
 import lombok.Data;
+import lombok.ToString;
+
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
 @Table(name = "train")
-//@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 @Data
+@ToString(exclude = "deploys")
+//toString stackOverFlow 막으려고
 public class Train {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

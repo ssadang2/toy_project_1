@@ -26,7 +26,6 @@ public class HomeController {
         model.addAttribute("minDateTime", LocalDateTime.now());
         model.addAttribute("maxDateTime", LocalDateTime.now().plusDays(30));
 
-
         if(member == null) {
             model.addAttribute("notLogin", true);
             return "index";

@@ -42,3 +42,6 @@ src/main/java/toy/ktx/Main.java
 
 ### 필요 없는 Test ###
 src/test/java/toy/ktx/TempTest.java
+
+### enum test용 객체 ###
+src/main/java/toy/ktx/domain/enums/Temp.java

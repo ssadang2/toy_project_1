@@ -11,12 +11,15 @@ import toy.ktx.domain.Deploy;
 import toy.ktx.domain.Member;
 import toy.ktx.domain.constant.SessionConst;
 import toy.ktx.domain.constant.StationsConst;
+import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.ScheduleForm;
 import toy.ktx.service.DeployService;
 
 import javax.validation.Valid;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,6 +33,7 @@ public class ScheduleController {
     @PostMapping("/schedule")
     public String getSchedule(@Valid @ModelAttribute ScheduleForm scheduleForm,
                               BindingResult bindingResult,
+                              @ModelAttribute DeployForm deployForm,
                               Model model,
                               @SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member member) {
 
@@ -54,13 +58,11 @@ public class ScheduleController {
         }
 
         if(scheduleForm.getRound() == true && scheduleForm.getDateOfLeaving() != "") {
-            log.info("아 시발={}", !StringUtils.hasText(scheduleForm.getDateOfLeaving()));
             String dateTimeOfLeaving = scheduleForm.getDateOfLeaving() + " " + scheduleForm.getTimeOfLeaving();
             after = getLocalDateTime(dateTimeOfLeaving);
         }
 
         if(scheduleForm.getRound() == true && after != null && before.isAfter(after)) {
-            log.info("여기 걸림?");
             bindingResult.reject("leavingIsBeforeGoing", null);
         }
 
@@ -97,22 +99,37 @@ public class ScheduleController {
                 if(deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("emptyWhenComing", true);
-
+                    return "schedule";
                 }
                 if(deploysWhenGoing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
+                    model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
+                    model.addAttribute("round", true);
+                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+                    return "schedule";
                 }
                 if(deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+                    model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
+                    model.addAttribute("round", true);
+                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+                    return "schedule";
                 }
-                return "schedule";
             }
 
             if(deploysWhenGoing.isEmpty() == false && deploysWhenComing.isEmpty() == false) {
                 model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                 model.addAttribute("deploysWhenComing", deploysWhenComing);
+
+                model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
+                model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
+
+                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+                deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+
+                model.addAttribute("round", true);
                 return "schedule";
             }
         }
@@ -124,18 +141,39 @@ public class ScheduleController {
             return "schedule";
         }
         model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+        model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
+        model.addAttribute("round", false);
+        deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
         return "schedule";
     }
 
+//    reservationController 만든다면 거기 있어야 하는 Router
 
-    @GetMapping("/reservation")
-    @ResponseBody
-    public String doReservation() {
-        return "200";
-    }
+//    @GetMapping("/reservation")
+//    @ResponseBody
+//    public String doReservation() {
+//        return "200";
+//    }
 
     private LocalDateTime getLocalDateTime(String dateTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         return LocalDateTime.parse(dateTime, formatter);
+    }
+
+    public List<String> getDuration(List<Deploy> deploys) {
+        List<String> durations = new ArrayList<>();
+        for (Deploy deploy : deploys) {
+            LocalDateTime departureTime = deploy.getDepartureTime();
+            LocalDateTime arrivalTime = deploy.getArrivalTime();
+
+            Duration duration = Duration.between(departureTime, arrivalTime);
+
+            long toMinute = duration.getSeconds() / Long.valueOf(60);
+            long hour = toMinute / Long.valueOf(60);
+            long minute = toMinute % Long.valueOf(60);
+
+            durations.add(hour + "시간 " + minute + "분");
+        }
+        return durations;
     }
 }

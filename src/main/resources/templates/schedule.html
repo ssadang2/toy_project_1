@@ -8,7 +8,7 @@
 <body>
     <h2 class="text-center">시간표</h2><br><br>
 
-    <form th:action="@{/reservation}" method="post">
+    <form th:action="@{/seat}" method="post">
         <div th:if="${emptyWhenGoing == true}" class="container">
             <h4 class="text-center">가는날 기차</h4><br><br>
 
@@ -21,17 +21,28 @@
             </div>
         </div>
 
-        <div th:if="${deploysWhenComing != null}" class="container">
+        <div th:if="${deploysWhenGoing != null}" class="container">
             <h4 class="text-center">가는날 기차</h4><br><br>
 
-            <div th:each="deploy: ${deploysWhenGoing}">
-                <p th:text="${deploy.train.trainName}"></p>
-                <p th:text="${deploy.departurePlace}"></p>
-                <p th:text="${deploy.departureTime}"></p>
-                <p th:text="${deploy.arrivalPlace}"></p>
-                <p th:text="${deploy.arrivalTime}"></p>
-                <br><br>
-            </div>
+            <h4 th:text="|${deploysWhenGoing[0].departurePlace} --> ${deploysWhenGoing[0].arrivalPlace}|" class="text-secondary text-center"></h4><br>
+            <h4 th:text="|${#temporals.monthName(deploysWhenGoing[0].departureTime)} ${#temporals.day(deploysWhenGoing[0].departureTime)}일 (${#temporals.dayOfWeekNameShort(deploysWhenGoing[0].departureTime)})|" class="text-secondary text-center"></h4><br>
+
+
+            <th:block th:each="deploy, deployStat : ${deploysWhenGoing}">
+                <div class="row border border-secondary align-items-center">
+                    <div class="col-8 text-center">
+                        <p th:text="${deploy.train.trainName}"></p>
+                        <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                        <span th:text="${durationsWhenGoing[deployStat.index]}"></span><br><br>
+                        <p th:text="|일반 예매가능 특 예매가능|"></p>
+                    </div>
+
+                    <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfGoing')}" th:text="예매하기"></label>
+                    </div>
+                </div><br><br>
+            </th:block>
 
         </div><br><br>
 
@@ -47,25 +58,36 @@
             </div>
         </div>
 
-        <div th:if="${emptyWhenComing != true && deploysWhenComing != null}" class="container">
+        <div th:if="${deploysWhenComing != null}" class="container">
             <h4 class="text-center">오는날 기차</h4><br><br>
 
-            <div th:each="deploy: ${deploysWhenComing}">
-                <p th:text="${deploy.train.trainName}"></p>
-                <p th:text="${deploy.departurePlace}"></p>
-                <p th:text="${deploy.departureTime}"></p>
-                <p th:text="${deploy.arrivalPlace}"></p>
-                <p th:text="${deploy.arrivalTime}"></p>
-                <br><br>
-            </div>
+            <h4 th:text="|${deploysWhenComing[0].departurePlace} --> ${deploysWhenComing[0].arrivalPlace}|" class="text-secondary text-center"></h4><br>
+            <h4 th:text="|${#temporals.monthName(deploysWhenComing[0].departureTime)} ${#temporals.day(deploysWhenComing[0].departureTime)}일 (${#temporals.dayOfWeekNameShort(deploysWhenComing[0].departureTime)})|" class="text-secondary text-center"></h4><br>
+
+            <th:block th:each="deploy, deployStat : ${deploysWhenComing}">
+                <div class="row border border-secondary align-items-center">
+                    <div class="col-8 text-center">
+                        <p th:text="${deploy.train.trainName}"></p>
+                        <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                        <span th:text="${durationsWhenComing[deployStat.index]}"></span><br><br>
+                        <p th:text="|일반 예매가능 특 예매가능|"></p>
+                    </div>
+
+                    <div class="form-check col-4 text-center">
+                        <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}">
+                        <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfComing')}" th:text="예매하기"></label>
+                    </div>
+                </div><br><br>
+            </th:block>
         </div>
 
         <div th:if="${(emptyWhenComing == true and emptyWhenGoing != true) or (emptyWhenComing != true and emptyWhenGoing != true)}" class="d-flex flex-row-reverse bd-highlight">
             <div class="p-2 bd-highlight">
                 <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/}'|">홈으로 가기</button>
             </div>
+
             <div class="p-2 bd-highlight">
-                <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/sign-up}'|">좌석 선택하기</button>
+                <button type="submit" class="btn btn-secondary">좌석 선택하기</button>
             </div>
         </div>
     </form>

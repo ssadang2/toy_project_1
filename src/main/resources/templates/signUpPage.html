@@ -35,8 +35,13 @@
                 <div th:errors="*{age}" class="text-danger"></div>
             </div><br>
 
-            <div class="d-flex flex-row-reverse bd-highlight">
-                <button type="submit" class="btn btn-secondary">회원가입</button>
+            <div class="d-flex flex-row-reverse">
+                <div class="p-2">
+                    <button type="submit" class="btn btn-secondary">회원가입</button>
+                </div>
+                <div class="p-2">
+                    <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/}'|">홈으로 가기</button>
+                </div>
             </div>
         </form>
     </div>
