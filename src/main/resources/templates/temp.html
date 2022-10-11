@@ -10,10 +10,10 @@
     <style>
         .list {
         }
-        .list li {
+        .list div {
           opacity: 1;
         }
-        .list li.is-hidden {
+        .list div.is-hidden {
           opacity: 0;
           height: 0;
           margin: 0;
@@ -22,41 +22,34 @@
 </head>
 
 <body>
-    <ul class="list">
-        <li>item1</li>
-        <li>item2</li>
-        <li>item3</li>
-        <li>item4</li>
-        <li>item5</li>
-        <li>item6</li>
-        <li>item7</li>
-        <li>item8</li>
-        <li>item9</li>
-        <li>item10</li>
-        <li>item11</li>
-        <li>item12</li>
-        <li>item13</li>
-        <li>item14</li>
-        <li>item15</li>
-        <li>item16</li>
-        <li>item17</li>
-        <li>item18</li>
-        <li>item19</li>
-        <li>item20</li>
-        <li>item21</li>
-    </ul>
+    <div class="list">
+
+        <div>item1</div>
+        <div>item1</div>
+
+        <div>item1</div>
+
+        <div>item1</div>
+
+        <div>item1</div>
+        <div>item1</div>
+        <div>item1</div>
+        <div>item1</div>
+        <div>item1</div>
+        <div>item1</div>
+    </div>
 
     <div class="more">
-        <button>더보기</button>
+        <button type="button">더보기</button>
     </div>
 
     <!-- jquery를 이용한 더보기 버튼 구현    -->
     <script>
-        var moreNum = 6; //6개 씩 보여주기
-        $(".list li:nth-child(n + " + (moreNum + 1) + ")").addClass("is-hidden");
+        var moreNum = 2; //2개 씩 보여주기
+        $(".list div:nth-child(n + " + (moreNum + 1) + ")").addClass("is-hidden");
         $(".more").on("click", function () {
-          $(".list li.is-hidden").slice(0, moreNum).removeClass("is-hidden");
-          if ($(".list li.is-hidden").length == 0) {
+          $(".list div.is-hidden").slice(0, moreNum).removeClass("is-hidden");
+          if ($(".list div.is-hidden").length == 0) {
             $(".more").fadeOut();
           }
         });

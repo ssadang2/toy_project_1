@@ -1,9 +1,35 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <link th:href = "@{../css/bootstrap.min.css}" rel = "stylesheet">
+<!--더보기 버튼을 위한 jquery source-->
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <head>
     <meta charset="UTF-8">
     <title>schedule</title>
+    <style>
+        .list1 {
+        }
+        .list1 div {
+          opacity: 1;
+        }
+        .list1 div.is-hidden {
+          opacity: 0;
+          height: 0;
+          margin: 0;
+        }
+
+        .list2 {
+        }
+        .list2 div {
+          opacity: 1;
+        }
+        .list2 div.is-hidden {
+          opacity: 0;
+          height: 0;
+          margin: 0;
+        }
+    </style>
 </head>
 <body>
     <h2 class="text-center">시간표</h2><br><br>
@@ -27,7 +53,7 @@
             <h4 th:text="|${deploysWhenGoing[0].departurePlace} --> ${deploysWhenGoing[0].arrivalPlace}|" class="text-secondary text-center"></h4><br>
             <h4 th:text="|${#temporals.monthName(deploysWhenGoing[0].departureTime)} ${#temporals.day(deploysWhenGoing[0].departureTime)}일 (${#temporals.dayOfWeekNameShort(deploysWhenGoing[0].departureTime)})|" class="text-secondary text-center"></h4><br>
 
-
+            <div class="overflow-auto container list1" style="height: 500px;">
             <th:block th:each="deploy, deployStat : ${deploysWhenGoing}">
                 <div class="row border border-secondary align-items-center">
                     <div class="col-8 text-center">
@@ -38,12 +64,16 @@
                     </div>
 
                     <div class="form-check col-4 text-center">
-                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}">
-                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfGoing')}" th:text="예매하기"></label>
+                        <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}">
+                        <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfGoing')}" th:text="예매하기"></label>
                     </div>
                 </div><br><br>
             </th:block>
+            </div>
 
+            <div class="text-center more1">
+                <button type="button" class="btn btn-outline-secondary">더보기</button>
+            </div>
         </div><br><br>
 
         <div th:if="${emptyWhenComing == true}" class="container">
@@ -64,6 +94,7 @@
             <h4 th:text="|${deploysWhenComing[0].departurePlace} --> ${deploysWhenComing[0].arrivalPlace}|" class="text-secondary text-center"></h4><br>
             <h4 th:text="|${#temporals.monthName(deploysWhenComing[0].departureTime)} ${#temporals.day(deploysWhenComing[0].departureTime)}일 (${#temporals.dayOfWeekNameShort(deploysWhenComing[0].departureTime)})|" class="text-secondary text-center"></h4><br>
 
+            <div class="overflow-auto container list2" style="height: 500px;">
             <th:block th:each="deploy, deployStat : ${deploysWhenComing}">
                 <div class="row border border-secondary align-items-center">
                     <div class="col-8 text-center">
@@ -79,6 +110,11 @@
                     </div>
                 </div><br><br>
             </th:block>
+            </div>
+
+            <div class="text-center more2">
+                <button type="button" class="btn btn-outline-secondary">더보기</button>
+            </div>
         </div>
 
         <div th:if="${(emptyWhenComing == true and emptyWhenGoing != true) or (emptyWhenComing != true and emptyWhenGoing != true)}" class="d-flex flex-row-reverse bd-highlight">
@@ -92,5 +128,24 @@
         </div>
     </form>
 
+    <script>
+        var moreNum = 5; //5개 씩 보여주기
+        $(".list1 div:nth-child(n + " + (moreNum + 1) + ")").addClass("is-hidden");
+        $(".more1").on("click", function () {
+          $(".list1 div.is-hidden").slice(0, moreNum).removeClass("is-hidden");
+          if ($(".list1 div.is-hidden").length == 0) {
+            $(".more1").fadeOut();
+          }
+        });
+
+        $(".list2 div:nth-child(n + " + (moreNum + 1) + ")").addClass("is-hidden");
+        $(".more2").on("click", function () {
+          $(".list2 div.is-hidden").slice(0, moreNum).removeClass("is-hidden");
+          if ($(".list2 div.is-hidden").length == 0) {
+            $(".more2").fadeOut();
+          }
+        });
+    </script>
+    <script src="../js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
