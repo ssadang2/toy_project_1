@@ -7,6 +7,7 @@ import toy.ktx.domain.Deploy;
 import toy.ktx.repository.DeployRepository;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +30,12 @@ public class DeployService {
     public List<Deploy> searchDeploy(String departurePlace, String arrivalPlace,
                                      LocalDateTime departureTime) {
 
-        return deployRepository.searchDeploy(departurePlace, arrivalPlace, departureTime);
+        int year = departureTime.getYear();
+        int monthValue = departureTime.getMonthValue();
+        int dayOfMonth = departureTime.getDayOfMonth();
+
+        LocalDateTime until = LocalDateTime.of(year, monthValue, dayOfMonth, 23, 59, 59);
+
+        return deployRepository.searchDeploy(departurePlace, arrivalPlace, departureTime, until);
     }
 }

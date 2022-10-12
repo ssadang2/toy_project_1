@@ -49,7 +49,8 @@ public class ScheduleController {
         }
 
         if(scheduleForm.getDateOfGoing() != "") {
-            String dateTimeOfGoing = scheduleForm.getDateOfGoing() + " " + scheduleForm.getTimeOfGoing();
+            String dateTimeOfGoing = scheduleForm.getDateOfGoing() + "T" + scheduleForm.getTimeOfGoing();
+            model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
             before = getLocalDateTime(dateTimeOfGoing);
         }
 
@@ -58,7 +59,8 @@ public class ScheduleController {
         }
 
         if(scheduleForm.getRound() == true && scheduleForm.getDateOfLeaving() != "") {
-            String dateTimeOfLeaving = scheduleForm.getDateOfLeaving() + " " + scheduleForm.getTimeOfLeaving();
+            String dateTimeOfLeaving = scheduleForm.getDateOfLeaving() + "T" + scheduleForm.getTimeOfLeaving();
+            model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
             after = getLocalDateTime(dateTimeOfLeaving);
         }
 
@@ -90,6 +92,13 @@ public class ScheduleController {
             return "index";
         }
 
+        model.addAttribute("departurePlace", scheduleForm.getDeparturePlace());
+        model.addAttribute("arrivalPlace", scheduleForm.getArrivalPlace());
+        model.addAttribute("round", scheduleForm.getRound());
+        model.addAttribute("before", before);
+        model.addAttribute("after", after);
+
+
         if(scheduleForm.getRound() == true) {
             List<Deploy> deploysWhenGoing = deployService.searchDeploy(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
             //오는 날에는 가는 날의 출발지가 도착지고 도착지가 출발지임 따라서 getArrivalPlace가 departurePlace(출발지)에 위치해야 됨
@@ -101,19 +110,19 @@ public class ScheduleController {
                     model.addAttribute("emptyWhenComing", true);
                     return "schedule";
                 }
+
                 if(deploysWhenGoing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
                     model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
-                    model.addAttribute("round", true);
                     deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
                     return "schedule";
                 }
+
                 if(deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                     model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-                    model.addAttribute("round", true);
                     deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
                     return "schedule";
                 }
@@ -129,7 +138,6 @@ public class ScheduleController {
                 deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
                 deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
 
-                model.addAttribute("round", true);
                 return "schedule";
             }
         }
@@ -140,27 +148,19 @@ public class ScheduleController {
             model.addAttribute("emptyWhenGoing", true);
             return "schedule";
         }
+
         model.addAttribute("deploysWhenGoing", deploysWhenGoing);
         model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-        model.addAttribute("round", false);
         deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
         return "schedule";
     }
 
-//    reservationController 만든다면 거기 있어야 하는 Router
-
-//    @GetMapping("/reservation")
-//    @ResponseBody
-//    public String doReservation() {
-//        return "200";
-//    }
-
     private LocalDateTime getLocalDateTime(String dateTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
         return LocalDateTime.parse(dateTime, formatter);
     }
 
-    public List<String> getDuration(List<Deploy> deploys) {
+    private List<String> getDuration(List<Deploy> deploys) {
         List<String> durations = new ArrayList<>();
         for (Deploy deploy : deploys) {
             LocalDateTime departureTime = deploy.getDepartureTime();

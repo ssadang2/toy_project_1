@@ -32,11 +32,23 @@
     </style>
 </head>
 <body>
-    <h2 class="text-center">시간표</h2><br><br>
-
     <form th:action="@{/seat}" method="post">
+        <h2 class="text-center">시간표</h2><br><br>
+
         <div th:if="${emptyWhenGoing == true}" class="container">
             <h4 class="text-center">가는날 기차</h4><br><br>
+
+            <div class="row">
+                <div class="col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="prevGoing" value="prevGoing"><</button>
+                </div>
+
+                <h4 th:text="|${#temporals.monthName(before)} ${#temporals.day(before)}일 (${#temporals.dayOfWeekNameShort(before)})|" class="text-secondary text-center col-8"></h4><br>
+
+                <div class=" col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="nextGoing" value="nextGoing">></button>
+                </div>
+            </div><br>
 
             <h2 class="text-center">이용 가능한 노선이 없습니다.</h2>
             <h2 class="text-center">출발 · 도착 위치와 시간을 확인하고,</h2>
@@ -51,7 +63,18 @@
             <h4 class="text-center">가는날 기차</h4><br><br>
 
             <h4 th:text="|${deploysWhenGoing[0].departurePlace} --> ${deploysWhenGoing[0].arrivalPlace}|" class="text-secondary text-center"></h4><br>
-            <h4 th:text="|${#temporals.monthName(deploysWhenGoing[0].departureTime)} ${#temporals.day(deploysWhenGoing[0].departureTime)}일 (${#temporals.dayOfWeekNameShort(deploysWhenGoing[0].departureTime)})|" class="text-secondary text-center"></h4><br>
+
+            <div class="row">
+                <div class="col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="prevGoing" value="prevGoing"><</button>
+                </div>
+
+                <h4 th:text="|${#temporals.monthName(before)} ${#temporals.day(before)}일 (${#temporals.dayOfWeekNameShort(before)})|" class="text-secondary text-center col-8"></h4><br>
+
+                <div class=" col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="nextGoing" value="nextGoing">></button>
+                </div>
+            </div><br>
 
             <div class="overflow-auto container list1" style="height: 500px;">
             <th:block th:each="deploy, deployStat : ${deploysWhenGoing}">
@@ -74,10 +97,23 @@
             <div class="text-center more1">
                 <button type="button" class="btn btn-outline-secondary">더보기</button>
             </div>
+
         </div><br><br>
 
         <div th:if="${emptyWhenComing == true}" class="container">
             <h4 class="text-center">오는날 기차</h4><br><br>
+
+            <div class="row">
+                <div class="col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="prevGoing" value="prevGoing"><</button>
+                </div>
+
+                <h4 th:text="|${#temporals.monthName(after)} ${#temporals.day(after)}일 (${#temporals.dayOfWeekNameShort(after)})|" class="text-secondary text-center col-8"></h4><br>
+
+                <div class=" col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="nextGoing" value="nextGoing">></button>
+                </div>
+            </div><br>
 
             <h2 class="text-center">이용 가능한 노선이 없습니다.</h2>
             <h2 class="text-center">출발 · 도착 위치와 시간을 확인하고,</h2>
@@ -92,7 +128,18 @@
             <h4 class="text-center">오는날 기차</h4><br><br>
 
             <h4 th:text="|${deploysWhenComing[0].departurePlace} --> ${deploysWhenComing[0].arrivalPlace}|" class="text-secondary text-center"></h4><br>
-            <h4 th:text="|${#temporals.monthName(deploysWhenComing[0].departureTime)} ${#temporals.day(deploysWhenComing[0].departureTime)}일 (${#temporals.dayOfWeekNameShort(deploysWhenComing[0].departureTime)})|" class="text-secondary text-center"></h4><br>
+
+            <div class="row">
+                <div class="col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="prevComing" value="prevComing"><</button>
+                </div>
+
+                <h4 th:text="|${#temporals.monthName(after)} ${#temporals.day(after)}일 (${#temporals.dayOfWeekNameShort(after)})|" class="text-secondary text-center col-8"></h4><br>
+
+                <div class=" col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="nextComing" value="nextComing">></button>
+                </div>
+            </div>
 
             <div class="overflow-auto container list2" style="height: 500px;">
             <th:block th:each="deploy, deployStat : ${deploysWhenComing}">
@@ -117,7 +164,13 @@
             </div>
         </div>
 
-        <div th:if="${(emptyWhenComing == true and emptyWhenGoing != true) or (emptyWhenComing != true and emptyWhenGoing != true)}" class="d-flex flex-row-reverse bd-highlight">
+        <input type="hidden" name="dateTimeOfGoing" th:value="${dateTimeOfGoing}">
+        <input type="hidden" name="dateTimeOfLeaving" th:value="${dateTimeOfLeaving}">
+        <input type="hidden" name="departurePlace" th:value="${departurePlace}">
+        <input type="hidden" name="arrivalPlace" th:value="${arrivalPlace}">
+        <input type="hidden" name="round" th:value="${round}">
+
+        <div th:if="${(round == true && emptyWhenGoing != true && emptyWhenComing != true) or (round == false && emptyWhenGoing != true)}" class="d-flex flex-row-reverse bd-highlight">
             <div class="p-2 bd-highlight">
                 <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/}'|">홈으로 가기</button>
             </div>

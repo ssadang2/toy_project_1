@@ -15,7 +15,7 @@ public interface DeployRepository extends JpaRepository<Deploy, Long> {
 //    );
 
     @Query("select d from Deploy d where d.departurePlace = :departurePlace and d.arrivalPlace = :arrivalPlace" +
-            " and d.departureTime >= :departureTime")
+            " and d.departureTime between :departureTime and :until")
     List<Deploy> searchDeploy(@Param("departurePlace") String departurePlace, @Param("arrivalPlace") String arrivalPlace,
-                                     @Param("departureTime") LocalDateTime departureTime);
+                                     @Param("departureTime") LocalDateTime departureTime, @Param("until") LocalDateTime until);
 }
