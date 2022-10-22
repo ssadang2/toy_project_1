@@ -32,8 +32,12 @@
     </style>
 </head>
 <body>
-    <form th:action="@{/seat}" method="post">
+    <form th:action="@{/seat}" method="post" th:object="${deployForm}">
         <h2 class="text-center">시간표</h2><br><br>
+
+        <div th:if="${#fields.hasGlobalErrors()}">
+            <h4 th:each="err : ${#fields.globalErrors()}" th:text = "${err}" class="text-danger text-center"></h4>
+        </div><br>
 
         <div th:if="${emptyWhenGoing == true}" class="container">
             <h4 class="text-center">가는날 기차</h4><br><br>
@@ -100,18 +104,20 @@
 
         </div><br><br>
 
+        <!--오는 날-->
+
         <div th:if="${emptyWhenComing == true}" class="container">
             <h4 class="text-center">오는날 기차</h4><br><br>
 
             <div class="row">
                 <div class="col-2 text-center">
-                    <button type="submit" class="btn btn-outline-secondary" name="prevGoing" value="prevGoing"><</button>
+                    <button type="submit" class="btn btn-outline-secondary" name="prevComing" value="prevComing"><</button>
                 </div>
 
                 <h4 th:text="|${#temporals.monthName(after)} ${#temporals.day(after)}일 (${#temporals.dayOfWeekNameShort(after)})|" class="text-secondary text-center col-8"></h4><br>
 
                 <div class=" col-2 text-center">
-                    <button type="submit" class="btn btn-outline-secondary" name="nextGoing" value="nextGoing">></button>
+                    <button type="submit" class="btn btn-outline-secondary" name="nextComing" value="nextComing">></button>
                 </div>
             </div><br>
 

@@ -36,6 +36,11 @@ public class DeployService {
 
         LocalDateTime until = LocalDateTime.of(year, monthValue, dayOfMonth, 23, 59, 59);
 
+        // 출발 시간이 1시간 단위더라도 이미 지나간 시간대는 걸러줘야 됨
+        if (departureTime.format(DateTimeFormatter.ISO_DATE).equals(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE))) {
+            departureTime = LocalDateTime.now();
+        }
+
         return deployRepository.searchDeploy(departurePlace, arrivalPlace, departureTime, until);
     }
 }

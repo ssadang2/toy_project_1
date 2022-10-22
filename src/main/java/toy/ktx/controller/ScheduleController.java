@@ -95,8 +95,8 @@ public class ScheduleController {
         model.addAttribute("departurePlace", scheduleForm.getDeparturePlace());
         model.addAttribute("arrivalPlace", scheduleForm.getArrivalPlace());
         model.addAttribute("round", scheduleForm.getRound());
-        model.addAttribute("before", before);
-        model.addAttribute("after", after);
+        model.addAttribute("before", before); //출발하는 날
+        model.addAttribute("after", after); //오는 날
 
 
         if(scheduleForm.getRound() == true) {

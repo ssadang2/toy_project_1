@@ -1,7 +1,6 @@
 package toy.ktx.controller;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,14 +10,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import toy.ktx.domain.Deploy;
 import toy.ktx.domain.dto.DeployForm;
-import toy.ktx.domain.dto.ScheduleForm;
 import toy.ktx.service.DeployService;
 import toy.ktx.service.KtxRoomService;
 import toy.ktx.service.KtxSeatService;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +31,7 @@ public class SeatController {
 
     @PostMapping("/seat")
     public String chooseSeat(@ModelAttribute DeployForm deployForm,
+                             BindingResult bindingResult,
                              @RequestParam(required = false) String prevGoing,
                              @RequestParam(required = false) String nextGoing,
                              @RequestParam(required = false) String prevComing,
@@ -45,29 +43,9 @@ public class SeatController {
                              @RequestParam(required = false) Boolean round,
                              Model model) {
 
-        log.info("시발={}", prevGoing);
-        log.info("시발={}", nextGoing);
-        log.info("시발={}", prevComing);
-        log.info("시발={}", nextComing);
-        log.info("시발={}", dateTimeOfGoing);
-        log.info("시발={}", dateTimeOfLeaving);
-        log.info("시발={}", departurePlace);
-        log.info("시발={}", arrivalPlace);
-        log.info("시발={}", round);
-
         model.addAttribute("departurePlace", departurePlace);
         model.addAttribute("arrivalPlace", arrivalPlace);
         model.addAttribute("round", round);
-
-        boolean seat;
-
-        if(prevGoing == null && nextGoing == null && prevComing == null && nextComing == null){
-            seat = true;
-        }
-
-        else {
-            seat = false;
-        }
 
         if(round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
@@ -77,208 +55,351 @@ public class SeatController {
             //오는 날에는 가는 날의 출발지가 도착지고 도착지가 출발지임 따라서 getArrivalPlace가 departurePlace(출발지)에 위치해야 됨
             List<Deploy> deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, afterDateTime);
 
-            if(deploysWhenGoing.isEmpty() == true || deploysWhenComing.isEmpty() == true) {
-                //TODO 여기를 잘못 짬 이미 deploys 목록 갱신했는데 그걸 가지고 다시 분기하고 있음
-                if(prevGoing != null) {
-                    LocalDateTime newTime = beforeDateTime.minusDays(1);
+            LocalDateTime dateTime = null;
+            Boolean noBefore = false;
+            Boolean noAfter = false;
+
+            if(prevGoing != null) {
+                LocalDateTime newTime = beforeDateTime.minusDays(1);
+
+                if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() != LocalDateTime.now().getDayOfMonth()) {
+                    bindingResult.reject("noBefore", null);
+
+                    model.addAttribute("before", beforeDateTime);
+                    model.addAttribute("after", afterDateTime);
+
+                    dateTime = beforeDateTime;
+                    noBefore = true;
+                }
+
+                else {
                     model.addAttribute("before", newTime);
+                    model.addAttribute("after", afterDateTime);
 
                     int year = newTime.getYear();
                     int monthValue = newTime.getMonthValue();
                     int dayOfMonth = newTime.getDayOfMonth();
 
-                    LocalDateTime dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                    dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
                     deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
-
-                    model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
                 }
 
-                if(nextGoing != null) {
-                    LocalDateTime newTime = beforeDateTime.plusDays(1);
+                if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() == LocalDateTime.now().getDayOfMonth()) {
                     model.addAttribute("before", newTime);
+                    model.addAttribute("after", afterDateTime);
 
-                    int year = newTime.getYear();
-                    int monthValue = newTime.getMonthValue();
-                    int dayOfMonth = newTime.getDayOfMonth();
+                    dateTime = LocalDateTime.now();
 
-                    LocalDateTime dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
                     deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
-
-                    model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
                 }
 
-                if(prevComing != null) {
-                    LocalDateTime newTime = afterDateTime.minusDays(1);
-                    model.addAttribute("after", newTime);
-
-
-                    int year = newTime.getYear();
-                    int monthValue = newTime.getMonthValue();
-                    int dayOfMonth = newTime.getDayOfMonth();
-
-                    LocalDateTime dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
-
-                    model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
-                    model.addAttribute("dateTimeOfLeaving", dateTime.toString());
-                }
-
-                if(nextComing != null) {
-                    LocalDateTime newTime = afterDateTime.plusDays(1);
-                    model.addAttribute("after", newTime);
-
-                    int year = newTime.getYear();
-                    int monthValue = newTime.getMonthValue();
-                    int dayOfMonth = newTime.getDayOfMonth();
-
-                    LocalDateTime dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
-
-                    model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
-                    model.addAttribute("dateTimeOfLeaving", dateTime.toString());
-                }
-
-                if(deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true && seat == true) {
-                    return "chooseSeat";
-                }
-
-                if(deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true && seat == false) {
+                if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("emptyWhenComing", true);
+
+                    model.addAttribute("dateTimeOfGoing", dateTime.toString());
+                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
                     return "schedule";
                 }
 
-                if(deploysWhenGoing.isEmpty() == true && seat == true) {
-                    return "chooseSeat";
-                }
-
-                if(deploysWhenGoing.isEmpty() == true && seat == false) {
+                if (deploysWhenGoing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
-                    model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
 
+                    model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
                     deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+
+                    model.addAttribute("dateTimeOfGoing", dateTime.toString());
+                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
                     return "schedule";
                 }
 
-                if(deploysWhenComing.isEmpty() == true && seat == true) {
-                    return "chooseSeat";
-                }
-
-                if(deploysWhenComing.isEmpty() == true && seat == false) {
+                if (deploysWhenGoing.isEmpty() == false && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
-                    model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
 
+                    model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                     deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+
+                    model.addAttribute("dateTimeOfGoing", dateTime.toString());
+                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
                     return "schedule";
                 }
+
+                model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+                model.addAttribute("deploysWhenComing", deploysWhenComing);
+
+                model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
+                model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
+
+                model.addAttribute("dateTimeOfGoing", dateTime.toString());
+                model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+
+                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+                deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+                return "schedule";
             }
 
-            if(deploysWhenGoing.isEmpty() == false && deploysWhenComing.isEmpty() == false) {
-                if(prevGoing != null) {
-                    LocalDateTime newTime = beforeDateTime.minusDays(1);
+            if(nextGoing != null) {
+                LocalDateTime newTime = beforeDateTime.plusDays(1);
+
+                if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
+                    bindingResult.reject("noAfter", null);
+
+                    model.addAttribute("before", beforeDateTime);
+                    model.addAttribute("after", afterDateTime);
+
+                    dateTime = beforeDateTime;
+                    noAfter = true;
+                }
+
+                else {
                     model.addAttribute("before", newTime);
+                    model.addAttribute("after", afterDateTime);
 
                     int year = newTime.getYear();
                     int monthValue = newTime.getMonthValue();
                     int dayOfMonth = newTime.getDayOfMonth();
 
-                    LocalDateTime dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
-
-                    model.addAttribute("deploysWhenGoing", deploysWhenGoing);
-                    model.addAttribute("deploysWhenComing", deploysWhenComing);
-
-                    model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-                    model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
-
-                    model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
-
-                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
-                    return "schedule";
+                    dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                    deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
                 }
 
-                if(nextGoing != null) {
-                    LocalDateTime newTime = beforeDateTime.plusDays(1);
+                if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() == LocalDateTime.now().plusDays(30).getDayOfMonth()) {
                     model.addAttribute("before", newTime);
+                    model.addAttribute("after", afterDateTime);
 
-                    int year = newTime.getYear();
-                    int monthValue = newTime.getMonthValue();
-                    int dayOfMonth = newTime.getDayOfMonth();
+                    int year = LocalDateTime.now().plusDays(30).getYear();
+                    int monthValue = LocalDateTime.now().plusDays(30).getMonthValue();
+                    int dayOfMonth = LocalDateTime.now().plusDays(30).getDayOfMonth();
 
-                    LocalDateTime dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                    dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                    deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                }
 
-                    model.addAttribute("deploysWhenGoing", deploysWhenGoing);
-                    model.addAttribute("deploysWhenComing", deploysWhenComing);
-
-                    model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-                    model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
+                if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
+                    model.addAttribute("emptyWhenGoing", true);
+                    model.addAttribute("emptyWhenComing", true);
 
                     model.addAttribute("dateTimeOfGoing", dateTime.toString());
                     model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
-
-                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
                     return "schedule";
                 }
 
-                if(prevComing != null) {
-                    LocalDateTime newTime = afterDateTime.minusDays(1);
+                if (deploysWhenGoing.isEmpty() == true) {
+                    model.addAttribute("emptyWhenGoing", true);
+                    model.addAttribute("deploysWhenComing", deploysWhenComing);
+
+                    model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
+                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+
+                    model.addAttribute("dateTimeOfGoing", dateTime.toString());
+                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+                    return "schedule";
+                }
+
+                if (deploysWhenGoing.isEmpty() == false && deploysWhenComing.isEmpty() == true) {
+                    model.addAttribute("emptyWhenComing", true);
+                    model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+
+                    model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
+                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+
+                    model.addAttribute("dateTimeOfGoing", dateTime.toString());
+                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+                    return "schedule";
+                }
+
+                model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+                model.addAttribute("deploysWhenComing", deploysWhenComing);
+
+                model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
+                model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
+
+                model.addAttribute("dateTimeOfGoing", dateTime.toString());
+                model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+
+                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+                deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+                return "schedule";
+            }
+
+            if(prevComing != null) {
+                LocalDateTime newTime = afterDateTime.minusDays(1);
+
+                if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() != LocalDateTime.now().getDayOfMonth()) {
+                    bindingResult.reject("noBefore", null);
+
+                    model.addAttribute("before", beforeDateTime);
+                    model.addAttribute("after", afterDateTime);
+
+                    dateTime = beforeDateTime;
+                    noBefore = true;
+                }
+
+                else {
+                    model.addAttribute("before", beforeDateTime);
                     model.addAttribute("after", newTime);
 
                     int year = newTime.getYear();
                     int monthValue = newTime.getMonthValue();
                     int dayOfMonth = newTime.getDayOfMonth();
 
-                    LocalDateTime dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                    dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
                     deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                }
 
-                    model.addAttribute("deploysWhenGoing", deploysWhenGoing);
-                    model.addAttribute("deploysWhenComing", deploysWhenComing);
+                if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() == LocalDateTime.now().getDayOfMonth()) {
+                    model.addAttribute("before", beforeDateTime);
+                    model.addAttribute("after", newTime);
 
-                    model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-                    model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
+                    dateTime = LocalDateTime.now();
+
+                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                }
+
+                if (deploysWhenComing.isEmpty() == true && deploysWhenGoing.isEmpty() == true) {
+                    model.addAttribute("emptyWhenComing", true);
+                    model.addAttribute("emptyWhenGoing", true);
 
                     model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
                     model.addAttribute("dateTimeOfLeaving", dateTime.toString());
-
-                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
                     return "schedule";
                 }
 
-                if(nextComing != null) {
-                    LocalDateTime newTime = afterDateTime.plusDays(1);
+                if (deploysWhenComing.isEmpty() == true) {
+                    model.addAttribute("emptyWhenComing", true);
+                    model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+
+                    model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
+                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+
+                    model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
+                    model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+                    return "schedule";
+                }
+
+                if (deploysWhenComing.isEmpty() == false && deploysWhenGoing.isEmpty() == true) {
+                    model.addAttribute("emptyWhenGoing", true);
+                    model.addAttribute("deploysWhenComing", deploysWhenComing);
+
+                    model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
+                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+
+                    model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
+                    model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+                    return "schedule";
+                }
+
+                model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+                model.addAttribute("deploysWhenComing", deploysWhenComing);
+
+                model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
+                model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
+
+                model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
+                model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+
+                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+                deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+                return "schedule";
+            }
+
+            if(nextComing != null) {
+                LocalDateTime newTime = afterDateTime.plusDays(1);
+
+                if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
+                    bindingResult.reject("noAfter", null);
+
+                    model.addAttribute("before", beforeDateTime);
+                    model.addAttribute("after", afterDateTime);
+
+                    dateTime = beforeDateTime;
+                    noAfter = true;
+                }
+
+                else {
+                    model.addAttribute("before", beforeDateTime);
                     model.addAttribute("after", newTime);
 
                     int year = newTime.getYear();
                     int monthValue = newTime.getMonthValue();
                     int dayOfMonth = newTime.getDayOfMonth();
 
-                    LocalDateTime dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                    dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
                     deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                }
 
-                    model.addAttribute("deploysWhenGoing", deploysWhenGoing);
-                    model.addAttribute("deploysWhenComing", deploysWhenComing);
+                if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() == LocalDateTime.now().plusDays(30).getDayOfMonth()) {
+                    model.addAttribute("before", beforeDateTime);
+                    model.addAttribute("after", newTime);
 
-                    model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-                    model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
+                    int year = LocalDateTime.now().plusDays(30).getYear();
+                    int monthValue = LocalDateTime.now().plusDays(30).getMonthValue();
+                    int dayOfMonth = LocalDateTime.now().plusDays(30).getDayOfMonth();
+
+                    dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                }
+
+                model.addAttribute("after", newTime);
+                model.addAttribute("before", beforeDateTime);
+
+                int year = newTime.getYear();
+                int monthValue = newTime.getMonthValue();
+                int dayOfMonth = newTime.getDayOfMonth();
+
+                dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+
+                if (deploysWhenComing.isEmpty() == true && deploysWhenGoing.isEmpty() == true) {
+                    model.addAttribute("emptyWhenComing", true);
+                    model.addAttribute("emptyWhenGoing", true);
 
                     model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
                     model.addAttribute("dateTimeOfLeaving", dateTime.toString());
-
-                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
                     return "schedule";
                 }
-                return "chooseSeat";
+
+                if (deploysWhenComing.isEmpty() == true) {
+                    model.addAttribute("emptyWhenComing", true);
+                    model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+
+                    model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
+                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+
+                    model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
+                    model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+                    return "schedule";
+                }
+
+                if (deploysWhenComing.isEmpty() == false && deploysWhenGoing.isEmpty() == true) {
+                    model.addAttribute("emptyWhenGoing", true);
+                    model.addAttribute("deploysWhenComing", deploysWhenComing);
+
+                    model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
+                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+
+                    model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
+                    model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+                    return "schedule";
+                }
+
+                model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+                model.addAttribute("deploysWhenComing", deploysWhenComing);
+
+                model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
+                model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
+
+                model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
+                model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+
+                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+                deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+                return "schedule";
             }
+
+            return "chooseSeat";
         }
 // --------------------------------------------------------------------------------------------------------------------------
         LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
