@@ -1,19 +1,21 @@
 package toy.ktx.domain.ktx;
 
 import lombok.Data;
+import lombok.ToString;
 
 import javax.persistence.*;
 
 @Entity
 @Data
 @Table(name = "ktx_seat")
+@ToString(exclude = "ktxRoom")
 public class KtxSeat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
     private KtxRoom ktxRoom;
 
@@ -29,7 +31,7 @@ public class KtxSeat {
     private Boolean k10A;
     private Boolean k11A;
     private Boolean k12A;
-    private Boolean k31A;
+    private Boolean k13A;
     private Boolean k14A;
 
     private Boolean k1B;
@@ -44,7 +46,7 @@ public class KtxSeat {
     private Boolean k10B;
     private Boolean k11B;
     private Boolean k12B;
-    private Boolean k31B;
+    private Boolean k13B;
     private Boolean k14B;
 
     private Boolean k1C;
@@ -59,7 +61,7 @@ public class KtxSeat {
     private Boolean k10C;
     private Boolean k11C;
     private Boolean k12C;
-    private Boolean k31C;
+    private Boolean k13C;
     private Boolean k14C;
 
     private Boolean k1D;
@@ -74,13 +76,13 @@ public class KtxSeat {
     private Boolean k10D;
     private Boolean k11D;
     private Boolean k12D;
-    private Boolean k31D;
+    private Boolean k13D;
     private Boolean k14D;
 
     public KtxSeat() {
     }
 
-    public KtxSeat(KtxRoom ktxRoom, Boolean k1A, Boolean k2A, Boolean k3A, Boolean k4A, Boolean k5A, Boolean k6A, Boolean k7A, Boolean k8A, Boolean k9A, Boolean k10A, Boolean k11A, Boolean k12A, Boolean k31A, Boolean k14A, Boolean k1B, Boolean k2B, Boolean k3B, Boolean k4B, Boolean k5B, Boolean k6B, Boolean k7B, Boolean k8B, Boolean k9B, Boolean k10B, Boolean k11B, Boolean k12B, Boolean k31B, Boolean k14B, Boolean k1C, Boolean k2C, Boolean k3C, Boolean k4C, Boolean k5C, Boolean k6C, Boolean k7C, Boolean k8C, Boolean k9C, Boolean k10C, Boolean k11C, Boolean k12C, Boolean k31C, Boolean k14C, Boolean k1D, Boolean k2D, Boolean k3D, Boolean k4D, Boolean k5D, Boolean k6D, Boolean k7D, Boolean k8D, Boolean k9D, Boolean k10D, Boolean k11D, Boolean k12D, Boolean k31D, Boolean k14D) {
+    public KtxSeat(KtxRoom ktxRoom, Boolean k1A, Boolean k2A, Boolean k3A, Boolean k4A, Boolean k5A, Boolean k6A, Boolean k7A, Boolean k8A, Boolean k9A, Boolean k10A, Boolean k11A, Boolean k12A, Boolean k13A, Boolean k14A, Boolean k1B, Boolean k2B, Boolean k3B, Boolean k4B, Boolean k5B, Boolean k6B, Boolean k7B, Boolean k8B, Boolean k9B, Boolean k10B, Boolean k11B, Boolean k12B, Boolean k13B, Boolean k14B, Boolean k1C, Boolean k2C, Boolean k3C, Boolean k4C, Boolean k5C, Boolean k6C, Boolean k7C, Boolean k8C, Boolean k9C, Boolean k10C, Boolean k11C, Boolean k12C, Boolean k13C, Boolean k14C, Boolean k1D, Boolean k2D, Boolean k3D, Boolean k4D, Boolean k5D, Boolean k6D, Boolean k7D, Boolean k8D, Boolean k9D, Boolean k10D, Boolean k11D, Boolean k12D, Boolean k13D, Boolean k14D) {
         this.ktxRoom = ktxRoom;
         this.k1A = k1A;
         this.k2A = k2A;
@@ -94,7 +96,7 @@ public class KtxSeat {
         this.k10A = k10A;
         this.k11A = k11A;
         this.k12A = k12A;
-        this.k31A = k31A;
+        this.k13A = k13A;
         this.k14A = k14A;
         this.k1B = k1B;
         this.k2B = k2B;
@@ -108,7 +110,7 @@ public class KtxSeat {
         this.k10B = k10B;
         this.k11B = k11B;
         this.k12B = k12B;
-        this.k31B = k31B;
+        this.k13B = k13B;
         this.k14B = k14B;
         this.k1C = k1C;
         this.k2C = k2C;
@@ -122,7 +124,7 @@ public class KtxSeat {
         this.k10C = k10C;
         this.k11C = k11C;
         this.k12C = k12C;
-        this.k31C = k31C;
+        this.k13C = k13C;
         this.k14C = k14C;
         this.k1D = k1D;
         this.k2D = k2D;
@@ -136,7 +138,7 @@ public class KtxSeat {
         this.k10D = k10D;
         this.k11D = k11D;
         this.k12D = k12D;
-        this.k31D = k31D;
+        this.k13D = k13D;
         this.k14D = k14D;
     }
 }

@@ -19,11 +19,11 @@ public class KtxRoom {
     @Enumerated(EnumType.STRING)
     private Grade grade;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ktx_id")
     private Ktx ktx;
 
-    @OneToOne(mappedBy = "ktxRoom")
+    @OneToOne(mappedBy = "ktxRoom", fetch = FetchType.LAZY)
     private KtxSeat ktxSeat;
 
     public KtxRoom() {

@@ -1,5 +1,6 @@
 package toy.ktx.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -9,16 +10,23 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import toy.ktx.domain.Deploy;
+import toy.ktx.domain.Train;
 import toy.ktx.domain.dto.DeployForm;
+import toy.ktx.domain.ktx.Ktx;
+import toy.ktx.domain.ktx.KtxRoom;
+import toy.ktx.domain.ktx.KtxSeat;
 import toy.ktx.service.DeployService;
 import toy.ktx.service.KtxRoomService;
 import toy.ktx.service.KtxSeatService;
+import toy.ktx.service.KtxService;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @Slf4j
@@ -27,6 +35,7 @@ public class SeatController {
 
     private final KtxRoomService ktxRoomService;
     private final KtxSeatService ktxSeatService;
+    private final KtxService ktxService;
     private final DeployService deployService;
 
     @PostMapping("/seat")
@@ -399,6 +408,9 @@ public class SeatController {
                 return "schedule";
             }
 
+            model.addAttribute("deployOfGoing", deployForm.getDeployIdOfGoing());
+            model.addAttribute("deployOfComing", deployForm.getDeployIdOfComing());
+
             return "chooseSeat";
         }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -461,6 +473,28 @@ public class SeatController {
             deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
             return "schedule";
         }
+
+        Long deployId = deployForm.getDeployIdOfGoing();
+        Optional<Deploy> deploy = deployService.findDeploy(deployId);
+        Long trainId = deploy.get().getTrain().getId();
+
+        Ktx ktx = ktxService.findKtx(trainId).get();
+        List<KtxRoom> ktxRooms = ktxRoomService.findByKtx(ktx);
+        KtxRoom ktxRoom = ktxRooms.get(0);
+
+        Optional<KtxSeat> ktxSeat = ktxSeatService.findByKtxRoom(ktxRoom);
+        KtxSeat targetSeat = ktxSeat.get();
+        System.out.println("targetSeat = " + targetSeat);
+
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        Map map = objectMapper.convertValue(targetSeat, Map.class);
+//
+//        for (Object o : map.keySet()) {
+//            System.out.println("o = " + o);
+//        }
+
+        model.addAttribute("seat", targetSeat);
+        model.addAttribute("deployOfGoing", deployForm.getDeployIdOfGoing());
         return "chooseSeat";
     }
 

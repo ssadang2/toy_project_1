@@ -6,7 +6,392 @@
     <title>좌석 선택</title>
 </head>
 <body>
+    <h2 class="text-center">객실/좌석 선택</h2>
+
+    <!--지울 거임-->
     <p th:text="${deployOfGoing}"></p>
     <p th:text="${deployOfComing}"></p>
+
+    <div class="container">
+        <div class="row">
+            <div class="col text-center">
+                <button type="submit" class="btn btn-outline-secondary" name="room1" value="room1">1호차</button>
+            </div>
+
+            <div class="col text-center">
+                <button type="submit" class="btn btn-outline-secondary" name="room2" value="room2">2호차</button>
+            </div>
+
+            <div class="col text-center">
+                <button type="submit" class="btn btn-outline-secondary" name="room3" value="room3">3호차</button>
+            </div>
+
+            <div class="col text-center">
+                <button type="submit" class="btn btn-outline-secondary" name="room4" value="room4">4호차</button>
+            </div>
+
+            <div class="col text-center">
+                <button type="submit" class="btn btn-outline-secondary" name="room5" value="room5">5호차</button>
+            </div>
+        </div><br><br><br>
+
+        <div class="row">
+            <div class="col-3 text-center">
+                창측
+            </div>
+            <div class="col-3 text-center">
+                통로측
+            </div>
+            <div class="col-3 text-center">
+                통로측
+            </div>
+            <div class="col-3 text-center">
+                창측
+            </div><br><br>
+
+<!--            여기서부터 하면 됨-->
+            <th:block th:each="${seat}">
+                <div class="col-3 text-center">
+                    <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">
+                    <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">
+                    <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">
+                    <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">
+                    <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>
+                </div>
+            </th:block>
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
+<!--            </div>-->
+
+<!--            <div class="col-3 text-center">-->
+<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
+<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
+<!--            </div>-->
+        </div>
+    </div>
 </body>
 </html>

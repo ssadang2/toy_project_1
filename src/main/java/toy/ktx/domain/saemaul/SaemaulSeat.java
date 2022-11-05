@@ -29,7 +29,7 @@ public class SaemaulSeat {
     private Boolean k10A;
     private Boolean k11A;
     private Boolean k12A;
-    private Boolean k31A;
+    private Boolean k13A;
     private Boolean k14A;
 
     private Boolean k1B;
@@ -44,7 +44,7 @@ public class SaemaulSeat {
     private Boolean k10B;
     private Boolean k11B;
     private Boolean k12B;
-    private Boolean k31B;
+    private Boolean k13B;
     private Boolean k14B;
 
     private Boolean k1C;
@@ -59,7 +59,7 @@ public class SaemaulSeat {
     private Boolean k10C;
     private Boolean k11C;
     private Boolean k12C;
-    private Boolean k31C;
+    private Boolean k13C;
     private Boolean k14C;
 
     private Boolean k1D;
@@ -74,6 +74,6 @@ public class SaemaulSeat {
     private Boolean k10D;
     private Boolean k11D;
     private Boolean k12D;
-    private Boolean k31D;
+    private Boolean k13D;
     private Boolean k14D;
 }

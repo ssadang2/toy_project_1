@@ -98,7 +98,6 @@ public class ScheduleController {
         model.addAttribute("before", before); //출발하는 날
         model.addAttribute("after", after); //오는 날
 
-
         if(scheduleForm.getRound() == true) {
             List<Deploy> deploysWhenGoing = deployService.searchDeploy(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
             //오는 날에는 가는 날의 출발지가 도착지고 도착지가 출발지임 따라서 getArrivalPlace가 departurePlace(출발지)에 위치해야 됨
