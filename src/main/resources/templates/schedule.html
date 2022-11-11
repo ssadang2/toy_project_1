@@ -175,6 +175,12 @@
         <input type="hidden" name="arrivalPlace" th:value="${arrivalPlace}">
         <input type="hidden" name="round" th:value="${round}">
 
+        <!--객체 그냥 넘기려다가 th:value에는 스트링밖에 넣을 수 없는 걸 까먹음 -->
+        <input type="hidden" name="toddler" th:value="${passengerDto.toddler}">
+        <input type="hidden" name="kids" th:value="${passengerDto.kids}">
+        <input type="hidden" name="adult" th:value="${passengerDto.adult}">
+        <input type="hidden" name="senior" th:value="${passengerDto.senior}">
+
         <div th:if="${(round == true && emptyWhenGoing != true && emptyWhenComing != true) or (round == false && emptyWhenGoing != true)}" class="d-flex flex-row-reverse bd-highlight">
             <div class="p-2 bd-highlight">
                 <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/}'|">홈으로 가기</button>

@@ -10,11 +10,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import toy.ktx.domain.Deploy;
-import toy.ktx.domain.Train;
 import toy.ktx.domain.dto.DeployForm;
+import toy.ktx.domain.dto.PassengerDto;
+import toy.ktx.domain.dto.ScheduleForm;
+import toy.ktx.domain.dto.projections.SeatDto;
 import toy.ktx.domain.ktx.Ktx;
 import toy.ktx.domain.ktx.KtxRoom;
-import toy.ktx.domain.ktx.KtxSeat;
 import toy.ktx.service.DeployService;
 import toy.ktx.service.KtxRoomService;
 import toy.ktx.service.KtxSeatService;
@@ -23,10 +24,7 @@ import toy.ktx.service.KtxService;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 @Slf4j
@@ -37,6 +35,9 @@ public class SeatController {
     private final KtxSeatService ktxSeatService;
     private final KtxService ktxService;
     private final DeployService deployService;
+
+    private final String[] alpha = {"A", "B", "C", "D"};
+    Map seat = new HashMap();
 
     @PostMapping("/seat")
     public String chooseSeat(@ModelAttribute DeployForm deployForm,
@@ -50,13 +51,14 @@ public class SeatController {
                              @RequestParam(required = false) String departurePlace,
                              @RequestParam(required = false) String arrivalPlace,
                              @RequestParam(required = false) Boolean round,
+                             @ModelAttribute PassengerDto passengerDto,
                              Model model) {
 
         model.addAttribute("departurePlace", departurePlace);
         model.addAttribute("arrivalPlace", arrivalPlace);
         model.addAttribute("round", round);
 
-        if(round == true) {
+        if (round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
@@ -68,7 +70,7 @@ public class SeatController {
             Boolean noBefore = false;
             Boolean noAfter = false;
 
-            if(prevGoing != null) {
+            if (prevGoing != null) {
                 LocalDateTime newTime = beforeDateTime.minusDays(1);
 
                 if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() != LocalDateTime.now().getDayOfMonth()) {
@@ -79,9 +81,7 @@ public class SeatController {
 
                     dateTime = beforeDateTime;
                     noBefore = true;
-                }
-
-                else {
+                } else {
                     model.addAttribute("before", newTime);
                     model.addAttribute("after", afterDateTime);
 
@@ -149,7 +149,7 @@ public class SeatController {
                 return "schedule";
             }
 
-            if(nextGoing != null) {
+            if (nextGoing != null) {
                 LocalDateTime newTime = beforeDateTime.plusDays(1);
 
                 if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
@@ -160,9 +160,7 @@ public class SeatController {
 
                     dateTime = beforeDateTime;
                     noAfter = true;
-                }
-
-                else {
+                } else {
                     model.addAttribute("before", newTime);
                     model.addAttribute("after", afterDateTime);
 
@@ -233,7 +231,7 @@ public class SeatController {
                 return "schedule";
             }
 
-            if(prevComing != null) {
+            if (prevComing != null) {
                 LocalDateTime newTime = afterDateTime.minusDays(1);
 
                 if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() != LocalDateTime.now().getDayOfMonth()) {
@@ -244,9 +242,7 @@ public class SeatController {
 
                     dateTime = beforeDateTime;
                     noBefore = true;
-                }
-
-                else {
+                } else {
                     model.addAttribute("before", beforeDateTime);
                     model.addAttribute("after", newTime);
 
@@ -314,7 +310,7 @@ public class SeatController {
                 return "schedule";
             }
 
-            if(nextComing != null) {
+            if (nextComing != null) {
                 LocalDateTime newTime = afterDateTime.plusDays(1);
 
                 if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
@@ -325,9 +321,7 @@ public class SeatController {
 
                     dateTime = beforeDateTime;
                     noAfter = true;
-                }
-
-                else {
+                } else {
                     model.addAttribute("before", beforeDateTime);
                     model.addAttribute("after", newTime);
 
@@ -408,15 +402,26 @@ public class SeatController {
                 return "schedule";
             }
 
-            model.addAttribute("deployOfGoing", deployForm.getDeployIdOfGoing());
-            model.addAttribute("deployOfComing", deployForm.getDeployIdOfComing());
+            Long deployId = deployForm.getDeployIdOfGoing();
+            Optional<Deploy> deploy = deployService.findDeploy(deployId);
+            Long trainId = deploy.get().getTrain().getId();
 
+            Ktx ktx = ktxService.findKtx(trainId).get();
+            List<KtxRoom> ktxRooms = ktxRoomService.findByKtx(ktx);
+            KtxRoom ktxRoom = ktxRooms.get(0);
+
+            SeatDto seatDto = ktxSeatService.findDtoByKtxRoom(ktxRoom);
+
+            model.addAttribute("seatDto", seatDto);
+            model.addAttribute("round", true);
+            model.addAttribute("going", true);
+            model.addAttribute("beforeOccupied", seatDto.howManyOccupied());
             return "chooseSeat";
         }
 // --------------------------------------------------------------------------------------------------------------------------
         LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
 
-        if(prevGoing != null) {
+        if (prevGoing != null) {
             LocalDateTime newTime = beforeDateTime.minusDays(1);
             model.addAttribute("before", newTime);
 
@@ -427,7 +432,7 @@ public class SeatController {
             LocalDateTime dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
             List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
 
-            if(deploysWhenGoing.isEmpty() == true) {
+            if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
 
                 model.addAttribute("dateTimeOfGoing", dateTime.toString());
@@ -445,7 +450,7 @@ public class SeatController {
             return "schedule";
         }
 
-        if(nextGoing != null) {
+        if (nextGoing != null) {
             LocalDateTime newTime = beforeDateTime.plusDays(1);
             model.addAttribute("before", newTime);
 
@@ -456,7 +461,7 @@ public class SeatController {
             LocalDateTime dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
             List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
 
-            if(deploysWhenGoing.isEmpty() == true) {
+            if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
 
                 model.addAttribute("dateTimeOfGoing", dateTime.toString());
@@ -473,7 +478,7 @@ public class SeatController {
             deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
             return "schedule";
         }
-
+        // 좌석 선택 전 Logic
         Long deployId = deployForm.getDeployIdOfGoing();
         Optional<Deploy> deploy = deployService.findDeploy(deployId);
         Long trainId = deploy.get().getTrain().getId();
@@ -482,19 +487,13 @@ public class SeatController {
         List<KtxRoom> ktxRooms = ktxRoomService.findByKtx(ktx);
         KtxRoom ktxRoom = ktxRooms.get(0);
 
-        Optional<KtxSeat> ktxSeat = ktxSeatService.findByKtxRoom(ktxRoom);
-        KtxSeat targetSeat = ktxSeat.get();
-        System.out.println("targetSeat = " + targetSeat);
+        SeatDto seatDto = ktxSeatService.findDtoByKtxRoom(ktxRoom);
 
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        Map map = objectMapper.convertValue(targetSeat, Map.class);
-//
-//        for (Object o : map.keySet()) {
-//            System.out.println("o = " + o);
-//        }
+        log.info("시발2 = {}", seatDto);
 
-        model.addAttribute("seat", targetSeat);
-        model.addAttribute("deployOfGoing", deployForm.getDeployIdOfGoing());
+        model.addAttribute("seatDto", seatDto);
+        model.addAttribute("beforeOccupied", seatDto.howManyOccupied());
+        model.addAttribute("going", true);
         return "chooseSeat";
     }
 

@@ -6,392 +6,416 @@
     <title>좌석 선택</title>
 </head>
 <body>
-    <h2 class="text-center">객실/좌석 선택</h2>
+    <h2 class="text-center">객실/좌석 선택</h2><br>
 
-    <!--지울 거임-->
-    <p th:text="${deployOfGoing}"></p>
-    <p th:text="${deployOfComing}"></p>
+    <h4 th:if="${going == true}" class="text-center">가는날 기차</h4>
+    <h4 th:if="${coming == true}" class="text-center">오는날 기차</h4>
 
-    <div class="container">
-        <div class="row">
-            <div class="col text-center">
-                <button type="submit" class="btn btn-outline-secondary" name="room1" value="room1">1호차</button>
-            </div>
+    <form th:action="@{/reservation}" method="post" th:object="${seatDto}">
 
-            <div class="col text-center">
-                <button type="submit" class="btn btn-outline-secondary" name="room2" value="room2">2호차</button>
-            </div>
+        <!--bindingResult를 쓰기에 굉장히 복잡한 상황이라 합리적이지만 원시적인 방법으로 글로벌 에러 해결-->
+        <h4 th:if="${passengerNumberNotSame == true}" th:text='|인원수를 제대로 선택해주세요|' class="text-danger text-center"></h4><br><br>
 
-            <div class="col text-center">
-                <button type="submit" class="btn btn-outline-secondary" name="room3" value="room3">3호차</button>
-            </div>
+        <input type="hidden" name="deployIdOfGoing" th:value="${deployForm.deployIdOfGoing}">
+        <input type="hidden" name="deployIdOfComing" th:value="${deployForm.deployIdOfComing}">
 
-            <div class="col text-center">
-                <button type="submit" class="btn btn-outline-secondary" name="room4" value="room4">4호차</button>
-            </div>
+        <div class="container">
+            <div class="row">
+                <div class="col text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="room1" value="room1">1호차</button>
+                </div>
 
-            <div class="col text-center">
-                <button type="submit" class="btn btn-outline-secondary" name="room5" value="room5">5호차</button>
-            </div>
-        </div><br><br><br>
+                <div class="col text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="room2" value="room2">2호차</button>
+                </div>
 
-        <div class="row">
-            <div class="col-3 text-center">
-                창측
-            </div>
-            <div class="col-3 text-center">
-                통로측
-            </div>
-            <div class="col-3 text-center">
-                통로측
-            </div>
-            <div class="col-3 text-center">
-                창측
-            </div><br><br>
+                <div class="col text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="room3" value="room3">3호차</button>
+                </div>
 
-<!--            여기서부터 하면 됨-->
-            <th:block th:each="${seat}">
+                <div class="col text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="room4" value="room4">4호차</button>
+                </div>
+
+                <div class="col text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="room5" value="room5">5호차</button>
+                </div>
+            </div><br><br><br>
+
+            <div class="row">
                 <div class="col-3 text-center">
-                    <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">
-                    <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>
+                    창측
+                </div>
+                <div class="col-3 text-center">
+                    통로측
+                </div>
+                <div class="col-3 text-center">
+                    통로측
+                </div>
+                <div class="col-3 text-center">
+                    창측
+                </div><br><br>
+
+                <!--checkbox는 타임리프 자체적으로 뒤에 hidden input을 달아주기 때문에 label을 인식하지 못하고 체크가 not working하는 듯-->
+                <!--체크 박스는 readonly를 쓸 수 없다(Not working)-->
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k1A" th:field="${seatDto.k1A}" th:disabled="${seatDto.k1A == true}">
+                    <input type="hidden" th:if="${seatDto.k1A == true}" th:field="${seatDto.k1A}">
+                    <label class="form-check-label" th:for="k1A">1A</label>
                 </div>
 
                 <div class="col-3 text-center">
-                    <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">
-                    <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>
+                    <input type="checkbox" class="form-check-input" th:id="k1B" th:field="${seatDto.k1B}" th:disabled="${seatDto.k1B == true}">
+                    <input type="hidden" th:if="${seatDto.k1B == true}" th:field="${seatDto.k1B}">
+                    <label class="form-check-label" th:for="k1B">1B</label>
                 </div>
 
                 <div class="col-3 text-center">
-                    <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">
-                    <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>
+                    <input type="checkbox" class="form-check-input" th:id="k1C" th:field="${seatDto.k1C}" th:disabled="${seatDto.k1C == true}">
+                    <input type="hidden" th:if="${seatDto.k1C == true}" th:field="${seatDto.k1C}">
+                    <label class="form-check-label" th:for="k1C">1C</label>
                 </div>
 
                 <div class="col-3 text-center">
-                    <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">
-                    <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>
+                    <input type="checkbox" class="form-check-input" th:id="k1D" th:field="${seatDto.k1D}" th:disabled="${seatDto.k1D == true}">
+                    <input type="hidden" th:if="${seatDto.k1D == true}" th:field="${seatDto.k1D}">
+                    <label class="form-check-label" th:for="k1D">1D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k2A" th:field="${seatDto.k2A}" th:disabled="${seatDto.k2A == true}">
+                    <input type="hidden" th:if="${seatDto.k2A == true}" th:field="${seatDto.k2A}">
+                    <label class="form-check-label" th:for="k2A">2A</label>
                 </div>
-            </th:block>
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1A" name="1A" value="1A">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1A" th:text="1A"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1B" name="1B" value="1B">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1B" th:text="1B"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1C" name="1C" value="1C">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1C" th:text="1C"></label>-->
-<!--            </div>-->
-
-<!--            <div class="col-3 text-center">-->
-<!--                <input class="btn-check" type="checkbox" id="1D" name="1D" value="1D">-->
-<!--                <label class="btn btn-outline-secondary" th:for="1D" th:text="1D"></label>-->
-<!--            </div>-->
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k2B" th:field="${seatDto.k2B}" th:disabled="${seatDto.k2B == true}">
+                    <input type="hidden" th:if="${seatDto.k2B == true}" th:field="${seatDto.k2B}">
+                    <label class="form-check-label" th:for="k2B">2B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k2C" th:field="${seatDto.k2C}" th:disabled="${seatDto.k2C == true}">
+                    <input type="hidden" th:if="${seatDto.k2C == true}" th:field="${seatDto.k2C}">
+                    <label class="form-check-label" th:for="k2C">2C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k2D" th:field="${seatDto.k2D}" th:disabled="${seatDto.k2D == true}">
+                    <input type="hidden" th:if="${seatDto.k2D == true}" th:field="${seatDto.k2D}">
+                    <label class="form-check-label" th:for="k2D">2D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k3A" th:field="${seatDto.k3A}" th:disabled="${seatDto.k3A == true}">
+                    <input type="hidden" th:if="${seatDto.k3A == true}" th:field="${seatDto.k3A}">
+                    <label class="form-check-label" th:for="k3A">3A</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k3B" th:field="${seatDto.k3B}" th:disabled="${seatDto.k3B == true}">
+                    <input type="hidden" th:if="${seatDto.k3B == true}" th:field="${seatDto.k3B}">
+                    <label class="form-check-label" th:for="k3B">3B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k3C" th:field="${seatDto.k3C}" th:disabled="${seatDto.k3C == true}">
+                    <input type="hidden" th:if="${seatDto.k3C == true}" th:field="${seatDto.k3C}">
+                    <label class="form-check-label" th:for="k3C">3C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k3D" th:field="${seatDto.k3D}" th:disabled="${seatDto.k3D == true}">
+                    <input type="hidden" th:if="${seatDto.k3D == true}" th:field="${seatDto.k3D}">
+                    <label class="form-check-label" th:for="k3D">3D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k4A" th:field="${seatDto.k4A}" th:disabled="${seatDto.k4A == true}">
+                    <input type="hidden" th:if="${seatDto.k4A == true}" th:field="${seatDto.k4A}">
+                    <label class="form-check-label" th:for="k4A">4A</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k4B" th:field="${seatDto.k4B}" th:disabled="${seatDto.k4B == true}">
+                    <input type="hidden" th:if="${seatDto.k4B == true}" th:field="${seatDto.k4B}">
+                    <label class="form-check-label" th:for="k4B">4B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k4C" th:field="${seatDto.k4C}" th:disabled="${seatDto.k4C == true}">
+                    <input type="hidden" th:if="${seatDto.k4C == true}" th:field="${seatDto.k4C}">
+                    <label class="form-check-label" th:for="k4C">4C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k4D" th:field="${seatDto.k4D}" th:disabled="${seatDto.k4D == true}">
+                    <input type="hidden" th:if="${seatDto.k4D == true}" th:field="${seatDto.k4D}">
+                    <label class="form-check-label" th:for="k4D">4D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k5A" th:field="${seatDto.k5A}" th:disabled="${seatDto.k5A == true}">
+                    <input type="hidden" th:if="${seatDto.k5A == true}" th:field="${seatDto.k5A}">
+                    <label class="form-check-label" th:for="k5A">5A</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k5B" th:field="${seatDto.k5B}" th:disabled="${seatDto.k5B == true}">
+                    <input type="hidden" th:if="${seatDto.k5B == true}" th:field="${seatDto.k5B}">
+                    <label class="form-check-label" th:for="k5B">5B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k5C" th:field="${seatDto.k5C}" th:disabled="${seatDto.k5C == true}">
+                    <input type="hidden" th:if="${seatDto.k5C == true}" th:field="${seatDto.k5C}">
+                    <label class="form-check-label" th:for="k5C">5C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k5D" th:field="${seatDto.k5D}" th:disabled="${seatDto.k5D == true}">
+                    <input type="hidden" th:if="${seatDto.k5D == true}" th:field="${seatDto.k5D}">
+                    <label class="form-check-label" th:for="k5D">5D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k6A" th:field="${seatDto.k6A}" th:disabled="${seatDto.k6A == true}">
+                    <input type="hidden" th:if="${seatDto.k6A == true}" th:field="${seatDto.k6A}">
+                    <label class="form-check-label" th:for="k6A">6A</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k6B" th:field="${seatDto.k6B}" th:disabled="${seatDto.k6B == true}">
+                    <input type="hidden" th:if="${seatDto.k6B == true}" th:field="${seatDto.k6B}">
+                    <label class="form-check-label" th:for="k6B">6B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k6C" th:field="${seatDto.k6C}" th:disabled="${seatDto.k6C == true}">
+                    <input type="hidden" th:if="${seatDto.k6C == true}" th:field="${seatDto.k6C}">
+                    <label class="form-check-label" th:for="k6C">6C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k6D" th:field="${seatDto.k6D}" th:disabled="${seatDto.k6D == true}">
+                    <input type="hidden" th:if="${seatDto.k6D == true}" th:field="${seatDto.k6D}">
+                    <label class="form-check-label" th:for="k6D">6D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k7A" th:field="${seatDto.k7A}" th:disabled="${seatDto.k7A == true}">
+                    <input type="hidden" th:if="${seatDto.k7A == true}" th:field="${seatDto.k7A}">
+                    <label class="form-check-label" th:for="k7A">7A</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k7B" th:field="${seatDto.k7B}" th:disabled="${seatDto.k7B == true}">
+                    <input type="hidden" th:if="${seatDto.k7B == true}" th:field="${seatDto.k7B}">
+                    <label class="form-check-label" th:for="k7B">7B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k7C" th:field="${seatDto.k7C}" th:disabled="${seatDto.k7C == true}">
+                    <input type="hidden" th:if="${seatDto.k7C == true}" th:field="${seatDto.k7C}">
+                    <label class="form-check-label" th:for="k7C">7C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k7D" th:field="${seatDto.k7D}" th:disabled="${seatDto.k7D == true}">
+                    <input type="hidden" th:if="${seatDto.k7D == true}" th:field="${seatDto.k7D}">
+                    <label class="form-check-label" th:for="k7D">7D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k8A" th:field="${seatDto.k8A}" th:disabled="${seatDto.k8A == true}">
+                    <input type="hidden" th:if="${seatDto.k8A == true}" th:field="${seatDto.k8A}">
+                    <label class="form-check-label" th:for="k8A">8A</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k8B" th:field="${seatDto.k8B}" th:disabled="${seatDto.k8B == true}">
+                    <input type="hidden" th:if="${seatDto.k8B == true}" th:field="${seatDto.k8B}">
+                    <label class="form-check-label" th:for="k8B">8B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k8C" th:field="${seatDto.k8C}" th:disabled="${seatDto.k8C == true}">
+                    <input type="hidden" th:if="${seatDto.k8C == true}" th:field="${seatDto.k8C}">
+                    <label class="form-check-label" th:for="k8C">8C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k8D" th:field="${seatDto.k8D}" th:disabled="${seatDto.k8D == true}">
+                    <input type="hidden" th:if="${seatDto.k8D == true}" th:field="${seatDto.k8D}">
+                    <label class="form-check-label" th:for="k8D">8D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k9A" th:field="${seatDto.k9A}" th:disabled="${seatDto.k9A == true}">
+                    <input type="hidden" th:if="${seatDto.k9A == true}" th:field="${seatDto.k9A}">
+                    <label class="form-check-label" th:for="k9A">9A</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k9B" th:field="${seatDto.k9B}" th:disabled="${seatDto.k9B == true}">
+                    <input type="hidden" th:if="${seatDto.k9B == true}" th:field="${seatDto.k9B}">
+                    <label class="form-check-label" th:for="k9B">9B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k9C" th:field="${seatDto.k9C}" th:disabled="${seatDto.k9C == true}">
+                    <input type="hidden" th:if="${seatDto.k9C == true}" th:field="${seatDto.k9C}">
+                    <label class="form-check-label" th:for="k9C">9C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k9D" th:field="${seatDto.k9D}" th:disabled="${seatDto.k9D == true}">
+                    <input type="hidden" th:if="${seatDto.k9D == true}" th:field="${seatDto.k9D}">
+                    <label class="form-check-label" th:for="k9D">9D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k10A" th:field="${seatDto.k10A}" th:disabled="${seatDto.k10A == true}">
+                    <input type="hidden" th:if="${seatDto.k10A == true}" th:field="${seatDto.k10A}">
+                    <label class="form-check-label" th:for="k10A">10A</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k10B" th:field="${seatDto.k10B}" th:disabled="${seatDto.k10B == true}">
+                    <input type="hidden" th:if="${seatDto.k10B == true}" th:field="${seatDto.k10B}">
+                    <label class="form-check-label" th:for="k10B">10B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k10C" th:field="${seatDto.k10C}" th:disabled="${seatDto.k10C == true}">
+                    <input type="hidden" th:if="${seatDto.k10C == true}" th:field="${seatDto.k10C}">
+                    <label class="form-check-label" th:for="k10C">10C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k10D" th:field="${seatDto.k10D}" th:disabled="${seatDto.k10D == true}">
+                    <input type="hidden" th:if="${seatDto.k10D == true}" th:field="${seatDto.k10D}">
+                    <label class="form-check-label" th:for="k10D">10D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k11A" th:field="${seatDto.k11A}" th:disabled="${seatDto.k11A == true}">
+                    <input type="hidden" th:if="${seatDto.k11A == true}" th:field="${seatDto.k11A}">
+                    <label class="form-check-label" th:for="k11A">11A</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k11B" th:field="${seatDto.k11B}" th:disabled="${seatDto.k11B == true}">
+                    <input type="hidden" th:if="${seatDto.k11B == true}" th:field="${seatDto.k11B}">
+                    <label class="form-check-label" th:for="k11B">11B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k11C" th:field="${seatDto.k11C}" th:disabled="${seatDto.k11C == true}">
+                    <input type="hidden" th:if="${seatDto.k11C == true}" th:field="${seatDto.k11C}">
+                    <label class="form-check-label" th:for="k11C">11C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k11D" th:field="${seatDto.k11D}" th:disabled="${seatDto.k11D == true}">
+                    <input type="hidden" th:if="${seatDto.k11D == true}" th:field="${seatDto.k11D}">
+                    <label class="form-check-label" th:for="k11D">11D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k12A" th:field="${seatDto.k12A}" th:disabled="${seatDto.k12A == true}">
+                    <input type="hidden" th:if="${seatDto.k12A == true}" th:field="${seatDto.k12A}">
+                    <label class="form-check-label" th:for="k12A">12A</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k12B" th:field="${seatDto.k12B}" th:disabled="${seatDto.k12B == true}">
+                    <input type="hidden" th:if="${seatDto.k12B == true}" th:field="${seatDto.k12B}">
+                    <label class="form-check-label" th:for="k12B">12B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k12C" th:field="${seatDto.k12C}" th:disabled="${seatDto.k12C == true}">
+                    <input type="hidden" th:if="${seatDto.k12C == true}" th:field="${seatDto.k12C}">
+                    <label class="form-check-label" th:for="k12C">12C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k12D" th:field="${seatDto.k12D}" th:disabled="${seatDto.k12D == true}">
+                    <input type="hidden" th:if="${seatDto.k12D == true}" th:field="${seatDto.k12D}">
+                    <label class="form-check-label" th:for="k12D">12D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k13A" th:field="${seatDto.k13A}" th:disabled="${seatDto.k13A == true}">
+                    <input type="hidden" th:if="${seatDto.k13A == true}" th:field="${seatDto.k13A}">
+                    <label class="form-check-label" th:for="k13A">13A</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k13B" th:field="${seatDto.k13B}" th:disabled="${seatDto.k13B == true}">
+                    <input type="hidden" th:if="${seatDto.k13B == true}" th:field="${seatDto.k13B}">
+                    <label class="form-check-label" th:for="k13B">13B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k13C" th:field="${seatDto.k13C}" th:disabled="${seatDto.k13C == true}">
+                    <input type="hidden" th:if="${seatDto.k13C == true}" th:field="${seatDto.k13C}">
+                    <label class="form-check-label" th:for="k13C">13C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k13D" th:field="${seatDto.k13D}" th:disabled="${seatDto.k13D == true}">
+                    <input type="hidden" th:if="${seatDto.k13D == true}" th:field="${seatDto.k13D}">
+                    <label class="form-check-label" th:for="k13D">13D</label>
+                </div><br><br><br>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k14A" th:field="${seatDto.k14A}" th:disabled="${seatDto.k14A == true}">
+                    <input type="hidden" th:if="${seatDto.k14A == true}" th:field="${seatDto.k14A}">
+                    <label class="form-check-label" th:for="k14A">14A</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k14B" th:field="${seatDto.k14B}" th:disabled="${seatDto.k14B == true}">
+                    <input type="hidden" th:if="${seatDto.k14B == true}" th:field="${seatDto.k14B}">
+                    <label class="form-check-label" th:for="k14B">14B</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k14C" th:field="${seatDto.k14C}" th:disabled="${seatDto.k14C == true}">
+                    <input type="hidden" th:if="${seatDto.k14C == true}" th:field="${seatDto.k14C}">
+                    <label class="form-check-label" th:for="k14C">14C</label>
+                </div>
+
+                <div class="col-3 text-center">
+                    <input type="checkbox" class="form-check-input" th:id="k14D" th:field="${seatDto.k14D}" th:disabled="${seatDto.k14D == true}">
+                    <input type="hidden" th:if="${seatDto.k14D == true}" th:field="${seatDto.k14D}">
+                    <label class="form-check-label" th:for="k14D">14D</label>
+                </div><br><br><br>
+
+                <input type="hidden" name="beforeOccupied" th:value="${beforeOccupied}">
+
+                <input type="hidden" name="toddler" th:value="${passengerDto.toddler}">
+                <input type="hidden" name="kids" th:value="${passengerDto.kids}">
+                <input type="hidden" name="adult" th:value="${passengerDto.adult}">
+                <input type="hidden" name="senior" th:value="${passengerDto.senior}">
+
+                <input type="hidden" name="round" th:value="${round}">
+                <input type="hidden" name="going" th:value="${going}">
+                <input type="hidden" name="coming" th:value="${coming}">
+
+                <div th:if="${(round == true && coming == true) || (round != true && going == true)}">
+                    <button type="submit" class="btn btn-secondary" name="reserve" value="true">예매하기</button>
+                </div>
+
+                <div th:if="${round == true && going == true}">
+                    <button type="submit" class="btn btn-secondary" name="coming" value="true">오는날 기차 좌석 선택하기</button>
+                </div>
+            </div>
         </div>
-    </div>
+    </form>
+
+    <script src="../js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
