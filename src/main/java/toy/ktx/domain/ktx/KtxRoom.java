@@ -1,6 +1,7 @@
 package toy.ktx.domain.ktx;
 
 import lombok.Data;
+import lombok.ToString;
 import toy.ktx.domain.enums.Grade;
 
 import javax.persistence.*;
@@ -9,6 +10,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "ktx_room")
+@ToString(exclude = {"ktx", "ktxSeat"})
 public class KtxRoom {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

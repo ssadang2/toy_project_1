@@ -10,7 +10,7 @@ import java.util.List;
 @Table(name = "train")
 @DiscriminatorColumn
 @Data
-@ToString(exclude = "deploys")
+@ToString(exclude = "deploy")
 //toString stackOverFlow 막으려고
 //아니면 @data를 빼버려도 될 듯
 public class Train {
@@ -20,8 +20,8 @@ public class Train {
 
     private String trainName;
 
-    @OneToMany(mappedBy = "train")
-    private List<Deploy> deploys;
+    @OneToOne(mappedBy = "train", fetch = FetchType.LAZY)
+    private Deploy deploy;
 
     public Train() {
     }

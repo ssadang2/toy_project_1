@@ -19,6 +19,8 @@ import toy.ktx.service.KtxRoomService;
 import toy.ktx.service.KtxSeatService;
 import toy.ktx.service.KtxService;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,16 +49,18 @@ public class ReservationController {
                           @RequestParam(required = false) String room3,
                           @RequestParam(required = false) String room4,
                           @RequestParam(required = false) String room5,
+                          @RequestParam(required = false) String departurePlace,
+                          @RequestParam(required = false) String arrivalPlace,
+                          @RequestParam(required = false) String dateTimeOfGoing,
+                          @RequestParam(required = false) String dateTimeOfLeaving,
                           Model model) {
 
-        log.info("시발 = {}", seatDto);
-        log.info("시발 = {}", passengerDto);
-        log.info("시발 = {}", seatDto.howManyOccupied());
-        log.info("시발 = {}", beforeOccupied);
-        System.out.println("beforeOccupied = " + beforeOccupied);
-        System.out.println("passengerDto.howManyOccupied() = " + passengerDto.howManyOccupied());
+        model.addAttribute("passengers", passengerDto.howManyOccupied());
 
         if(round == Boolean.TRUE && going == Boolean.TRUE) {
+            LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+
             if (room1 != null) {
                 Long deployId = deployForm.getDeployIdOfGoing();
                 Optional<Deploy> deploy = deployService.findDeploy(deployId);
@@ -73,6 +77,11 @@ public class ReservationController {
 
                 beforeOccupied = seatDto.howManyOccupied();
                 model.addAttribute("beforeOccupied", beforeOccupied);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
                 roomNo = 0;
 
                 return "chooseSeat";
@@ -94,6 +103,11 @@ public class ReservationController {
 
                 beforeOccupied = seatDto.howManyOccupied();
                 model.addAttribute("beforeOccupied", beforeOccupied);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
                 roomNo = 1;
 
                 return "chooseSeat";
@@ -115,6 +129,11 @@ public class ReservationController {
 
                 beforeOccupied = seatDto.howManyOccupied();
                 model.addAttribute("beforeOccupied", beforeOccupied);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
                 roomNo = 2;
 
                 return "chooseSeat";
@@ -136,6 +155,11 @@ public class ReservationController {
 
                 beforeOccupied = seatDto.howManyOccupied();
                 model.addAttribute("beforeOccupied", beforeOccupied);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
                 roomNo = 3;
 
                 return "chooseSeat";
@@ -157,6 +181,11 @@ public class ReservationController {
 
                 beforeOccupied = seatDto.howManyOccupied();
                 model.addAttribute("beforeOccupied", beforeOccupied);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
                 roomNo = 4;
 
                 return "chooseSeat";
@@ -178,6 +207,11 @@ public class ReservationController {
                 model.addAttribute("round", true);
                 model.addAttribute("going", true);
                 model.addAttribute("beforeOccupied", beforeOccupied);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
                 return "chooseSeat";
             }
@@ -191,15 +225,26 @@ public class ReservationController {
             KtxRoom ktxRoom = ktxRooms.get(roomNo);
 
             seatDto = ktxSeatService.findDtoByKtxRoom(ktxRoom);
+//          이게 맞아?
+//            beforeOccupied = seatDto.howManyOccupied();
+
             model.addAttribute("seatDto", seatDto);
             model.addAttribute("round", true);
             model.addAttribute("coming", true);
             model.addAttribute("beforeOccupied", beforeOccupied);
 
+            model.addAttribute("departurePlace", departurePlace);
+            model.addAttribute("arrivalPlace", arrivalPlace);
+            model.addAttribute("dateTimeOfGoing", beforeDateTime);
+            model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
             return "chooseSeat";
         }
 
         if(round == Boolean.TRUE && coming == Boolean.TRUE) {
+            LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+
             if (room1 != null) {
                 Long deployId = deployForm.getDeployIdOfComing();
                 Optional<Deploy> deploy = deployService.findDeploy(deployId);
@@ -216,6 +261,11 @@ public class ReservationController {
 
                 beforeOccupied = seatDto.howManyOccupied();
                 model.addAttribute("beforeOccupied", beforeOccupied);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
                 roomNo = 0;
 
                 return "chooseSeat";
@@ -237,6 +287,11 @@ public class ReservationController {
 
                 beforeOccupied = seatDto.howManyOccupied();
                 model.addAttribute("beforeOccupied", beforeOccupied);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
                 roomNo = 1;
 
                 return "chooseSeat";
@@ -258,6 +313,11 @@ public class ReservationController {
 
                 beforeOccupied = seatDto.howManyOccupied();
                 model.addAttribute("beforeOccupied", beforeOccupied);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
                 roomNo = 2;
 
                 return "chooseSeat";
@@ -279,6 +339,11 @@ public class ReservationController {
 
                 beforeOccupied = seatDto.howManyOccupied();
                 model.addAttribute("beforeOccupied", beforeOccupied);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
                 roomNo = 3;
 
                 return "chooseSeat";
@@ -300,6 +365,11 @@ public class ReservationController {
 
                 beforeOccupied = seatDto.howManyOccupied();
                 model.addAttribute("beforeOccupied", beforeOccupied);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
                 roomNo = 4;
 
                 return "chooseSeat";
@@ -320,11 +390,19 @@ public class ReservationController {
                 model.addAttribute("round", true);
                 model.addAttribute("coming", true);
                 model.addAttribute("beforeOccupied", beforeOccupied);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
                 return "chooseSeat";
             }
+            //success logic
 
             return "temp";
         }
+//--------------------------------------------------------------------------------------------------------------------------------------
+        LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
 
         if (room1 != null) {
             Long deployId = deployForm.getDeployIdOfGoing();
@@ -341,6 +419,11 @@ public class ReservationController {
 
             beforeOccupied = seatDto.howManyOccupied();
             model.addAttribute("beforeOccupied", beforeOccupied);
+
+            model.addAttribute("departurePlace", departurePlace);
+            model.addAttribute("arrivalPlace", arrivalPlace);
+            model.addAttribute("dateTimeOfGoing", beforeDateTime);
+//            model.addAttribute("dateTimeOfLeaving", afterDateTime);
             roomNo = 0;
 
             return "chooseSeat";
@@ -361,6 +444,11 @@ public class ReservationController {
 
             beforeOccupied = seatDto.howManyOccupied();
             model.addAttribute("beforeOccupied", beforeOccupied);
+
+            model.addAttribute("departurePlace", departurePlace);
+            model.addAttribute("arrivalPlace", arrivalPlace);
+            model.addAttribute("dateTimeOfGoing", beforeDateTime);
+//            model.addAttribute("dateTimeOfLeaving", afterDateTime);
             roomNo = 1;
 
             return "chooseSeat";
@@ -381,6 +469,11 @@ public class ReservationController {
 
             beforeOccupied = seatDto.howManyOccupied();
             model.addAttribute("beforeOccupied", beforeOccupied);
+
+            model.addAttribute("departurePlace", departurePlace);
+            model.addAttribute("arrivalPlace", arrivalPlace);
+            model.addAttribute("dateTimeOfGoing", beforeDateTime);
+//            model.addAttribute("dateTimeOfLeaving", afterDateTime);
             roomNo = 2;
 
             return "chooseSeat";
@@ -401,6 +494,11 @@ public class ReservationController {
 
             beforeOccupied = seatDto.howManyOccupied();
             model.addAttribute("beforeOccupied", beforeOccupied);
+
+            model.addAttribute("departurePlace", departurePlace);
+            model.addAttribute("arrivalPlace", arrivalPlace);
+            model.addAttribute("dateTimeOfGoing", beforeDateTime);
+//            model.addAttribute("dateTimeOfLeaving", afterDateTime);
             roomNo = 3;
 
             return "chooseSeat";
@@ -421,6 +519,11 @@ public class ReservationController {
 
             beforeOccupied = seatDto.howManyOccupied();
             model.addAttribute("beforeOccupied", beforeOccupied);
+
+            model.addAttribute("departurePlace", departurePlace);
+            model.addAttribute("arrivalPlace", arrivalPlace);
+            model.addAttribute("dateTimeOfGoing", beforeDateTime);
+//            model.addAttribute("dateTimeOfLeaving", afterDateTime);
             roomNo = 4;
 
             return "chooseSeat";
@@ -440,9 +543,20 @@ public class ReservationController {
             model.addAttribute("passengerNumberNotSame", true);
             model.addAttribute("going", true);
             model.addAttribute("beforeOccupied", beforeOccupied);
+
+            model.addAttribute("departurePlace", departurePlace);
+            model.addAttribute("arrivalPlace", arrivalPlace);
+            model.addAttribute("dateTimeOfGoing", beforeDateTime);
+//            model.addAttribute("dateTimeOfLeaving", afterDateTime);
             return "chooseSeat";
         }
+        //success logic
 
         return "temp";
+    }
+
+    private LocalDateTime getLocalDateTime(String dateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+        return LocalDateTime.parse(dateTime, formatter);
     }
 }

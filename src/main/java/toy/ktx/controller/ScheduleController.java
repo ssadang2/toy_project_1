@@ -42,8 +42,6 @@ public class ScheduleController {
         LocalDateTime after = null;
         LocalDateTime before = null;
 
-        log.info("시발 = {}", passengerDto);
-
         if(!StringUtils.hasText(scheduleForm.getDateOfGoing())) {
             bindingResult.reject("noDepartureDate", null);
         }
@@ -96,14 +94,11 @@ public class ScheduleController {
             return "index";
         }
 
-        log.info("제발 = {}", passengerDto);
-
         model.addAttribute("departurePlace", scheduleForm.getDeparturePlace());
         model.addAttribute("arrivalPlace", scheduleForm.getArrivalPlace());
         model.addAttribute("round", scheduleForm.getRound());
         model.addAttribute("before", before); //출발하는 날
         model.addAttribute("after", after); //오는 날
-//        model.addAttribute("passengerDto", passengerDto); 굳이 안 넣어도 전달 됨
 
         if(scheduleForm.getRound() == true) {
             List<Deploy> deploysWhenGoing = deployService.searchDeploy(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);

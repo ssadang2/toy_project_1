@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import toy.ktx.domain.Deploy;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
-import toy.ktx.domain.dto.ScheduleForm;
 import toy.ktx.domain.dto.projections.SeatDto;
 import toy.ktx.domain.ktx.Ktx;
 import toy.ktx.domain.ktx.KtxRoom;
@@ -57,6 +56,7 @@ public class SeatController {
         model.addAttribute("departurePlace", departurePlace);
         model.addAttribute("arrivalPlace", arrivalPlace);
         model.addAttribute("round", round);
+        model.addAttribute("passengers", passengerDto.howManyOccupied());
 
         if (round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
@@ -240,7 +240,7 @@ public class SeatController {
                     model.addAttribute("before", beforeDateTime);
                     model.addAttribute("after", afterDateTime);
 
-                    dateTime = beforeDateTime;
+                    dateTime = afterDateTime;
                     noBefore = true;
                 } else {
                     model.addAttribute("before", beforeDateTime);
@@ -319,7 +319,7 @@ public class SeatController {
                     model.addAttribute("before", beforeDateTime);
                     model.addAttribute("after", afterDateTime);
 
-                    dateTime = beforeDateTime;
+                    dateTime = afterDateTime;
                     noAfter = true;
                 } else {
                     model.addAttribute("before", beforeDateTime);
@@ -344,16 +344,6 @@ public class SeatController {
                     dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
                     deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
                 }
-
-                model.addAttribute("after", newTime);
-                model.addAttribute("before", beforeDateTime);
-
-                int year = newTime.getYear();
-                int monthValue = newTime.getMonthValue();
-                int dayOfMonth = newTime.getDayOfMonth();
-
-                dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
 
                 if (deploysWhenComing.isEmpty() == true && deploysWhenGoing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
@@ -416,21 +406,48 @@ public class SeatController {
             model.addAttribute("round", true);
             model.addAttribute("going", true);
             model.addAttribute("beforeOccupied", seatDto.howManyOccupied());
+            model.addAttribute("dateTimeOfGoing", beforeDateTime);
+            model.addAttribute("dateTimeOfLeaving", afterDateTime);
+//            실험 중
+            model.addAttribute("ktxRooms", ktxRooms);
             return "chooseSeat";
         }
 // --------------------------------------------------------------------------------------------------------------------------
         LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
+        List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, beforeDateTime);
+
+        LocalDateTime dateTime = null;
+        Boolean noBefore = false;
+        Boolean noAfter = false;
 
         if (prevGoing != null) {
             LocalDateTime newTime = beforeDateTime.minusDays(1);
-            model.addAttribute("before", newTime);
 
-            int year = newTime.getYear();
-            int monthValue = newTime.getMonthValue();
-            int dayOfMonth = newTime.getDayOfMonth();
+            if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() != LocalDateTime.now().getDayOfMonth()) {
+                bindingResult.reject("noBefore", null);
 
-            LocalDateTime dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-            List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                model.addAttribute("before", beforeDateTime);
+
+                dateTime = beforeDateTime;
+                noBefore = true;
+            } else {
+                model.addAttribute("before", newTime);
+
+                int year = newTime.getYear();
+                int monthValue = newTime.getMonthValue();
+                int dayOfMonth = newTime.getDayOfMonth();
+
+                dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+            }
+
+            if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() == LocalDateTime.now().getDayOfMonth()) {
+                model.addAttribute("before", newTime);
+
+                dateTime = LocalDateTime.now();
+
+                deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+            }
 
             if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
@@ -452,14 +469,35 @@ public class SeatController {
 
         if (nextGoing != null) {
             LocalDateTime newTime = beforeDateTime.plusDays(1);
-            model.addAttribute("before", newTime);
 
-            int year = newTime.getYear();
-            int monthValue = newTime.getMonthValue();
-            int dayOfMonth = newTime.getDayOfMonth();
+            if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
+                bindingResult.reject("noAfter", null);
 
-            LocalDateTime dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-            List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                model.addAttribute("before", beforeDateTime);
+
+                dateTime = beforeDateTime;
+                noAfter = true;
+            } else {
+                model.addAttribute("before", newTime);
+
+                int year = newTime.getYear();
+                int monthValue = newTime.getMonthValue();
+                int dayOfMonth = newTime.getDayOfMonth();
+
+                dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+            }
+
+            if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() == LocalDateTime.now().plusDays(30).getDayOfMonth()) {
+                model.addAttribute("before", newTime);
+
+                int year = LocalDateTime.now().plusDays(30).getYear();
+                int monthValue = LocalDateTime.now().plusDays(30).getMonthValue();
+                int dayOfMonth = LocalDateTime.now().plusDays(30).getDayOfMonth();
+
+                dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+            }
 
             if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
@@ -489,11 +527,26 @@ public class SeatController {
 
         SeatDto seatDto = ktxSeatService.findDtoByKtxRoom(ktxRoom);
 
-        log.info("시발2 = {}", seatDto);
-
         model.addAttribute("seatDto", seatDto);
         model.addAttribute("beforeOccupied", seatDto.howManyOccupied());
         model.addAttribute("going", true);
+        model.addAttribute("dateTimeOfGoing", beforeDateTime);
+
+        //            실험 중
+        model.addAttribute("ktxRooms", ktxRooms);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map map = objectMapper.convertValue(seatDto, Map.class);
+        model.addAttribute("map", map);
+//        여기부터 해야 됨 ka kb kc kd 이렇게 나오게 해야 됨ㄴ
+
+        Object[] keySet = map.keySet().toArray();
+        Arrays.sort(keySet);
+        System.out.println("keySet = " + keySet[0]);
+        System.out.println("keySet = " + keySet[1]);
+        System.out.println("keySet = " + keySet[2]);
+        log.info("시발 = {}", map.getClass());
+
         return "chooseSeat";
     }
 
