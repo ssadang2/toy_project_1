@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import toy.ktx.domain.Deploy;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
-import toy.ktx.domain.dto.projections.SeatDto;
+import toy.ktx.domain.dto.projections.NormalSeatDto;
 import toy.ktx.domain.ktx.Ktx;
 import toy.ktx.domain.ktx.KtxRoom;
 import toy.ktx.service.DeployService;
@@ -392,6 +392,7 @@ public class SeatController {
                 return "schedule";
             }
 
+            //success logic
             Long deployId = deployForm.getDeployIdOfGoing();
             Optional<Deploy> deploy = deployService.findDeploy(deployId);
             Long trainId = deploy.get().getTrain().getId();
@@ -400,17 +401,15 @@ public class SeatController {
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtx(ktx);
             KtxRoom ktxRoom = ktxRooms.get(0);
 
-            SeatDto seatDto = ktxSeatService.findDtoByKtxRoom(ktxRoom);
+            NormalSeatDto normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(ktxRoom);
 
-            model.addAttribute("seatDto", seatDto);
             model.addAttribute("round", true);
             model.addAttribute("going", true);
-            model.addAttribute("beforeOccupied", seatDto.howManyOccupied());
+//            model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
-//            실험 중
-            model.addAttribute("ktxRooms", ktxRooms);
-            return "chooseSeat";
+
+            return "normalVip";
         }
 // --------------------------------------------------------------------------------------------------------------------------
         LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
@@ -516,7 +515,8 @@ public class SeatController {
             deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
             return "schedule";
         }
-        // 좌석 선택 전 Logic
+
+        //success Logic
         Long deployId = deployForm.getDeployIdOfGoing();
         Optional<Deploy> deploy = deployService.findDeploy(deployId);
         Long trainId = deploy.get().getTrain().getId();
@@ -525,29 +525,13 @@ public class SeatController {
         List<KtxRoom> ktxRooms = ktxRoomService.findByKtx(ktx);
         KtxRoom ktxRoom = ktxRooms.get(0);
 
-        SeatDto seatDto = ktxSeatService.findDtoByKtxRoom(ktxRoom);
+        NormalSeatDto normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(ktxRoom);
 
-        model.addAttribute("seatDto", seatDto);
-        model.addAttribute("beforeOccupied", seatDto.howManyOccupied());
+//        model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
         model.addAttribute("going", true);
         model.addAttribute("dateTimeOfGoing", beforeDateTime);
 
-        //            실험 중
-        model.addAttribute("ktxRooms", ktxRooms);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map map = objectMapper.convertValue(seatDto, Map.class);
-        model.addAttribute("map", map);
-//        여기부터 해야 됨 ka kb kc kd 이렇게 나오게 해야 됨ㄴ
-
-        Object[] keySet = map.keySet().toArray();
-        Arrays.sort(keySet);
-        System.out.println("keySet = " + keySet[0]);
-        System.out.println("keySet = " + keySet[1]);
-        System.out.println("keySet = " + keySet[2]);
-        log.info("시발 = {}", map.getClass());
-
-        return "chooseSeat";
+        return "normalVip";
     }
 
     private List<String> getDuration(List<Deploy> deploys) {

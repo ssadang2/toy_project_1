@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<link th:href = "@{../css/bootstrap.min.css}" rel = "stylesheet">
+<head>
+    <meta charset="UTF-8">
+    <title>객실 등급 선택</title>
+</head>
+<body>
+    <h2 class="text-center">객실 등급 선택</h2><br><br><br><br><br><br><br><br>
+
+    <form th:action="@{/grade}" method="post">
+        <div class="container">
+            <div class="row">
+                <div class="col-6 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="normal" value="normal">일반실</button>
+                </div>
+
+                <div class="col-6 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="vip" value="vip">특실</button>
+                </div>
+
+                <br><br><br><br><br><br><br><br>
+
+                <div class="d-flex flex-row-reverse">
+                    <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/}'|">홈으로 가기</button>
+                </div>
+
+                <input type="hidden" name="deployIdOfGoing" th:value="${deployForm.deployIdOfGoing}">
+                <input type="hidden" name="deployIdOfComing" th:value="${deployForm.deployIdOfComing}">
+
+                <input type="hidden" name="toddler" th:value="${passengerDto.toddler}">
+                <input type="hidden" name="kids" th:value="${passengerDto.kids}">
+                <input type="hidden" name="adult" th:value="${passengerDto.adult}">
+                <input type="hidden" name="senior" th:value="${passengerDto.senior}">
+
+                <input type="hidden" name="round" th:value="${round}">
+                <input type="hidden" name="going" th:value="${going}">
+                <input type="hidden" name="coming" th:value="${coming}">
+
+                <input type="hidden" name="departurePlace" th:value="${departurePlace}">
+                <input type="hidden" name="arrivalPlace" th:value="${arrivalPlace}">
+                <input type="hidden" name="dateTimeOfGoing" th:value="${dateTimeOfGoing}">
+                <input type="hidden" name="dateTimeOfLeaving" th:value="${dateTimeOfLeaving}">
+            </div>
+        </div>
+    </form>
+</body>
+</html>

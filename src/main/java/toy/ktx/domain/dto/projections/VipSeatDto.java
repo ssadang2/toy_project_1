@@ -1,0 +1,81 @@
+package toy.ktx.domain.dto.projections;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
+
+import java.util.Map;
+
+@Data
+public class VipSeatDto {
+
+    private final Boolean k1A;
+    private final Boolean k1B;
+    private final Boolean k1C;
+
+    private final Boolean k2A;
+    private final Boolean k2B;
+    private final Boolean k2C;
+
+    private final Boolean k3A;
+    private final Boolean k3B;
+    private final Boolean k3C;
+
+    private final Boolean k4A;
+    private final Boolean k4B;
+    private final Boolean k4C;
+
+    private final Boolean k5A;
+    private final Boolean k5B;
+    private final Boolean k5C;
+
+    private final Boolean k6A;
+    private final Boolean k6B;
+    private final Boolean k6C;
+
+    private final Boolean k7A;
+    private final Boolean k7B;
+    private final Boolean k7C;
+
+    private final Boolean k8A;
+    private final Boolean k8B;
+    private final Boolean k8C;
+
+    private final Boolean k9A;
+    private final Boolean k9B;
+    private final Boolean k9C;
+
+    private final Boolean k10A;
+    private final Boolean k10B;
+    private final Boolean k10C;
+
+    private final Boolean k11A;
+    private final Boolean k11B;
+    private final Boolean k11C;
+
+    private final Boolean k12A;
+    private final Boolean k12B;
+    private final Boolean k12C;
+
+    private final Boolean k13A;
+    private final Boolean k13B;
+    private final Boolean k13C;
+
+    private final Boolean k14A;
+    private final Boolean k14B;
+    private final Boolean k14C;
+
+    public Integer howManyOccupied() {
+        Integer sum = 0;
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map map = objectMapper.convertValue(this, Map.class);
+
+        for (Object key : map.keySet()) {
+            if(!Boolean.FALSE.equals((Boolean) map.get(key))) {
+                sum += 1;
+            }
+        }
+
+        return sum;
+    }
+}
