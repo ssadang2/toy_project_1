@@ -1,15 +1,27 @@
 package toy.ktx.domain.ktx;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
+import toy.ktx.domain.dto.projections.NormalSeatDto;
+import toy.ktx.domain.dto.projections.VipSeatDto;
 
 import javax.persistence.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Map;
 
 @Entity
 @Data
+@Slf4j
 @Table(name = "ktx_seat")
 @ToString(exclude = "ktxRoom")
 public class KtxSeat {
+
+    @Transient
+    ObjectMapper objectMapper = new ObjectMapper();
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -140,5 +152,40 @@ public class KtxSeat {
         this.k12D = k12D;
         this.k13D = k13D;
         this.k14D = k14D;
+    }
+
+    public void normalDtoToEntity(NormalSeatDto normalSeatDto) {
+        Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
+        try {
+            Class clazz = Class.forName("toy.ktx.domain.ktx.KtxSeat");
+            for (Object o : seatMap.keySet()) {
+                if ((boolean) seatMap.get(o) == true) {
+                    String temp = "setK" + ((String)o).substring(1);
+                    log.info("시발 = {}", temp);
+                    Method declaredMethod = clazz.getDeclaredMethod(temp, Boolean.class);
+                    declaredMethod.invoke(this, true);
+                }
+            }
+        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void vipDtoToEntity(VipSeatDto vipSeatDto) {
+        Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
+        try {
+            Class clazz = Class.forName("toy.ktx.domain.ktx.KtxSeat");
+            for (Object o : seatMap.keySet()) {
+                if ((boolean) seatMap.get(o) == true) {
+                    String temp = "setK" + ((String)o).substring(1);
+                    log.info("시발 = {}", temp);
+                    Method declaredMethod = clazz.getDeclaredMethod(temp, Boolean.class);
+                    declaredMethod.invoke(this, true);
+                }
+            }
+        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

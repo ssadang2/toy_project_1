@@ -405,7 +405,6 @@ public class SeatController {
 
             model.addAttribute("round", true);
             model.addAttribute("going", true);
-//            model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
@@ -527,7 +526,6 @@ public class SeatController {
 
         NormalSeatDto normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(ktxRoom);
 
-//        model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
         model.addAttribute("going", true);
         model.addAttribute("dateTimeOfGoing", beforeDateTime);
 

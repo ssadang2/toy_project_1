@@ -7,6 +7,12 @@
 </head>
 <body>
     <h2 class="text-center" th:text="|${member.name}님, 환영합니다!!!|"></h2>
-    <h2 class="text-center" th:text="|${member.authorizations}님, 환영합니다!!!|"></h2>
+    <h2 class="text-center" th:text="|${member.authorizations}님, 환영합니다!!!|"></h2><br><br><br>
+
+    <div class="d-flex flex-row-reverse">
+        <div class="p-2">
+            <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/}'|">홈으로 가기</button>
+        </div>
+    </div>
 </body>
 </html>

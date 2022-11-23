@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import toy.ktx.domain.Deploy;
+import toy.ktx.domain.Reservation;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
 import toy.ktx.domain.dto.RoomDto;
@@ -17,6 +19,7 @@ import toy.ktx.domain.dto.projections.VipSeatDto;
 import toy.ktx.domain.enums.Grade;
 import toy.ktx.domain.ktx.Ktx;
 import toy.ktx.domain.ktx.KtxRoom;
+import toy.ktx.domain.ktx.KtxSeat;
 import toy.ktx.service.DeployService;
 import toy.ktx.service.KtxRoomService;
 import toy.ktx.service.KtxSeatService;
@@ -43,9 +46,10 @@ public class ReservationController {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping("/reservation/normal")
+    //postmapping에 Transactional 거는 게 에바라는 의견이 좀 있고 본인도 그렇게 생각, service쪽으로 빼야 될 것 같음(이래도 동작은 됨)
+    @Transactional
     public String reserveNormal(@ModelAttribute NormalSeatDto normalSeatDto,
                           @ModelAttribute DeployForm deployForm,
-                          @RequestParam Integer beforeOccupied,
                           @ModelAttribute PassengerDto passengerDto,
                           @RequestParam(required = false) Boolean round,
                           @RequestParam(required = false) Boolean going,
@@ -83,12 +87,8 @@ public class ReservationController {
 
                 normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
 
-//                model.addAttribute("seatDto", normalSeatDto);
                 model.addAttribute("round", true);
                 model.addAttribute("going", true);
-
-                beforeOccupied = normalSeatDto.howManyOccupied();
-                model.addAttribute("beforeOccupied", beforeOccupied);
 
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
@@ -104,7 +104,7 @@ public class ReservationController {
             }
 
             else {
-                if(normalSeatDto.howManyOccupied() - beforeOccupied != passengerDto.howManyOccupied()) {
+                if(normalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
                     Long deployId = deployForm.getDeployIdOfGoing();
                     Optional<Deploy> deploy = deployService.findDeploy(deployId);
@@ -116,11 +116,9 @@ public class ReservationController {
 
                     normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
 
-//                    model.addAttribute("seatDto", normalSeatDto);
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
                     model.addAttribute("going", true);
-                    model.addAttribute("beforeOccupied", beforeOccupied);
 
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
@@ -143,9 +141,6 @@ public class ReservationController {
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoom)).findAny();
 
-//                normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
-//                beforeOccupied = normalSeatDto.howManyOccupied();
-
                 model.addAttribute("round", true);
                 model.addAttribute("coming", true);
 
@@ -153,11 +148,6 @@ public class ReservationController {
                 model.addAttribute("arrivalPlace", arrivalPlace);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
-
-//                ObjectMapper objectMapper = new ObjectMapper();
-//                Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
-//                model.addAttribute("map", seatMap);
-//                model.addAttribute("ktxRooms", ktxRooms);
 
                 return "normalVip";
             }
@@ -187,12 +177,8 @@ public class ReservationController {
 
                 normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
 
-//                model.addAttribute("seatDto", normalSeatDto);
                 model.addAttribute("round", true);
                 model.addAttribute("coming", true);
-
-                beforeOccupied = normalSeatDto.howManyOccupied();
-                model.addAttribute("beforeOccupied", beforeOccupied);
 
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
@@ -208,7 +194,7 @@ public class ReservationController {
             }
 
             else {
-                if(normalSeatDto.howManyOccupied() - beforeOccupied != passengerDto.howManyOccupied()) {
+                if(normalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
                     Long deployId = deployForm.getDeployIdOfComing();
                     Optional<Deploy> deploy = deployService.findDeploy(deployId);
@@ -220,11 +206,9 @@ public class ReservationController {
 
                     normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
 
-//                    model.addAttribute("seatDto", normalSeatDto);
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
                     model.addAttribute("coming", true);
-                    model.addAttribute("beforeOccupied", beforeOccupied);
 
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
@@ -267,11 +251,7 @@ public class ReservationController {
 
             normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
 
-//            model.addAttribute("seatDto", normalSeatDto);
             model.addAttribute("going", true);
-
-            beforeOccupied = normalSeatDto.howManyOccupied();
-            model.addAttribute("beforeOccupied", beforeOccupied);
 
             model.addAttribute("departurePlace", departurePlace);
             model.addAttribute("arrivalPlace", arrivalPlace);
@@ -286,7 +266,7 @@ public class ReservationController {
         }
 
         else {
-            if(normalSeatDto.howManyOccupied() - beforeOccupied != passengerDto.howManyOccupied()) {
+            if(normalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
                 Long deployId = deployForm.getDeployIdOfGoing();
                 Optional<Deploy> deploy = deployService.findDeploy(deployId);
@@ -298,10 +278,8 @@ public class ReservationController {
 
                 normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
 
-//                model.addAttribute("seatDto", normalSeatDto);
                 model.addAttribute("passengerNumberNotSame", true);
                 model.addAttribute("going", true);
-                model.addAttribute("beforeOccupied", beforeOccupied);
 
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
@@ -316,15 +294,38 @@ public class ReservationController {
             }
 
             //success logic
+            Long deployId = deployForm.getDeployIdOfGoing();
+            Optional<Deploy> deploy = deployService.findDeploy(deployId);
+            Long trainId = deploy.get().getTrain().getId();
 
-            return "temp";
+            Ktx ktx = ktxService.findKtx(trainId).get();
+            List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
+            Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoom)).findAny();
+
+            //자리차지
+            KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+            foundSeat.normalDtoToEntity(normalSeatDto);
+
+            //reservation insert
+            Reservation reservation = new Reservation();
+            reservation.setDeploy(deploy.get());
+
+            //여기까지 멤버를 넘겨야 될 듯
+            //reservation.setMember(member);
+
+            //passenger가 있어야 되나??
+//            reservation.setPassenger();
+
+//            reservationRepository에 저장해야 됨
+//            repository.save(reservation);
+
+            return "redirect:/my-page";
         }
     }
 
     @PostMapping("/reservation/vip")
     public String reserveVip(@ModelAttribute VipSeatDto vipSeatDto,
                           @ModelAttribute DeployForm deployForm,
-                          @RequestParam Integer beforeOccupied,
                           @ModelAttribute PassengerDto passengerDto,
                           @RequestParam(required = false) Boolean round,
                           @RequestParam(required = false) Boolean going,
@@ -362,12 +363,11 @@ public class ReservationController {
 
                 vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(foundRoom.get());
 
-//                model.addAttribute("seatDto", vipSeatDto);
                 model.addAttribute("round", true);
                 model.addAttribute("going", true);
 
-                beforeOccupied = vipSeatDto.howManyOccupied();
-                model.addAttribute("beforeOccupied", beforeOccupied);
+//                beforeOccupied = vipSeatDto.howManyOccupied();
+//                model.addAttribute("beforeOccupied", beforeOccupied);
 
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
@@ -383,7 +383,7 @@ public class ReservationController {
             }
 
             else {
-                if(vipSeatDto.howManyOccupied() - beforeOccupied != passengerDto.howManyOccupied()) {
+                if(vipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
                     Long deployId = deployForm.getDeployIdOfGoing();
                     Optional<Deploy> deploy = deployService.findDeploy(deployId);
@@ -395,11 +395,10 @@ public class ReservationController {
 
                     vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(foundRoom.get());
 
-//                    model.addAttribute("seatDto", vipSeatDto);
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
                     model.addAttribute("going", true);
-                    model.addAttribute("beforeOccupied", beforeOccupied);
+//                    model.addAttribute("beforeOccupied", beforeOccupied);
 
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
@@ -433,11 +432,6 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
-//                ObjectMapper objectMapper = new ObjectMapper();
-//                Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
-//                model.addAttribute("map", seatMap);
-//                model.addAttribute("ktxRooms", ktxRooms);
-
                 return "normalVip";
             }
         }
@@ -466,12 +460,11 @@ public class ReservationController {
 
                 vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(foundRoom.get());
 
-//                model.addAttribute("seatDto", vipSeatDto);
                 model.addAttribute("round", true);
                 model.addAttribute("coming", true);
 
-                beforeOccupied = vipSeatDto.howManyOccupied();
-                model.addAttribute("beforeOccupied", beforeOccupied);
+//                beforeOccupied = vipSeatDto.howManyOccupied();
+//                model.addAttribute("beforeOccupied", beforeOccupied);
 
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
@@ -487,7 +480,7 @@ public class ReservationController {
             }
 
             else {
-                if(vipSeatDto.howManyOccupied() - beforeOccupied != passengerDto.howManyOccupied()) {
+                if(vipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
                     Long deployId = deployForm.getDeployIdOfComing();
                     Optional<Deploy> deploy = deployService.findDeploy(deployId);
@@ -499,11 +492,10 @@ public class ReservationController {
 
                     vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(foundRoom.get());
 
-//                    model.addAttribute("seatDto", vipSeatDto);
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
                     model.addAttribute("coming", true);
-                    model.addAttribute("beforeOccupied", beforeOccupied);
+//                    model.addAttribute("beforeOccupied", beforeOccupied);
 
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
@@ -546,11 +538,10 @@ public class ReservationController {
 
             vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(foundRoom.get());
 
-//            model.addAttribute("seatDto", vipSeatDto);
             model.addAttribute("going", true);
 
-            beforeOccupied = vipSeatDto.howManyOccupied();
-            model.addAttribute("beforeOccupied", beforeOccupied);
+//            beforeOccupied = vipSeatDto.howManyOccupied();
+//            model.addAttribute("beforeOccupied", beforeOccupied);
 
             model.addAttribute("departurePlace", departurePlace);
             model.addAttribute("arrivalPlace", arrivalPlace);
@@ -565,7 +556,7 @@ public class ReservationController {
         }
 
         else {
-            if(vipSeatDto.howManyOccupied() - beforeOccupied != passengerDto.howManyOccupied()) {
+            if(vipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
                 Long deployId = deployForm.getDeployIdOfGoing();
                 Optional<Deploy> deploy = deployService.findDeploy(deployId);
@@ -577,10 +568,9 @@ public class ReservationController {
 
                 vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(foundRoom.get());
 
-//                model.addAttribute("seatDto", vipSeatDto);
                 model.addAttribute("passengerNumberNotSame", true);
                 model.addAttribute("going", true);
-                model.addAttribute("beforeOccupied", beforeOccupied);
+//                model.addAttribute("beforeOccupied", beforeOccupied);
 
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
@@ -595,6 +585,7 @@ public class ReservationController {
             }
 
             //success logic
+
 
             return "temp";
         }

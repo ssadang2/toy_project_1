@@ -77,7 +77,7 @@ public class GradeController {
             model.addAttribute("round", true);
             model.addAttribute("coming", true);
 
-            model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
+//            model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
@@ -106,7 +106,7 @@ public class GradeController {
             model.addAttribute("round", true);
             model.addAttribute("going", true);
 
-            model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
+//            model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
@@ -133,7 +133,7 @@ public class GradeController {
             model.addAttribute("ktxRooms", ktxRooms);
             model.addAttribute("going", true);
 
-            model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
+//            model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
 
             return "chooseNormalSeat";
@@ -161,7 +161,7 @@ public class GradeController {
             model.addAttribute("round", true);
             model.addAttribute("coming", true);
 
-            model.addAttribute("beforeOccupied", vipSeatDto.howManyOccupied());
+//            model.addAttribute("beforeOccupied", vipSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
@@ -190,7 +190,7 @@ public class GradeController {
             model.addAttribute("round", true);
             model.addAttribute("going", true);
 
-            model.addAttribute("beforeOccupied", vipSeatDto.howManyOccupied());
+//            model.addAttribute("beforeOccupied", vipSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
@@ -217,7 +217,6 @@ public class GradeController {
             model.addAttribute("ktxRooms", ktxRooms);
             model.addAttribute("going", true);
 
-            model.addAttribute("beforeOccupied", vipSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
 
             return "chooseVipSeat";
