@@ -21,7 +21,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void saveMember(SignUpForm signUpForm) {
+    public void dtoToSaveMember(SignUpForm signUpForm) {
         Member member = new Member();
 
         member.setLoginId(signUpForm.getLoginId());
@@ -29,6 +29,11 @@ public class MemberService {
         member.setName(signUpForm.getName());
         member.setAge(signUpForm.getAge());
 
+        memberRepository.save(member);
+    }
+
+    @Transactional
+    public void save(Member member) {
         memberRepository.save(member);
     }
 }

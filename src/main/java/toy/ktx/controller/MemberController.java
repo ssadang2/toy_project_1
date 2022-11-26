@@ -26,7 +26,7 @@ public class MemberController {
     }
 
     @PostMapping("/sign-up")
-    public String completeSignUp(@Valid @ModelAttribute("signUpForm") SignUpForm signUpForm, BindingResult bindingResult) {
+    public String completeSignUp(@Valid @ModelAttribute SignUpForm signUpForm, BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {
             log.info("errors={}", bindingResult);
             return "signUpPage";
@@ -37,7 +37,7 @@ public class MemberController {
             bindingResult.rejectValue("loginId", "dup", "중복된 로그인 아이디입니다.");
             return "signUpPage";
         }
-        memberService.saveMember(signUpForm);
+        memberService.dtoToSaveMember(signUpForm);
 
         return "redirect:/";
     }

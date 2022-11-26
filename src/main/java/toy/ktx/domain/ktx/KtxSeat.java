@@ -161,7 +161,6 @@ public class KtxSeat {
             for (Object o : seatMap.keySet()) {
                 if ((boolean) seatMap.get(o) == true) {
                     String temp = "setK" + ((String)o).substring(1);
-                    log.info("시발 = {}", temp);
                     Method declaredMethod = clazz.getDeclaredMethod(temp, Boolean.class);
                     declaredMethod.invoke(this, true);
                 }
@@ -178,7 +177,6 @@ public class KtxSeat {
             for (Object o : seatMap.keySet()) {
                 if ((boolean) seatMap.get(o) == true) {
                     String temp = "setK" + ((String)o).substring(1);
-                    log.info("시발 = {}", temp);
                     Method declaredMethod = clazz.getDeclaredMethod(temp, Boolean.class);
                     declaredMethod.invoke(this, true);
                 }

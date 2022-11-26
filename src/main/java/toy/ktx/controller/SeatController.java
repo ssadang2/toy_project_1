@@ -169,7 +169,7 @@ public class SeatController {
                     int dayOfMonth = newTime.getDayOfMonth();
 
                     dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
                 }
 
                 if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() == LocalDateTime.now().plusDays(30).getDayOfMonth()) {
@@ -408,6 +408,8 @@ public class SeatController {
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
+
+
             return "normalVip";
         }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -483,7 +485,7 @@ public class SeatController {
                 int dayOfMonth = newTime.getDayOfMonth();
 
                 dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
             }
 
             if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() == LocalDateTime.now().plusDays(30).getDayOfMonth()) {

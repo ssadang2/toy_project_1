@@ -21,10 +21,16 @@ public class Reservation {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToOne(fetch = LAZY)
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "deploy_id")
     private Deploy deploy;
 
     @OneToOne(fetch = LAZY, mappedBy = "reservation")
     private Passenger passenger;
+
+    //편의 메소드
+    public void savePassenger(Passenger passenger) {
+        passenger.setReservation(this);
+        this.passenger = passenger;
+    }
 }

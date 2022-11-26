@@ -77,14 +77,14 @@ public class GradeController {
             model.addAttribute("round", true);
             model.addAttribute("coming", true);
 
-//            model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
+            model.addAttribute("roomName", ktxRoom.getRoomName());
 
             return "chooseNormalSeat";
         }
 
-        if (normal != null && round == true) {
+        else if (normal != null && round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
@@ -104,16 +104,17 @@ public class GradeController {
 
             model.addAttribute("ktxRooms", ktxRooms);
             model.addAttribute("round", true);
-            model.addAttribute("going", true);
+            //update point
+            model.addAttribute("going", going);
 
-//            model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
+            model.addAttribute("roomName", ktxRoom.getRoomName());
 
             return "chooseNormalSeat";
         }
 
-        else if(normal != null) {
+        if (normal != null) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
 
             Long deployId = deployForm.getDeployIdOfGoing();
@@ -131,15 +132,17 @@ public class GradeController {
             model.addAttribute("map", map);
 
             model.addAttribute("ktxRooms", ktxRooms);
-            model.addAttribute("going", true);
+            //update point
+            model.addAttribute("going", going);
 
-//            model.addAttribute("beforeOccupied", normalSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
+            model.addAttribute("roomName", ktxRoom.getRoomName());
 
             return "chooseNormalSeat";
         }
 
-        else if (vip != null && round == true && coming == Boolean.TRUE) {
+        // vip vs normal -----------------------------------------------------------------
+        if (vip != null && round == true && coming == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
@@ -161,9 +164,10 @@ public class GradeController {
             model.addAttribute("round", true);
             model.addAttribute("coming", true);
 
-//            model.addAttribute("beforeOccupied", vipSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
+            model.addAttribute("roomName", ktxRoom.getRoomName());
+            log.info("시발 ={}", ktxRoom.getRoomName());
 
             return "chooseVipSeat";
         }
@@ -188,11 +192,12 @@ public class GradeController {
 
             model.addAttribute("ktxRooms", ktxRooms);
             model.addAttribute("round", true);
-            model.addAttribute("going", true);
+            model.addAttribute("going", going);
 
-//            model.addAttribute("beforeOccupied", vipSeatDto.howManyOccupied());
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
+            model.addAttribute("roomName", ktxRoom.getRoomName());
+            log.info("시발 ={}", ktxRoom.getRoomName());
 
             return "chooseVipSeat";
         }
@@ -215,14 +220,14 @@ public class GradeController {
             model.addAttribute("map", map);
 
             model.addAttribute("ktxRooms", ktxRooms);
-            model.addAttribute("going", true);
+            model.addAttribute("going", going);
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
+            model.addAttribute("roomName", ktxRoom.getRoomName());
+            log.info("시발 ={}", ktxRoom.getRoomName());
 
             return "chooseVipSeat";
-
         }
-
     }
 
     private LocalDateTime getLocalDateTime(String dateTime) {
