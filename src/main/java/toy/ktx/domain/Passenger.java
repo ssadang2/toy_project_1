@@ -23,7 +23,6 @@ public class Passenger {
 
     private Integer senior;
 
-    @OneToOne
-    @JoinColumn(name = "reservation_id")
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "passenger")
     private Reservation reservation;
 }

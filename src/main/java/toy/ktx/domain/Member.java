@@ -1,6 +1,7 @@
 package toy.ktx.domain;
 
 import lombok.Data;
+import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import toy.ktx.domain.enums.Authorizations;
@@ -12,6 +13,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "member")
+@ToString(exclude = "reservations")
 public class Member {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

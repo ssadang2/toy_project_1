@@ -128,6 +128,7 @@ public class GradeController {
             NormalSeatDto normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(ktxRoom);
 
             ObjectMapper objectMapper = new ObjectMapper();
+            //여기가 문제
             Map map = objectMapper.convertValue(normalSeatDto, Map.class);
             model.addAttribute("map", map);
 

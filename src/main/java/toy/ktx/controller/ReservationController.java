@@ -234,6 +234,8 @@ public class ReservationController {
                 }
 
                 //success logic
+                Reservation reservation = new Reservation();
+                Reservation reservation2 = new Reservation();
                 //갈 때
                 Long deployId = deployForm.getDeployIdOfGoing();
                 Optional<Deploy> deploy = deployService.findDeploy(deployId);
@@ -244,15 +246,21 @@ public class ReservationController {
                 if (beforeNormalSeatDto != null) {
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                     Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
-                    KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+                    reservation.setRoomName(foundRoom.get().getRoomName());
+                    reservation.setGrade(foundRoom.get().getGrade());
 
+                    KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+                    reservation.setSeats(beforeNormalSeatDto.returnSeats());
                     foundSeat.normalDtoToEntity(beforeNormalSeatDto);
                 }
                 else{
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
                     Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
-                    KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+                    reservation.setRoomName(foundRoom.get().getRoomName());
+                    reservation.setGrade(foundRoom.get().getGrade());
 
+                    KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+                    reservation.setSeats(beforeVipSeatDto.returnSeats());
                     foundSeat.vipDtoToEntity(beforeVipSeatDto);
                 }
 
@@ -264,14 +272,17 @@ public class ReservationController {
                 Ktx ktx2 = ktxService.findKtx(trainId2).get();
                 List<KtxRoom> ktxRooms2 = ktxRoomService.findByKtxAndGrade(ktx2, Grade.NORMAL);
                 Optional<KtxRoom> foundRoom2 = ktxRooms2.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+                reservation2.setRoomName(foundRoom2.get().getRoomName());
+                reservation2.setGrade(foundRoom2.get().getGrade());
 
                 //자리차지
                 KtxSeat foundSeat2 = ktxSeatService.findByKtxRoom(foundRoom2.get()).get();
+                reservation2.setSeats(normalSeatDto.returnSeats());
                 foundSeat2.normalDtoToEntity(normalSeatDto);
 
                 //deploy
-                Reservation reservation = new Reservation();
                 reservation.setDeploy(deploy.get());
+                reservation2.setDeploy(deploy2.get());
 
                 //여기까지 멤버를 넘겨야 될 듯 => 세션에 로그인아이디를 담는 방법으로 해결
                 HttpSession session = request.getSession();
@@ -280,16 +291,25 @@ public class ReservationController {
 
                 if (foundMember != null) {
                     reservation.setMember(foundMember);
+                    reservation2.setMember(foundMember);
                 }
 
                 //passenger가 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
                 Passenger passenger = passengerDto.dtotoPassenger();
+                Passenger passenger2 = passengerDto.dtotoPassenger();
+
                 passengerService.save(passenger);
+                passengerService.save(passenger2);
+
                 reservation.savePassenger(passenger);
-                reservation.setFee(passengerDto.getFee());
+                reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+
+                reservation2.savePassenger(passenger2);
+                reservation2.setFee(passengerDto.getFee(reservation2.getGrade()));
 
                 //reservation을 db에 저장
                 reservationService.saveReservation(reservation);
+                reservationService.saveReservation(reservation2);
                 //이 값을 초기화해줘야지 일반 => 특실 전환 등의 작업이 가능함
                 beforeNormalSeatDto = null;
 
@@ -365,6 +385,8 @@ public class ReservationController {
             }
 
             //success logic
+            Reservation reservation = new Reservation();
+
             Long deployId = deployForm.getDeployIdOfGoing();
             Optional<Deploy> deploy = deployService.findDeploy(deployId);
             Long trainId = deploy.get().getTrain().getId();
@@ -372,13 +394,15 @@ public class ReservationController {
             Ktx ktx = ktxService.findKtx(trainId).get();
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
             Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+            reservation.setRoomName(foundRoom.get().getRoomName());
+            reservation.setGrade(foundRoom.get().getGrade());
 
             //자리차지
             KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+            reservation.setSeats(normalSeatDto.returnSeats());
             foundSeat.normalDtoToEntity(normalSeatDto);
 
             //deploy
-            Reservation reservation = new Reservation();
             reservation.setDeploy(deploy.get());
 
             //여기까지 멤버를 넘겨야 될 듯 => 세션에 로그인아이디를 담는 방법으로 해결
@@ -395,8 +419,7 @@ public class ReservationController {
             Passenger passenger = passengerDto.dtotoPassenger();
             passengerService.save(passenger);
             reservation.savePassenger(passenger);
-            log.info("시발 ={}", reservation);
-            reservation.setFee(passengerDto.getFee());
+            reservation.setFee(passengerDto.getFee(reservation.getGrade()));
 
             //reservation을 db에 저장
             reservationService.saveReservation(reservation);
@@ -406,6 +429,8 @@ public class ReservationController {
     }
 
     @PostMapping("/reservation/vip")
+    //postmapping에 Transactional 거는 게 에바라는 의견이 좀 있고 본인도 그렇게 생각, service쪽으로 빼야 될 것 같음(이래도 동작은 됨)
+    @Transactional
     public String reserveVip(@ModelAttribute VipSeatDto vipSeatDto,
                           @ModelAttribute DeployForm deployForm,
                           @ModelAttribute PassengerDto passengerDto,
@@ -584,6 +609,9 @@ public class ReservationController {
                 }
 
                 //success logic
+                Reservation reservation = new Reservation();
+                Reservation reservation2 = new Reservation();
+
                 //갈 때
                 Long deployId = deployForm.getDeployIdOfGoing();
                 Optional<Deploy> deploy = deployService.findDeploy(deployId);
@@ -592,18 +620,23 @@ public class ReservationController {
 
                 //자리차지
                 if (beforeVipSeatDto != null) {
-
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
                     Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
-                    KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+                    reservation.setRoomName(foundRoom.get().getRoomName());
+                    reservation.setGrade(foundRoom.get().getGrade());
 
+                    KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+                    reservation.setSeats(beforeVipSeatDto.returnSeats());
                     foundSeat.vipDtoToEntity(beforeVipSeatDto);
                 }
                 else {
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                     Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
-                    KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+                    reservation.setRoomName(foundRoom.get().getRoomName());
+                    reservation.setGrade(foundRoom.get().getGrade());
 
+                    KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+                    reservation.setSeats(beforeNormalSeatDto.returnSeats());
                     foundSeat.normalDtoToEntity(beforeNormalSeatDto);
                 }
 
@@ -615,14 +648,17 @@ public class ReservationController {
                 Ktx ktx2 = ktxService.findKtx(trainId2).get();
                 List<KtxRoom> ktxRooms2 = ktxRoomService.findByKtxAndGrade(ktx2, Grade.VIP);
                 Optional<KtxRoom> foundRoom2 = ktxRooms2.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+                reservation2.setRoomName(foundRoom2.get().getRoomName());
+                reservation2.setGrade(foundRoom2.get().getGrade());
 
                 //자리차지
                 KtxSeat foundSeat2 = ktxSeatService.findByKtxRoom(foundRoom2.get()).get();
+                reservation2.setSeats(vipSeatDto.returnSeats());
                 foundSeat2.vipDtoToEntity(vipSeatDto);
 
                 //deploy
-                Reservation reservation = new Reservation();
                 reservation.setDeploy(deploy.get());
+                reservation2.setDeploy(deploy2.get());
 
                 //여기까지 멤버를 넘겨야 될 듯 => 세션에 로그인아이디를 담는 방법으로 해결
                 HttpSession session = request.getSession();
@@ -632,17 +668,25 @@ public class ReservationController {
 
                 if (foundMember != null) {
                     reservation.setMember(foundMember);
+                    reservation2.setMember(foundMember);
                 }
 
                 //passenger가 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
                 Passenger passenger = passengerDto.dtotoPassenger();
+                Passenger passenger2 = passengerDto.dtotoPassenger();
+
                 passengerService.save(passenger);
+                passengerService.save(passenger2);
+
                 reservation.savePassenger(passenger);
-                log.info("시발 ={}", reservation);
-                reservation.setFee(passengerDto.getFee());
+                reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+
+                reservation2.savePassenger(passenger2);
+                reservation2.setFee(passengerDto.getFee(reservation2.getGrade()));
 
                 //reservation을 db에 저장
                 reservationService.saveReservation(reservation);
+                reservationService.saveReservation(reservation2);
                 //이 값을 초기화해줘야지 일반 => 특실 전환 등의 작업이 가능함
                 beforeVipSeatDto = null;
 
@@ -716,6 +760,8 @@ public class ReservationController {
             }
 
             //success logic
+            Reservation reservation = new Reservation();
+
             Long deployId = deployForm.getDeployIdOfGoing();
             Optional<Deploy> deploy = deployService.findDeploy(deployId);
             Long trainId = deploy.get().getTrain().getId();
@@ -723,13 +769,15 @@ public class ReservationController {
             Ktx ktx = ktxService.findKtx(trainId).get();
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
             Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+            reservation.setRoomName(foundRoom.get().getRoomName());
+            reservation.setGrade(foundRoom.get().getGrade());
 
             //자리차지
             KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+            reservation.setSeats(vipSeatDto.returnSeats());
             foundSeat.vipDtoToEntity(vipSeatDto);
 
             //deploy
-            Reservation reservation = new Reservation();
             reservation.setDeploy(deploy.get());
 
             //여기까지 멤버를 넘겨야 될 듯 => 세션에 로그인아이디를 담는 방법으로 해결
@@ -746,8 +794,7 @@ public class ReservationController {
             Passenger passenger = passengerDto.dtotoPassenger();
             passengerService.save(passenger);
             reservation.savePassenger(passenger);
-            log.info("시발 ={}", reservation);
-            reservation.setFee(passengerDto.getFee());
+            reservation.setFee(passengerDto.getFee(reservation.getGrade()));
 
             //reservation을 db에 저장
             reservationService.saveReservation(reservation);

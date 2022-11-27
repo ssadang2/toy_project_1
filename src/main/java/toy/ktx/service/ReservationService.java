@@ -8,6 +8,8 @@ import toy.ktx.domain.Reservation;
 import toy.ktx.domain.dto.SignUpForm;
 import toy.ktx.repository.ReservationRepository;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -18,5 +20,10 @@ public class ReservationService {
     @Transactional
     public void saveReservation(Reservation reservation) {
         reservationRepository.save(reservation);
+    }
+
+    @Transactional
+    public List<Reservation> findByMember(Member member) {
+        return reservationRepository.findByMember(member);
     }
 }

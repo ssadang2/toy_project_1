@@ -2,6 +2,7 @@ package toy.ktx.domain.dto;
 
 import lombok.Data;
 import toy.ktx.domain.Passenger;
+import toy.ktx.domain.enums.Grade;
 
 @Data
 public class PassengerDto {
@@ -49,8 +50,12 @@ public class PassengerDto {
         return toddler + kids + adult + senior;
     }
 
-    //요금은 거리 상관없이 2만원이라고 일단 가정
-    public Long getFee() {
-        return Long.valueOf(toddler * 6000 + kids * 10000 + adult * 20000 + senior * 14000);
+    public Long getFee(Grade grade) {
+        if(grade == Grade.NORMAL) {
+            //일반실 2만원
+            return Long.valueOf(toddler * 6000 + kids * 10000 + adult * 20000 + senior * 14000);
+        }
+        //특실 3만원
+        return Long.valueOf(toddler * 7500 + kids * 15000 + adult * 30000 + senior * 21000);
     }
 }

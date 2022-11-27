@@ -2,10 +2,12 @@ package toy.ktx.domain.dto.projections;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
 @Data
+@Slf4j
 public class VipSeatDto {
 
     private final Boolean k1A;
@@ -75,7 +77,22 @@ public class VipSeatDto {
                 sum += 1;
             }
         }
-
         return sum;
+    }
+
+    public String returnSeats() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map map = objectMapper.convertValue(this, Map.class);
+        String seats = "";
+
+        for (Object key : map.keySet()) {
+            if ((Boolean) map.get(key).equals(Boolean.TRUE)) {
+                seats += (String) key + " ";
+                log.info("시발={}", seats);
+            }
+        }
+        seats = seats.substring(0, seats.length() - 1);
+        log.info("시발={}", seats);
+        return seats;
     }
 }

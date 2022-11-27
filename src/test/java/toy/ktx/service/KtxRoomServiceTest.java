@@ -27,8 +27,7 @@ class KtxRoomServiceTest {
     @Test
     @Rollback(value = false)
     public void save() {
-        Optional<Ktx> ktx001 = ktxService.findKtx(Long.valueOf(1));
-        Optional<Ktx> ktx002 = ktxService.findKtx(Long.valueOf(2));
+        Optional<Ktx> ktx001 = ktxService.findKtx(Long.valueOf(10));
 
         KtxRoom room1 = new KtxRoom("room1", ktx001.get(), Grade.NORMAL);
         KtxRoom room2 = new KtxRoom("room2", ktx001.get(), Grade.NORMAL);

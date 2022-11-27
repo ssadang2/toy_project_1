@@ -1,6 +1,9 @@
 package toy.ktx.domain;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.ToString;
+import toy.ktx.domain.enums.Grade;
 
 import javax.persistence.*;
 
@@ -9,6 +12,7 @@ import static javax.persistence.FetchType.*;
 @Entity
 @Data
 @Table(name = "reservation")
+@ToString(exclude = "{member, passenger}")
 public class Reservation {
 
     @Id
@@ -25,10 +29,19 @@ public class Reservation {
     @JoinColumn(name = "deploy_id")
     private Deploy deploy;
 
-    @OneToOne(fetch = LAZY, mappedBy = "reservation")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "passenger_id")
     private Passenger passenger;
 
-    //편의 메소드
+    private String seats;
+
+    private String roomName;
+
+    @Enumerated(EnumType.STRING)
+    private Grade grade;
+
+    //편의 메서드
+    //연관관계 주인이 바뀐 시점에서 굳이 편의 메서드 쓸 필요없음
     public void savePassenger(Passenger passenger) {
         passenger.setReservation(this);
         this.passenger = passenger;

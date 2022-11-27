@@ -26,16 +26,16 @@ class KtxSeatServiceTest {
     @Test
     @Rollback(value = false)
     public void save() {
-        Optional<KtxRoom> ktxRoom1 = ktxRoomService.findKtxRoom(Long.valueOf(11));
-        Optional<KtxRoom> ktxRoom2 = ktxRoomService.findKtxRoom(Long.valueOf(12));
-        Optional<KtxRoom> ktxRoom3 = ktxRoomService.findKtxRoom(Long.valueOf(13));
-        Optional<KtxRoom> ktxRoom4 = ktxRoomService.findKtxRoom(Long.valueOf(14));
-        Optional<KtxRoom> ktxRoom5 = ktxRoomService.findKtxRoom(Long.valueOf(15));
-        Optional<KtxRoom> ktxRoom6 = ktxRoomService.findKtxRoom(Long.valueOf(16));
-        Optional<KtxRoom> ktxRoom7 = ktxRoomService.findKtxRoom(Long.valueOf(17));
-        Optional<KtxRoom> ktxRoom8 = ktxRoomService.findKtxRoom(Long.valueOf(18));
-        Optional<KtxRoom> ktxRoom9 = ktxRoomService.findKtxRoom(Long.valueOf(19));
-        Optional<KtxRoom> ktxRoom10 = ktxRoomService.findKtxRoom(Long.valueOf(20));
+        Optional<KtxRoom> ktxRoom1 = ktxRoomService.findKtxRoom(Long.valueOf(91));
+        Optional<KtxRoom> ktxRoom2 = ktxRoomService.findKtxRoom(Long.valueOf(92));
+        Optional<KtxRoom> ktxRoom3 = ktxRoomService.findKtxRoom(Long.valueOf(93));
+        Optional<KtxRoom> ktxRoom4 = ktxRoomService.findKtxRoom(Long.valueOf(94));
+        Optional<KtxRoom> ktxRoom5 = ktxRoomService.findKtxRoom(Long.valueOf(95));
+        Optional<KtxRoom> ktxRoom6 = ktxRoomService.findKtxRoom(Long.valueOf(96));
+        Optional<KtxRoom> ktxRoom7 = ktxRoomService.findKtxRoom(Long.valueOf(97));
+        Optional<KtxRoom> ktxRoom8 = ktxRoomService.findKtxRoom(Long.valueOf(98));
+        Optional<KtxRoom> ktxRoom9 = ktxRoomService.findKtxRoom(Long.valueOf(99));
+        Optional<KtxRoom> ktxRoom10 = ktxRoomService.findKtxRoom(Long.valueOf(100));
 
         KtxSeat ktxSeat1 = new KtxSeat(ktxRoom1.get(), false, false, false, false, false, false, false, false,
                 false, false, false, false, false, false, false, false,
