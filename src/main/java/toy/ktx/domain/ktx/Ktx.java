@@ -1,5 +1,6 @@
 package toy.ktx.domain.ktx;
 
+import lombok.Getter;
 import toy.ktx.domain.Train;
 
 import javax.persistence.Entity;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
 public class Ktx extends Train {
 
     @OneToMany(mappedBy = "ktx")

@@ -1,6 +1,8 @@
 package toy.ktx.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import toy.ktx.domain.dto.projections.NormalSeatDto;
 import toy.ktx.domain.dto.projections.VipSeatDto;
 import toy.ktx.domain.ktx.KtxRoom;

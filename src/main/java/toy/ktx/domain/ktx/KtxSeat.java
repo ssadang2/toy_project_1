@@ -1,5 +1,6 @@
 package toy.ktx.domain.ktx;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.ToString;
@@ -21,6 +22,8 @@ import java.util.Map;
 public class KtxSeat {
 
     @Transient
+    //여기 수정됨
+    @JsonIgnore
     ObjectMapper objectMapper = new ObjectMapper();
 
     @Id
@@ -29,6 +32,8 @@ public class KtxSeat {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
+    //objectmapper 사용시 무분별한 객체 탐색 cut
+    @JsonIgnore
     private KtxRoom ktxRoom;
 
     private Boolean k1A;

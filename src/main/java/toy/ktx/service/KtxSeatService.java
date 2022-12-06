@@ -9,6 +9,8 @@ import toy.ktx.domain.ktx.KtxRoom;
 import toy.ktx.domain.ktx.KtxSeat;
 import toy.ktx.repository.KtxSeatRepository;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Optional;
 
 @Service
@@ -37,5 +39,20 @@ public class KtxSeatService {
 
     public VipSeatDto findVipDtoByKtxRoom(KtxRoom ktxRoom) {
         return ktxSeatRepository.findVipDtoByKtxRoom(ktxRoom);
+    }
+
+    @Transactional
+    public void updateSeatsWithReflection(KtxSeat ktxSeat, String seats) {
+        try {
+            Class clazz = Class.forName("toy.ktx.domain.ktx.KtxSeat");
+            String[] seatsArr = seats.split(" ");
+            for (String s : seatsArr) {
+                String temp = "setK" + s.substring(1);
+                Method declaredMethod = clazz.getDeclaredMethod(temp, Boolean.class);
+                declaredMethod.invoke(ktxSeat, false);
+            }
+        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

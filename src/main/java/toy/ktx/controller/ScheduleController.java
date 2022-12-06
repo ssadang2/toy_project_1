@@ -3,17 +3,22 @@ package toy.ktx.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import toy.ktx.domain.Deploy;
 import toy.ktx.domain.Member;
+import toy.ktx.domain.Train;
 import toy.ktx.domain.constant.SessionConst;
 import toy.ktx.domain.constant.StationsConst;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
 import toy.ktx.domain.dto.ScheduleForm;
+import toy.ktx.domain.enums.Grade;
+import toy.ktx.domain.ktx.Ktx;
+import toy.ktx.domain.ktx.KtxRoom;
 import toy.ktx.service.DeployService;
 
 import javax.validation.Valid;
@@ -23,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @Slf4j
@@ -41,6 +47,7 @@ public class ScheduleController {
 
         LocalDateTime after = null;
         LocalDateTime before = null;
+        Long total = Long.valueOf(scheduleForm.getTotal());
 
         if(!StringUtils.hasText(scheduleForm.getDateOfGoing())) {
             bindingResult.reject("noDepartureDate", null);
@@ -143,7 +150,7 @@ public class ScheduleController {
             }
         }
 
-        List<Deploy> deploysWhenGoing = deployService.searchDeploy(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
+        List<Deploy> deploysWhenGoing = deployService.searchDeployWithTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
 
         if(deploysWhenGoing.isEmpty() == true) {
             model.addAttribute("emptyWhenGoing", true);
@@ -151,6 +158,47 @@ public class ScheduleController {
         }
 
         model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+
+        List<List<Boolean>> fullCheck = new ArrayList<>();
+
+        for (Deploy deploy : deploysWhenGoing) {
+            Ktx train = (Ktx)deploy.getTrain();
+            List<KtxRoom> ktxRooms = train.getKtxRooms();
+
+            Long normalRemain = Long.valueOf(0);
+            Long vipRemain = Long.valueOf(0);
+
+            for (KtxRoom ktxRoom : ktxRooms) {
+                if (ktxRoom.getGrade() == Grade.NORMAL) {
+                    normalRemain += ktxRoom.howManyRemain();
+                }
+                else {
+                    vipRemain += ktxRoom.howManyRemain();
+                }
+            }
+
+            log.info("시발 = {}", normalRemain);
+            log.info("시발 = {}", vipRemain);
+
+            List<Boolean> check = new ArrayList<>();
+            if (normalRemain >= total && vipRemain >= total) {
+                check.add(true);
+                check.add(true);
+            } else if (normalRemain >= total) {
+                check.add(true);
+                check.add(false);
+            } else if (vipRemain >= total) {
+                check.add(false);
+                check.add(true);
+            } else {
+                check.add(false);
+                check.add(false);
+            }
+            fullCheck.add(check);
+        }
+        model.addAttribute("fullCheck", fullCheck);
+        log.info("시발 ={}", fullCheck);
+
         model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
         deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
         return "schedule";

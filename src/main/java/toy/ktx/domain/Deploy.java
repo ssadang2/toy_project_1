@@ -52,4 +52,5 @@ public class Deploy {
         this.arrivalPlace = arrivalPlace;
         this.train = train;
     }
+
 }

@@ -1,16 +1,20 @@
 package toy.ktx.domain.ktx;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import toy.ktx.domain.enums.Grade;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Data
 @Table(name = "ktx_room")
 @ToString(exclude = {"ktx", "ktxSeat"})
+@Slf4j
 public class KtxRoom {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,5 +39,28 @@ public class KtxRoom {
         this.roomName = roomName;
         this.ktx = ktx;
         this.grade = grade;
+    }
+
+    public String isFull() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map map = objectMapper.convertValue(ktxSeat, Map.class);
+        for (Object o : map.keySet()) {
+            if (map.get(o).equals(Boolean.FALSE)) {
+                return null;
+            }
+        }
+        return this.getRoomName();
+    }
+
+    public Long howManyRemain() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Long reamin = Long.valueOf(0);
+        Map map = objectMapper.convertValue(ktxSeat, Map.class);
+        for (Object o : map.keySet()) {
+            if (map.get(o).equals(Boolean.FALSE)) {
+                reamin += 1;
+            }
+        }
+        return reamin;
     }
 }

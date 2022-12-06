@@ -9,6 +9,7 @@ import toy.ktx.domain.dto.SignUpForm;
 import toy.ktx.repository.ReservationRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,5 +26,19 @@ public class ReservationService {
     @Transactional
     public List<Reservation> findByMember(Member member) {
         return reservationRepository.findByMember(member);
+    }
+
+    public Optional<Reservation> findById(Long id) {
+        return reservationRepository.findById(id);
+    }
+
+    @Transactional
+    public void deleteById(Long id) {
+        reservationRepository.deleteById(id);
+    }
+
+    @Transactional
+    public Optional<Reservation> getReservationWithFetch(Long id) {
+        return reservationRepository.getReservationWithFetch(id);
     }
 }

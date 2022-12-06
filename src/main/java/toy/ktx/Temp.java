@@ -20,9 +20,11 @@ import java.util.*;
 @Slf4j
 public class Temp {
     public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        String temp = "시발 뭐야 ";
-        System.out.println(temp.substring(0, temp.length()-1));
-        System.out.println("시발" + " " + "시발");
+        KtxSeat ktxSeat = new KtxSeat();
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map map = objectMapper.convertValue(ktxSeat, Map.class);
+        System.out.println("map = " + map.size());
+        System.out.println("map = " + map);
 
     }
 }

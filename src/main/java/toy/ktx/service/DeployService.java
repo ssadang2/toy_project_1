@@ -43,4 +43,25 @@ public class DeployService {
 
         return deployRepository.searchDeploy(departurePlace, arrivalPlace, departureTime, until);
     }
+
+    public List<Deploy> searchDeployWithTrain(String departurePlace, String arrivalPlace,
+                                     LocalDateTime departureTime) {
+
+        int year = departureTime.getYear();
+        int monthValue = departureTime.getMonthValue();
+        int dayOfMonth = departureTime.getDayOfMonth();
+
+        LocalDateTime until = LocalDateTime.of(year, monthValue, dayOfMonth, 23, 59, 59);
+
+        // 출발 시간이 1시간 단위더라도 이미 지나간 시간대는 걸러줘야 됨
+        if (departureTime.format(DateTimeFormatter.ISO_DATE).equals(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE))) {
+            departureTime = LocalDateTime.now();
+        }
+
+        return deployRepository.searchDeployWithTrain(departurePlace, arrivalPlace, departureTime, until);
+    }
+
+    public Deploy getDeployWithTrain(Long id) {
+        return deployRepository.getDeployWithTrain(id);
+    }
 }

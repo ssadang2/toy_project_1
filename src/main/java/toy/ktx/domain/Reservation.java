@@ -29,7 +29,7 @@ public class Reservation {
     @JoinColumn(name = "deploy_id")
     private Deploy deploy;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "passenger_id")
     private Passenger passenger;
 
@@ -41,7 +41,7 @@ public class Reservation {
     private Grade grade;
 
     //편의 메서드
-    //연관관계 주인이 바뀐 시점에서 굳이 편의 메서드 쓸 필요없음
+    //연관관계 주인이 바뀌어서 굳이 편의 메서드 쓸 필요없음
     public void savePassenger(Passenger passenger) {
         passenger.setReservation(this);
         this.passenger = passenger;
