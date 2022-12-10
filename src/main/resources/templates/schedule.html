@@ -87,12 +87,15 @@
                         <p th:text="${deploy.train.trainName}"></p>
                         <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
                         <span th:text="${durationsWhenGoing[deployStat.index]}"></span><br><br>
+
                         <p th:if="${fullCheck[deployStat.index][0] == true && fullCheck[deployStat.index][1] == true}" th:text="|일반 예매가능 특 예매가능|"></p>
+
                         <p th:if="${fullCheck[deployStat.index][0] == true && fullCheck[deployStat.index][1] == false}" th:text="|일반 예매가능 특 불가|"></p>
+
                         <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == true}" th:text="|일반 불가 특 예매가능|"></p>
+
                         <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}" th:text="|일반 불가 특 불가|"></p>
                     </div>
-<!--                    여기부터-->
 
                     <div class="form-check col-4 text-center">
                         <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}" th:disabled="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}">

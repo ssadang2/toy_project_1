@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.BatchSize;
 import toy.ktx.domain.enums.Grade;
 
 import javax.persistence.*;
@@ -29,6 +30,9 @@ public class KtxRoom {
     @JoinColumn(name = "ktx_id")
     private Ktx ktx;
 
+//    @BatchSize(size = 100)
+//    배치 사이즈 의미가 없는 게 1:1 관계임
+//    양반향 OneToOne은 query시 문제가 많기 때문에 안 쓰는 게 좋을 듯
     @OneToOne(mappedBy = "ktxRoom", fetch = FetchType.LAZY)
     private KtxSeat ktxSeat;
 
@@ -41,26 +45,18 @@ public class KtxRoom {
         this.grade = grade;
     }
 
-    public String isFull() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map map = objectMapper.convertValue(ktxSeat, Map.class);
-        for (Object o : map.keySet()) {
-            if (map.get(o).equals(Boolean.FALSE)) {
-                return null;
-            }
-        }
-        return this.getRoomName();
-    }
-
-    public Long howManyRemain() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Long reamin = Long.valueOf(0);
-        Map map = objectMapper.convertValue(ktxSeat, Map.class);
-        for (Object o : map.keySet()) {
-            if (map.get(o).equals(Boolean.FALSE)) {
-                reamin += 1;
-            }
-        }
-        return reamin;
-    }
+//    public Boolean howManyRemain(Integer passengers) {
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        Long remain = Long.valueOf(0);
+//        Map map = objectMapper.convertValue(this.getKtxSeat(), Map.class);
+//        for (Object o : map.keySet()) {
+//            if (map.get(o).equals(Boolean.FALSE)) {
+//                remain += 1;
+//            }
+//        }
+//        if (remain >= passengers) {
+//            return Boolean.TRUE;
+//        }
+//        return null;
+//    }
 }

@@ -11,10 +11,6 @@ import java.util.Optional;
 
 public interface DeployRepository extends JpaRepository<Deploy, Long> {
 
-//    List<Deploy> findByDeparturePlaceAndArrivalPlaceAndDepartureTimeAfter(
-//            String departurePlace, String arrivalPlace, LocalDateTime departureTime, LocalDateTime arrivalTime
-//    );
-
     @Query("select d from Deploy d where d.departurePlace = :departurePlace and d.arrivalPlace = :arrivalPlace" +
             " and d.departureTime between :departureTime and :until")
     List<Deploy> searchDeploy(@Param("departurePlace") String departurePlace, @Param("arrivalPlace") String arrivalPlace,

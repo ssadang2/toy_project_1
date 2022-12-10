@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.transaction.annotation.Transactional;
 import toy.ktx.domain.dto.projections.NormalSeatDto;
 import toy.ktx.domain.dto.projections.VipSeatDto;
@@ -18,11 +19,10 @@ import java.util.Map;
 @Data
 @Slf4j
 @Table(name = "ktx_seat")
-@ToString(exclude = "ktxRoom")
+@ToString(exclude = {"ktxRoom", "objectMapper"})
 public class KtxSeat {
 
     @Transient
-    //여기 수정됨
     @JsonIgnore
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -189,6 +189,20 @@ public class KtxSeat {
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    public Boolean howManyRemain(Integer passengers) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Long remain = Long.valueOf(0);
+        Map map = objectMapper.convertValue(this, Map.class);
+        for (Object o : map.keySet()) {
+            if (map.get(o).equals(Boolean.FALSE)) {
+                remain += 1;
+            }
+        }
+        if (remain >= passengers) {
+            return Boolean.TRUE;
+        }
+        return null;
     }
 }

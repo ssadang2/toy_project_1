@@ -104,7 +104,6 @@ public class GradeController {
 
             model.addAttribute("ktxRooms", ktxRooms);
             model.addAttribute("round", true);
-            //update point
             model.addAttribute("going", going);
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
@@ -128,12 +127,10 @@ public class GradeController {
             NormalSeatDto normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(ktxRoom);
 
             ObjectMapper objectMapper = new ObjectMapper();
-            //여기가 문제
             Map map = objectMapper.convertValue(normalSeatDto, Map.class);
             model.addAttribute("map", map);
 
             model.addAttribute("ktxRooms", ktxRooms);
-            //update point
             model.addAttribute("going", going);
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
@@ -142,7 +139,7 @@ public class GradeController {
             return "chooseNormalSeat";
         }
 
-        // vip vs normal -----------------------------------------------------------------
+// normal vs vip -------------------------------------------------------------------------------------------------------------------------------------
         if (vip != null && round == true && coming == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);

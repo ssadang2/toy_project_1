@@ -10,6 +10,7 @@ import toy.ktx.domain.ktx.Ktx;
 import toy.ktx.domain.ktx.KtxRoom;
 import toy.ktx.repository.KtxRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;

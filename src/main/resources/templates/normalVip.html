@@ -12,11 +12,11 @@
         <div class="container">
             <div class="row">
                 <div class="col-6 text-center">
-                    <button type="submit" class="btn btn-outline-secondary" name="normal" value="normal">일반실</button>
+                    <button type="submit" class="btn btn-outline-secondary" name="normal" value="normal" th:disabled="${normalDisabled == true}">일반실</button>
                 </div>
 
                 <div class="col-6 text-center">
-                    <button type="submit" class="btn btn-outline-secondary" name="vip" value="vip">특실</button>
+                    <button type="submit" class="btn btn-outline-secondary" name="vip" value="vip" th:disabled="${vipDisabled == true}">특실</button>
                 </div>
 
                 <br><br><br><br><br><br><br><br>

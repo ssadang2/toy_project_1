@@ -19,16 +19,15 @@ import toy.ktx.domain.dto.ScheduleForm;
 import toy.ktx.domain.enums.Grade;
 import toy.ktx.domain.ktx.Ktx;
 import toy.ktx.domain.ktx.KtxRoom;
+import toy.ktx.domain.ktx.KtxSeat;
 import toy.ktx.service.DeployService;
+import toy.ktx.service.KtxSeatService;
 
 import javax.validation.Valid;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 @Slf4j
@@ -36,6 +35,7 @@ import java.util.Optional;
 public class ScheduleController {
 
     private final DeployService deployService;
+    private final KtxSeatService ktxSeatService;
 
     @PostMapping("/schedule")
     public String getSchedule(@Valid @ModelAttribute ScheduleForm scheduleForm,
@@ -149,7 +149,7 @@ public class ScheduleController {
                 return "schedule";
             }
         }
-
+// ------------------------------------------------------------------------------------------------------------------------
         List<Deploy> deploysWhenGoing = deployService.searchDeployWithTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
 
         if(deploysWhenGoing.isEmpty() == true) {
@@ -162,43 +162,117 @@ public class ScheduleController {
         List<List<Boolean>> fullCheck = new ArrayList<>();
 
         for (Deploy deploy : deploysWhenGoing) {
-            Ktx train = (Ktx)deploy.getTrain();
-            List<KtxRoom> ktxRooms = train.getKtxRooms();
+            // oneToOne 때문에 발생하는 문제 해결하기 위해 먼저 초기화 N + 1 문제라고 보기는 애매한 듯?
+            // select query가 50번 나가던 걸 5번으로 줄임 => 1/10
+            // 필기에는 트랜잭션 하나에 영속성 컨텍스트 하나가 대응되는 그렇다면 multiple services가 같은 Tx를 쓰는 건가?
+            ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deploy.getId());
+        }
 
-            Long normalRemain = Long.valueOf(0);
-            Long vipRemain = Long.valueOf(0);
+        for (Deploy deploy : deploysWhenGoing) {
+            List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deploy.getId());
 
-            for (KtxRoom ktxRoom : ktxRooms) {
-                if (ktxRoom.getGrade() == Grade.NORMAL) {
-                    normalRemain += ktxRoom.howManyRemain();
+            List<String> normalReserveOkList = new ArrayList<>();
+            List<String> vipReserveOkList = new ArrayList<>();
+
+            for (KtxSeat ktxSeat : ktxSeats) {
+                if (ktxSeat.getKtxRoom().getGrade() == Grade.NORMAL) {
+                    if (ktxSeat.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                        normalReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+                    }
                 }
                 else {
-                    vipRemain += ktxRoom.howManyRemain();
+//                  여기부터 해야 됨 1. seat table을 2개로 나누든지 2. seat.room을 dto로 바꿔 그걸 howManyReamin할 건지 2가지 옵션
+                    if (ktxSeat.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                        vipReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+                    }
                 }
             }
 
-            log.info("시발 = {}", normalRemain);
-            log.info("시발 = {}", vipRemain);
+            log.info("fuck = {}",normalReserveOkList);
+            log.info("fuck = {}",vipReserveOkList);
 
             List<Boolean> check = new ArrayList<>();
-            if (normalRemain >= total && vipRemain >= total) {
+
+            if(!normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
+                log.info("여기1?");
                 check.add(true);
                 check.add(true);
-            } else if (normalRemain >= total) {
+            }
+
+            if(!normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
+                log.info("여기2?");
                 check.add(true);
                 check.add(false);
-            } else if (vipRemain >= total) {
+            }
+
+            if(normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
+                log.info("여기3?");
                 check.add(false);
                 check.add(true);
-            } else {
+            }
+
+            if (normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
+                log.info("여기4?");
                 check.add(false);
                 check.add(false);
             }
             fullCheck.add(check);
-        }
-        model.addAttribute("fullCheck", fullCheck);
-        log.info("시발 ={}", fullCheck);
 
+
+//            Ktx train = (Ktx)deploy.getTrain();
+//            List<KtxRoom> ktxRooms = train.getKtxRooms();
+//            ???
+//            log.info("fuck = {}", ktxRooms);
+//            log.info("fuck = {}", ktxRooms.get(0).getKtxSeat());
+
+//            List<String> normalReserveOkList = new ArrayList<>();
+//            List<String> vipReserveOkList = new ArrayList<>();
+//
+//            for (KtxRoom ktxRoom : ktxRooms) {
+//                if (ktxRoom.getGrade() == Grade.NORMAL) {
+//                    if (ktxRoom.getKtxSeat().howManyRemain(passengerDto.howManyOccupied()) != null) {
+//                        normalReserveOkList.add(ktxRoom.getRoomName());
+//                    }
+//                }
+//                else {
+//                    if (ktxRoom.getKtxSeat().howManyRemain(passengerDto.howManyOccupied()) != null) {
+//                        vipReserveOkList.add(ktxRoom.getRoomName());
+//                    }
+//                }
+//            }
+//
+//            log.info("fuck = {}",normalReserveOkList);
+//            log.info("fuck = {}",vipReserveOkList);
+//
+//            List<Boolean> check = new ArrayList<>();
+//
+//            if(!normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
+//                log.info("여기1?");
+//                check.add(true);
+//                check.add(true);
+//            }
+//
+//            if(!normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
+//                log.info("여기2?");
+//                check.add(true);
+//                check.add(false);
+//            }
+//
+//            if(normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
+//                log.info("여기3?");
+//                check.add(false);
+//                check.add(true);
+//            }
+//
+//            if (normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
+//                log.info("여기4?");
+//                check.add(false);
+//                check.add(false);
+//            }
+//            fullCheck.add(check);
+        }
+        log.info("fuck ={}",fullCheck);
+        model.addAttribute("fullCheck", fullCheck);
         model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
         deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
         return "schedule";

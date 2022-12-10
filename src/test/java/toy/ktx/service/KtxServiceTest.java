@@ -10,6 +10,8 @@ import toy.ktx.domain.ktx.Ktx;
 
 import javax.persistence.EntityManager;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -25,16 +27,27 @@ class KtxServiceTest {
     @Test
     @Rollback(value = false)
     public void save() {
-        Ktx test1 = new Ktx("KTX001");
-        Ktx test2 = new Ktx("KTX002");
-        Ktx test3 = new Ktx("KTX003");
-        Ktx test4 = new Ktx("KTX004");
-        Ktx test5 = new Ktx("KTX005");
+//        Ktx test1 = new Ktx("ex");
+//        Ktx test2 = new Ktx("KTX002");
+//        Ktx test3 = new Ktx("KTX003");
+//        Ktx test4 = new Ktx("KTX004");
+//        Ktx test5 = new Ktx("KTX005");
 
-        ktxService.saveKtx(test1);
-        ktxService.saveKtx(test2);
-        ktxService.saveKtx(test3);
-        ktxService.saveKtx(test4);
-        ktxService.saveKtx(test5);
+//        ktxService.saveKtx(test1);
+//        ktxService.saveKtx(test2);
+//        ktxService.saveKtx(test3);
+//        ktxService.saveKtx(test4);
+//        ktxService.saveKtx(test5);
+
+        Ktx ktx = ktxService.findKtx(Long.valueOf(1)).get();
+        Ktx ktx2 = ktxService.findKtx(Long.valueOf(12)).get();
+
+        System.out.println("ktx.getClass() = " + ktx.getClass());
+        System.out.println("ktx.getClass() = " + ktx2.getClass());
+
+        System.out.println("ktx.getClass() = " + ktx.getKtxRooms().get(0));
+//        System.out.println("ktx.getClass() = " + ktx2.getKtxRooms().isEmpty());
+
+
     }
 }

@@ -102,6 +102,7 @@ public class HomeController {
 
                 String roomName = reservation.getRoomName();
                 Optional<KtxRoom> ktxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+//              여기 GetKtxSeat 없애야 됨
                 KtxSeat ktxSeat = ktxRoom.get().getKtxSeat();
                 //reservation 등의 entity 뿐만 아니라 seat entity 안의 자리까지 체크 해제해줘야 됨
                 ktxSeatService.updateSeatsWithReflection(ktxSeat, reservation.getSeats());

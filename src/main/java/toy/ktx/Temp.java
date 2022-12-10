@@ -3,6 +3,7 @@ package toy.ktx;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import toy.ktx.domain.dto.RoomDto;
 import toy.ktx.domain.dto.projections.NormalSeatDto;
 import toy.ktx.domain.ktx.KtxSeat;
@@ -20,11 +21,13 @@ import java.util.*;
 @Slf4j
 public class Temp {
     public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        KtxSeat ktxSeat = new KtxSeat();
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map map = objectMapper.convertValue(ktxSeat, Map.class);
-        System.out.println("map = " + map.size());
-        System.out.println("map = " + map);
+        List<String> a = new ArrayList<>();
+
+        a.add("roo2");
+        a.add("roo3");
+        Optional<String> room = a.stream().filter(r -> r.contains("room")).findAny();
+        System.out.println("room = " + room.get());
+
 
     }
 }

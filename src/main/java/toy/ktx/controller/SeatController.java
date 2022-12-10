@@ -13,8 +13,10 @@ import toy.ktx.domain.Deploy;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
 import toy.ktx.domain.dto.projections.NormalSeatDto;
+import toy.ktx.domain.enums.Grade;
 import toy.ktx.domain.ktx.Ktx;
 import toy.ktx.domain.ktx.KtxRoom;
+import toy.ktx.domain.ktx.KtxSeat;
 import toy.ktx.service.DeployService;
 import toy.ktx.service.KtxRoomService;
 import toy.ktx.service.KtxSeatService;
@@ -393,22 +395,42 @@ public class SeatController {
             }
 
             //success logic
-            Long deployId = deployForm.getDeployIdOfGoing();
-            Optional<Deploy> deploy = deployService.findDeploy(deployId);
-            Long trainId = deploy.get().getTrain().getId();
+            List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deployForm.getDeployIdOfGoing());
 
-            Ktx ktx = ktxService.findKtx(trainId).get();
-            List<KtxRoom> ktxRooms = ktxRoomService.findByKtx(ktx);
-            KtxRoom ktxRoom = ktxRooms.get(0);
+            List<String> normalReserveOkList = new ArrayList<>();
+            List<String> vipReserveOkList = new ArrayList<>();
 
-            NormalSeatDto normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(ktxRoom);
+            for (KtxSeat ktxSeat : ktxSeats) {
+                if (ktxSeat.getKtxRoom().getGrade() == Grade.NORMAL) {
+                    if (ktxSeat.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                        normalReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+                    }
+                }
+                else {
+                    if (ktxSeat.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                        vipReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+                    }
+                }
+            }
+
+            log.info("시발 ={}", normalReserveOkList);
+            log.info("시발 ={}", vipReserveOkList);
+
+            //updated
+            if(normalReserveOkList.isEmpty()) {
+                model.addAttribute("normalDisabled", true);
+                model.addAttribute("normalReserveOkList", normalReserveOkList);
+            }
+
+            if(vipReserveOkList.isEmpty()) {
+                model.addAttribute("vipDisabled", true);
+                model.addAttribute("vipReserveOkList", vipReserveOkList);
+            }
 
             model.addAttribute("round", true);
             model.addAttribute("going", true);
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
-
-
 
             return "normalVip";
         }
@@ -518,15 +540,34 @@ public class SeatController {
         }
 
         //success Logic
-        Long deployId = deployForm.getDeployIdOfGoing();
-        Optional<Deploy> deploy = deployService.findDeploy(deployId);
-        Long trainId = deploy.get().getTrain().getId();
+        List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deployForm.getDeployIdOfGoing());
 
-        Ktx ktx = ktxService.findKtx(trainId).get();
-        List<KtxRoom> ktxRooms = ktxRoomService.findByKtx(ktx);
-        KtxRoom ktxRoom = ktxRooms.get(0);
+        List<String> normalReserveOkList = new ArrayList<>();
+        List<String> vipReserveOkList = new ArrayList<>();
 
-        NormalSeatDto normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(ktxRoom);
+        for (KtxSeat ktxSeat : ktxSeats) {
+            if (ktxSeat.getKtxRoom().getGrade() == Grade.NORMAL) {
+                if (ktxSeat.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                    normalReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+                }
+            }
+            else {
+                if (ktxSeat.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                    vipReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+                }
+            }
+        }
+
+        log.info("시발 ={}", normalReserveOkList);
+        log.info("시발 ={}", vipReserveOkList);
+
+        if(normalReserveOkList.isEmpty()) {
+            model.addAttribute("normalDisabled", true);
+        }
+
+        if(vipReserveOkList.isEmpty()) {
+            model.addAttribute("vipDisabled", true);
+        }
 
         model.addAttribute("going", true);
         model.addAttribute("dateTimeOfGoing", beforeDateTime);

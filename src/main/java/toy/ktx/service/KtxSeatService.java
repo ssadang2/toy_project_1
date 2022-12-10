@@ -11,6 +11,7 @@ import toy.ktx.repository.KtxSeatRepository;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -54,5 +55,9 @@ public class KtxSeatService {
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<KtxSeat> findKtxSeatWithKtxRoomWithTrainWithDeploy(Long id) {
+        return ktxSeatRepository.findKtxSeatWithKtxRoomWithTrainWithDeploy(id);
     }
 }
