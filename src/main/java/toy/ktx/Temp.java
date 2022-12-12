@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -21,12 +22,11 @@ import java.util.*;
 @Slf4j
 public class Temp {
     public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        List<String> a = new ArrayList<>();
+        List<Integer> a = new ArrayList<>();
+        a.add(1);
+        a.add(2);
+        a.add(3);
 
-        a.add("roo2");
-        a.add("roo3");
-        Optional<String> room = a.stream().filter(r -> r.contains("room")).findAny();
-        System.out.println("room = " + room.get());
 
 
     }

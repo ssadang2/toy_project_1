@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import toy.ktx.domain.Deploy;
+import toy.ktx.domain.Train;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
 import toy.ktx.domain.dto.projections.NormalSeatDto;
@@ -16,10 +17,8 @@ import toy.ktx.domain.dto.projections.VipSeatDto;
 import toy.ktx.domain.enums.Grade;
 import toy.ktx.domain.ktx.Ktx;
 import toy.ktx.domain.ktx.KtxRoom;
-import toy.ktx.service.DeployService;
-import toy.ktx.service.KtxRoomService;
-import toy.ktx.service.KtxSeatService;
-import toy.ktx.service.KtxService;
+import toy.ktx.domain.ktx.KtxSeat;
+import toy.ktx.service.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,7 +34,8 @@ public class GradeController {
     private final DeployService deployService;
     private final KtxService ktxService;
     private final KtxRoomService ktxRoomService;
-    private final KtxSeatService ktxSeatService;
+    private final KtxSeatNormalService ktxSeatNormalService;
+    private final KtxSeatVipService ktxSeatVipService;
 
     @PostMapping("/grade")
     public String choiceGrade(@ModelAttribute DeployForm deployForm,
@@ -59,15 +59,12 @@ public class GradeController {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
-            Long deployId = deployForm.getDeployIdOfComing();
-            Optional<Deploy> deploy = deployService.findDeploy(deployId);
-            Long trainId = deploy.get().getTrain().getId();
-
-            Ktx ktx = ktxService.findKtx(trainId).get();
+            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfComing());
+            Ktx ktx = (Ktx) deploy.getTrain();
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
             KtxRoom ktxRoom = ktxRooms.get(0);
 
-            NormalSeatDto normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(ktxRoom);
+            NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(ktxRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map map = objectMapper.convertValue(normalSeatDto, Map.class);
@@ -96,7 +93,7 @@ public class GradeController {
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
             KtxRoom ktxRoom = ktxRooms.get(0);
 
-            NormalSeatDto normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(ktxRoom);
+            NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(ktxRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map map = objectMapper.convertValue(normalSeatDto, Map.class);
@@ -124,7 +121,7 @@ public class GradeController {
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);;
             KtxRoom ktxRoom = ktxRooms.get(0);
 
-            NormalSeatDto normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(ktxRoom);
+            NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(ktxRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map map = objectMapper.convertValue(normalSeatDto, Map.class);
@@ -152,7 +149,7 @@ public class GradeController {
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
             KtxRoom ktxRoom = ktxRooms.get(0);
 
-            VipSeatDto vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(ktxRoom);
+            VipSeatDto vipSeatDto = ktxSeatVipService.findVipDtoById(ktxRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map map = objectMapper.convertValue(vipSeatDto, Map.class);
@@ -182,7 +179,7 @@ public class GradeController {
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
             KtxRoom ktxRoom = ktxRooms.get(0);
 
-            VipSeatDto vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(ktxRoom);
+            VipSeatDto vipSeatDto = ktxSeatVipService.findVipDtoById(ktxRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map map = objectMapper.convertValue(vipSeatDto, Map.class);
@@ -211,7 +208,7 @@ public class GradeController {
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
             KtxRoom ktxRoom = ktxRooms.get(0);
 
-            VipSeatDto vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(ktxRoom);
+            VipSeatDto vipSeatDto = ktxSeatVipService.findVipDtoById(ktxRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map map = objectMapper.convertValue(vipSeatDto, Map.class);

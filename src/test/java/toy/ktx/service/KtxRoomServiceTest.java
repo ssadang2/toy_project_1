@@ -23,23 +23,30 @@ class KtxRoomServiceTest {
     KtxRoomService ktxRoomService;
 
     @Autowired
+    KtxSeatNormalService ktxSeatNormalService;
+
+    @Autowired
+    KtxSeatVipService ktxSeatVipService;
+
+    @Autowired
     KtxService ktxService;
 
     @Test
     @Rollback(value = false)
     public void save() {
-        Optional<Ktx> ktx001 = ktxService.findKtx(Long.valueOf(10));
+        Optional<Ktx> ktx001 = ktxService.findKtx(Long.valueOf(1));
 
-        KtxRoom room1 = new KtxRoom("room1", ktx001.get(), Grade.NORMAL);
-        KtxRoom room2 = new KtxRoom("room2", ktx001.get(), Grade.NORMAL);
-        KtxRoom room3 = new KtxRoom("room3", ktx001.get(), Grade.VIP);
-        KtxRoom room4 = new KtxRoom("room4", ktx001.get(), Grade.VIP);
-        KtxRoom room5 = new KtxRoom("room5", ktx001.get(), Grade.VIP);
-        KtxRoom room6 = new KtxRoom("room6", ktx001.get(), Grade.NORMAL);
-        KtxRoom room7 = new KtxRoom("room7", ktx001.get(), Grade.NORMAL);
-        KtxRoom room8 = new KtxRoom("room8", ktx001.get(), Grade.NORMAL);
-        KtxRoom room9 = new KtxRoom("room9", ktx001.get(), Grade.NORMAL);
-        KtxRoom room10 = new KtxRoom("room10", ktx001.get(), Grade.NORMAL);
+
+        KtxRoom room1 = new KtxRoom("room1", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(1)).get());
+        KtxRoom room2 = new KtxRoom("room2", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(2)).get());
+        KtxRoom room3 = new KtxRoom("room3", ktx001.get(), Grade.VIP, ktxSeatVipService.findById(Long.valueOf(8)).get());
+        KtxRoom room4 = new KtxRoom("room4", ktx001.get(), Grade.VIP, ktxSeatVipService.findById(Long.valueOf(9)).get());
+        KtxRoom room5 = new KtxRoom("room5", ktx001.get(), Grade.VIP, ktxSeatVipService.findById(Long.valueOf(10)).get());
+        KtxRoom room6 = new KtxRoom("room6", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(3)).get());
+        KtxRoom room7 = new KtxRoom("room7", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(4)).get());
+        KtxRoom room8 = new KtxRoom("room8", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(5)).get());
+        KtxRoom room9 = new KtxRoom("room9", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(6)).get());
+        KtxRoom room10 = new KtxRoom("room10", ktx001.get(), Grade.NORMAL,ktxSeatNormalService.findById(Long.valueOf(7)).get());
 
         ktxRoomService.saveKtxRoom(room1);
         ktxRoomService.saveKtxRoom(room2);

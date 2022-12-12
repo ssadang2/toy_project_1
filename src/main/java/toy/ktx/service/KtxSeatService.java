@@ -7,6 +7,7 @@ import toy.ktx.domain.dto.projections.NormalSeatDto;
 import toy.ktx.domain.dto.projections.VipSeatDto;
 import toy.ktx.domain.ktx.KtxRoom;
 import toy.ktx.domain.ktx.KtxSeat;
+import toy.ktx.domain.ktx.KtxSeatNormal;
 import toy.ktx.repository.KtxSeatRepository;
 
 import java.lang.reflect.InvocationTargetException;
@@ -30,22 +31,28 @@ public class KtxSeatService {
         return ktxSeatRepository.findById(ktxSeatId);
     }
 
-    public Optional<KtxSeat> findByKtxRoom(KtxRoom ktxRoom) {
-        return ktxSeatRepository.findByKtxRoom(ktxRoom);
-    }
+//    public Optional<KtxSeat> findByKtxRoom(KtxRoom ktxRoom) {
+//        return ktxSeatRepository.findByKtxRoom(ktxRoom);
+//    }
 
-    public NormalSeatDto findNormalDtoByKtxRoom(KtxRoom ktxRoom) {
-        return ktxSeatRepository.findNormalDtoByKtxRoom(ktxRoom);
-    }
+//    public NormalSeatDto findNormalDtoByKtxRoom(KtxRoom ktxRoom) {
+//        return ktxSeatRepository.findNormalDtoByKtxRoom(ktxRoom);
+//    }
 
-    public VipSeatDto findVipDtoByKtxRoom(KtxRoom ktxRoom) {
-        return ktxSeatRepository.findVipDtoByKtxRoom(ktxRoom);
-    }
+//    public VipSeatDto findVipDtoByKtxRoom(KtxRoom ktxRoom) {
+//        return ktxSeatRepository.findVipDtoByKtxRoom(ktxRoom);
+//    }
 
     @Transactional
     public void updateSeatsWithReflection(KtxSeat ktxSeat, String seats) {
         try {
-            Class clazz = Class.forName("toy.ktx.domain.ktx.KtxSeat");
+            Class clazz;
+            if (ktxSeat instanceof KtxSeatNormal) {
+                clazz = Class.forName("toy.ktx.domain.ktx.KtxSeatNormal");
+            }
+            else {
+                clazz = Class.forName("toy.ktx.domain.ktx.KtxSeatVip");
+            }
             String[] seatsArr = seats.split(" ");
             for (String s : seatsArr) {
                 String temp = "setK" + s.substring(1);
@@ -57,7 +64,7 @@ public class KtxSeatService {
         }
     }
 
-    public List<KtxSeat> findKtxSeatWithKtxRoomWithTrainWithDeploy(Long id) {
-        return ktxSeatRepository.findKtxSeatWithKtxRoomWithTrainWithDeploy(id);
-    }
+//    public List<KtxSeat> findKtxSeatWithKtxRoomWithTrainWithDeploy(Long id) {
+//        return ktxSeatRepository.findKtxSeatWithKtxRoomWithTrainWithDeploy(id);
+//    }
 }

@@ -30,22 +30,21 @@ public class KtxRoom {
     @JoinColumn(name = "ktx_id")
     private Ktx ktx;
 
-//    @BatchSize(size = 100)
-//    배치 사이즈 의미가 없는 게 1:1 관계임
-//    양반향 OneToOne은 query시 문제가 많기 때문에 안 쓰는 게 좋을 듯
-    @OneToOne(mappedBy = "ktxRoom", fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seat_id")
     private KtxSeat ktxSeat;
 
     public KtxRoom() {
     }
 
-    public KtxRoom(String roomName, Ktx ktx, Grade grade) {
+    public KtxRoom(String roomName, Ktx ktx, Grade grade,  KtxSeat ktxSeat) {
         this.roomName = roomName;
-        this.ktx = ktx;
         this.grade = grade;
+        this.ktx = ktx;
+        this.ktxSeat = ktxSeat;
     }
 
-//    public Boolean howManyRemain(Integer passengers) {
+    //    public Boolean howManyRemain(Integer passengers) {
 //        ObjectMapper objectMapper = new ObjectMapper();
 //        Long remain = Long.valueOf(0);
 //        Map map = objectMapper.convertValue(this.getKtxSeat(), Map.class);

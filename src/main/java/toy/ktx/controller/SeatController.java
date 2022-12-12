@@ -10,13 +10,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import toy.ktx.domain.Deploy;
+import toy.ktx.domain.Train;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
 import toy.ktx.domain.dto.projections.NormalSeatDto;
 import toy.ktx.domain.enums.Grade;
-import toy.ktx.domain.ktx.Ktx;
-import toy.ktx.domain.ktx.KtxRoom;
-import toy.ktx.domain.ktx.KtxSeat;
+import toy.ktx.domain.ktx.*;
 import toy.ktx.service.DeployService;
 import toy.ktx.service.KtxRoomService;
 import toy.ktx.service.KtxSeatService;
@@ -395,23 +394,43 @@ public class SeatController {
             }
 
             //success logic
-            List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deployForm.getDeployIdOfGoing());
+//            List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deployForm.getDeployIdOfGoing());
+            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Ktx train = (Ktx) deploy.getTrain();
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomWithSeatFetch(train.getId());
 
             List<String> normalReserveOkList = new ArrayList<>();
             List<String> vipReserveOkList = new ArrayList<>();
 
-            for (KtxSeat ktxSeat : ktxSeats) {
-                if (ktxSeat.getKtxRoom().getGrade() == Grade.NORMAL) {
-                    if (ktxSeat.howManyRemain(passengerDto.howManyOccupied()) != null) {
-                        normalReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+            for (KtxRoom ktxRoom : ktxRooms) {
+                if (ktxRoom.getGrade() == Grade.NORMAL) {
+                    KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                    if (ktxSeatNormal.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                        normalReserveOkList.add(ktxRoom.getRoomName());
                     }
                 }
                 else {
-                    if (ktxSeat.howManyRemain(passengerDto.howManyOccupied()) != null) {
-                        vipReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+                    KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
+                    if (ktxSeatVip.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                        vipReserveOkList.add(ktxRoom.getRoomName());
                     }
                 }
             }
+
+//            for (KtxSeat ktxSeat : ktxSeats) {
+//                if (ktxSeat.getKtxRoom().getGrade() == Grade.NORMAL) {
+//                    KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxSeat;
+//                    if (ktxSeatNormal.howManyRemain(passengerDto.howManyOccupied()) != null) {
+//                        normalReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+//                    }
+//                }
+//                else {
+//                    KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxSeat;
+//                    if (ktxSeatVip.howManyRemain(passengerDto.howManyOccupied()) != null) {
+//                        vipReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+//                    }
+//                }
+//            }
 
             log.info("시발 ={}", normalReserveOkList);
             log.info("시발 ={}", vipReserveOkList);
@@ -436,7 +455,7 @@ public class SeatController {
         }
 // --------------------------------------------------------------------------------------------------------------------------
         LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-        List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, beforeDateTime);
+        List<Deploy> deploysWhenGoing = deployService.searchDeployWithTrain(departurePlace, arrivalPlace, beforeDateTime);
 
         LocalDateTime dateTime = null;
         Boolean noBefore = false;
@@ -540,23 +559,44 @@ public class SeatController {
         }
 
         //success Logic
-        List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deployForm.getDeployIdOfGoing());
+//        List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deployForm.getDeployIdOfGoing());
+        Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+        log.info("fuck = {}", deploy.getTrain().getClass());
+        Ktx train = (Ktx) deploy.getTrain();
+        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomWithSeatFetch(train.getId());
 
         List<String> normalReserveOkList = new ArrayList<>();
         List<String> vipReserveOkList = new ArrayList<>();
 
-        for (KtxSeat ktxSeat : ktxSeats) {
-            if (ktxSeat.getKtxRoom().getGrade() == Grade.NORMAL) {
-                if (ktxSeat.howManyRemain(passengerDto.howManyOccupied()) != null) {
-                    normalReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+        for (KtxRoom ktxRoom : ktxRooms) {
+            if (ktxRoom.getGrade() == Grade.NORMAL) {
+                KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                if (ktxSeatNormal.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                    normalReserveOkList.add(ktxRoom.getRoomName());
                 }
             }
             else {
-                if (ktxSeat.howManyRemain(passengerDto.howManyOccupied()) != null) {
-                    vipReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+                KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
+                if (ktxSeatVip.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                    vipReserveOkList.add(ktxRoom.getRoomName());
                 }
             }
         }
+
+//        for (KtxSeat ktxSeat : ktxSeats) {
+//            if (ktxSeat.getKtxRoom().getGrade() == Grade.NORMAL) {
+//                KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxSeat;
+//                if (ktxSeatNormal.howManyRemain(passengerDto.howManyOccupied()) != null) {
+//                    normalReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+//                }
+//            }
+//            else {
+//                KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxSeat;
+//                if (ktxSeatVip.howManyRemain(passengerDto.howManyOccupied()) != null) {
+//                    vipReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+//                }
+//            }
+//        }
 
         log.info("시발 ={}", normalReserveOkList);
         log.info("시발 ={}", vipReserveOkList);

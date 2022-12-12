@@ -14,12 +14,12 @@ import java.util.Optional;
 
 public interface KtxSeatRepository extends JpaRepository<KtxSeat, Long> {
 
-    Optional<KtxSeat> findByKtxRoom(KtxRoom ktxRoom);
+//    Optional<KtxSeat> findByKtxRoom(KtxRoom ktxRoom);
 
-    NormalSeatDto findNormalDtoByKtxRoom(KtxRoom ktxRoom);
+//    NormalSeatDto findNormalDtoByKtxRoom(KtxRoom ktxRoom);
 
-    VipSeatDto findVipDtoByKtxRoom(KtxRoom ktxRoom);
+//    VipSeatDto findVipDtoByKtxRoom(KtxRoom ktxRoom);
 
-    @Query("select k from KtxSeat k join fetch k.ktxRoom r join fetch r.ktx ktx join fetch ktx.deploy d where d.id = :id")
-    List<KtxSeat> findKtxSeatWithKtxRoomWithTrainWithDeploy(@Param("id") Long id);
+//    @Query("select k from KtxSeat k join fetch k.ktxRoom r join fetch r.ktx ktx join fetch ktx.deploy d where d.id = :id")
+//    List<KtxSeat> findKtxSeatWithKtxRoomWithTrainWithDeploy(@Param("id") Long id);
 }

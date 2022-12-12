@@ -39,4 +39,8 @@ public class KtxRoomService {
         //deploy id임
         return ktxRoomRepository.findKtxRoomWithTrainWithDeploy(id);
     }
+
+    public List<KtxRoom> getKtxRoomWithSeatFetch(Long id) {
+        return ktxRoomRepository.getKtxRoomsWithSeatFetch(id);
+    }
 }

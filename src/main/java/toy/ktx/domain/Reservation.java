@@ -39,11 +39,4 @@ public class Reservation {
 
     @Enumerated(EnumType.STRING)
     private Grade grade;
-
-    //편의 메서드
-    //연관관계 주인이 바뀌어서 굳이 편의 메서드 쓸 필요없음
-    public void savePassenger(Passenger passenger) {
-        passenger.setReservation(this);
-        this.passenger = passenger;
-    }
 }

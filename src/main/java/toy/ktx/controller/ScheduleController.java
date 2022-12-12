@@ -17,11 +17,8 @@ import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
 import toy.ktx.domain.dto.ScheduleForm;
 import toy.ktx.domain.enums.Grade;
-import toy.ktx.domain.ktx.Ktx;
-import toy.ktx.domain.ktx.KtxRoom;
-import toy.ktx.domain.ktx.KtxSeat;
-import toy.ktx.service.DeployService;
-import toy.ktx.service.KtxSeatService;
+import toy.ktx.domain.ktx.*;
+import toy.ktx.service.*;
 
 import javax.validation.Valid;
 import java.time.Duration;
@@ -35,7 +32,10 @@ import java.util.*;
 public class ScheduleController {
 
     private final DeployService deployService;
+    private final KtxRoomService ktxRoomService;
     private final KtxSeatService ktxSeatService;
+    private final KtxSeatNormalService ktxSeatNormalService;
+    private final KtxSeatVipService ktxSeatVipService;
 
     @PostMapping("/schedule")
     public String getSchedule(@Valid @ModelAttribute ScheduleForm scheduleForm,
@@ -149,7 +149,8 @@ public class ScheduleController {
                 return "schedule";
             }
         }
-// ------------------------------------------------------------------------------------------------------------------------
+        // success logic--------------------------------------------------------------------------------------------------------------
+        //열차까지 fetch join
         List<Deploy> deploysWhenGoing = deployService.searchDeployWithTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
 
         if(deploysWhenGoing.isEmpty() == true) {
@@ -161,32 +162,61 @@ public class ScheduleController {
 
         List<List<Boolean>> fullCheck = new ArrayList<>();
 
-        for (Deploy deploy : deploysWhenGoing) {
+//        for (Deploy deploy : deploysWhenGoing) {
             // oneToOne 때문에 발생하는 문제 해결하기 위해 먼저 초기화 N + 1 문제라고 보기는 애매한 듯?
             // select query가 50번 나가던 걸 5번으로 줄임 => 1/10
             // 필기에는 트랜잭션 하나에 영속성 컨텍스트 하나가 대응되는 그렇다면 multiple services가 같은 Tx를 쓰는 건가?
-            ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deploy.getId());
-        }
+            // oneToOne query 많이 나가는 거 막으려고 미리 당기는 작업
+//            ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deploy.getId());
 
+//            List<KtxSeatNormal> a = ktxSeatNormalService.findKtxSeatNormalWithDeployIdFetch(deploy.getId());
+//            List<KtxSeatVip> b = ktxSeatVipService.findKtxSeatVipWithDeployIdFetch(deploy.getId());
+
+//        }
+
+
+        //예상 쿼리 2개?
         for (Deploy deploy : deploysWhenGoing) {
-            List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deploy.getId());
+            Ktx train = (Ktx) deploy.getTrain();
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomWithSeatFetch(train.getId());
+            log.info("fuck??? = {}", ktxRooms);
+            log.info("fuck??? = {}", deploy);
 
             List<String> normalReserveOkList = new ArrayList<>();
             List<String> vipReserveOkList = new ArrayList<>();
 
-            for (KtxSeat ktxSeat : ktxSeats) {
-                if (ktxSeat.getKtxRoom().getGrade() == Grade.NORMAL) {
-                    if (ktxSeat.howManyRemain(passengerDto.howManyOccupied()) != null) {
-                        normalReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+            for (KtxRoom ktxRoom : ktxRooms) {
+                if (ktxRoom.getGrade() == Grade.NORMAL) {
+                    KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                    log.info("fuck = {}", ktxSeatNormal);
+                    if (ktxSeatNormal.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                        normalReserveOkList.add(ktxRoom.getRoomName());
                     }
                 }
                 else {
-//                  여기부터 해야 됨 1. seat table을 2개로 나누든지 2. seat.room을 dto로 바꿔 그걸 howManyReamin할 건지 2가지 옵션
-                    if (ktxSeat.howManyRemain(passengerDto.howManyOccupied()) != null) {
-                        vipReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+                    KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
+                    if (ktxSeatVip.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                        vipReserveOkList.add(ktxRoom.getRoomName());
                     }
                 }
             }
+            log.info("fuck ={}",normalReserveOkList);
+            log.info("fuck ={}",vipReserveOkList);
+
+//            for (KtxSeat ktxSeat : ktxSeats) {
+//                if (ktxSeat.getKtxRoom().getGrade() == Grade.NORMAL) {
+//                    KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxSeat;
+//                    if (ktxSeatNormal.howManyRemain(passengerDto.howManyOccupied()) != null) {
+//                        normalReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+//                    }
+//                }
+//                else {
+//                    KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxSeat;
+//                    if (ktxSeatVip.howManyRemain(passengerDto.howManyOccupied()) != null) {
+//                        vipReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
+//                    }
+//                }
+//            }
 
             log.info("fuck = {}",normalReserveOkList);
             log.info("fuck = {}",vipReserveOkList);
@@ -217,59 +247,6 @@ public class ScheduleController {
                 check.add(false);
             }
             fullCheck.add(check);
-
-
-//            Ktx train = (Ktx)deploy.getTrain();
-//            List<KtxRoom> ktxRooms = train.getKtxRooms();
-//            ???
-//            log.info("fuck = {}", ktxRooms);
-//            log.info("fuck = {}", ktxRooms.get(0).getKtxSeat());
-
-//            List<String> normalReserveOkList = new ArrayList<>();
-//            List<String> vipReserveOkList = new ArrayList<>();
-//
-//            for (KtxRoom ktxRoom : ktxRooms) {
-//                if (ktxRoom.getGrade() == Grade.NORMAL) {
-//                    if (ktxRoom.getKtxSeat().howManyRemain(passengerDto.howManyOccupied()) != null) {
-//                        normalReserveOkList.add(ktxRoom.getRoomName());
-//                    }
-//                }
-//                else {
-//                    if (ktxRoom.getKtxSeat().howManyRemain(passengerDto.howManyOccupied()) != null) {
-//                        vipReserveOkList.add(ktxRoom.getRoomName());
-//                    }
-//                }
-//            }
-//
-//            log.info("fuck = {}",normalReserveOkList);
-//            log.info("fuck = {}",vipReserveOkList);
-//
-//            List<Boolean> check = new ArrayList<>();
-//
-//            if(!normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
-//                log.info("여기1?");
-//                check.add(true);
-//                check.add(true);
-//            }
-//
-//            if(!normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
-//                log.info("여기2?");
-//                check.add(true);
-//                check.add(false);
-//            }
-//
-//            if(normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
-//                log.info("여기3?");
-//                check.add(false);
-//                check.add(true);
-//            }
-//
-//            if (normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
-//                log.info("여기4?");
-//                check.add(false);
-//                check.add(false);
-//            }
-//            fullCheck.add(check);
         }
         log.info("fuck ={}",fullCheck);
         model.addAttribute("fullCheck", fullCheck);

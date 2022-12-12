@@ -9,10 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import toy.ktx.domain.Deploy;
-import toy.ktx.domain.Member;
-import toy.ktx.domain.Passenger;
-import toy.ktx.domain.Reservation;
+import toy.ktx.domain.*;
 import toy.ktx.domain.constant.SessionConst;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
@@ -20,9 +17,7 @@ import toy.ktx.domain.dto.RoomDto;
 import toy.ktx.domain.dto.projections.NormalSeatDto;
 import toy.ktx.domain.dto.projections.VipSeatDto;
 import toy.ktx.domain.enums.Grade;
-import toy.ktx.domain.ktx.Ktx;
-import toy.ktx.domain.ktx.KtxRoom;
-import toy.ktx.domain.ktx.KtxSeat;
+import toy.ktx.domain.ktx.*;
 import toy.ktx.service.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,6 +35,8 @@ public class ReservationController {
 
     private final KtxRoomService ktxRoomService;
     private final KtxSeatService ktxSeatService;
+    private final KtxSeatNormalService ktxSeatNormalService;
+    private final KtxSeatVipService ktxSeatVipService;
     private final KtxService ktxService;
     private final DeployService deployService;
     private final MemberService memberService;
@@ -95,7 +92,7 @@ public class ReservationController {
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoom)).findAny();
 
-                normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
+                normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("round", true);
                 model.addAttribute("going", true);
@@ -125,7 +122,7 @@ public class ReservationController {
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                     Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
-                    normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
+                    normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
@@ -183,7 +180,7 @@ public class ReservationController {
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoom)).findAny();
 
-                normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
+                normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("round", true);
                 model.addAttribute("coming", true);
@@ -213,7 +210,7 @@ public class ReservationController {
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                     Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
-                    normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
+                    normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
@@ -249,7 +246,7 @@ public class ReservationController {
                     reservation.setRoomName(foundRoom.get().getRoomName());
                     reservation.setGrade(foundRoom.get().getGrade());
 
-                    KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+                    KtxSeatNormal foundSeat = (KtxSeatNormal) ktxSeatService.findKtxSeat(foundRoom.get().getKtxSeat().getId()).get();
                     reservation.setSeats(beforeNormalSeatDto.returnSeats());
                     foundSeat.normalDtoToEntity(beforeNormalSeatDto);
                 }
@@ -259,7 +256,7 @@ public class ReservationController {
                     reservation.setRoomName(foundRoom.get().getRoomName());
                     reservation.setGrade(foundRoom.get().getGrade());
 
-                    KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+                    KtxSeatNormal foundSeat = (KtxSeatNormal) ktxSeatService.findKtxSeat(foundRoom.get().getKtxSeat().getId()).get();
                     reservation.setSeats(beforeVipSeatDto.returnSeats());
                     foundSeat.vipDtoToEntity(beforeVipSeatDto);
                 }
@@ -276,7 +273,7 @@ public class ReservationController {
                 reservation2.setGrade(foundRoom2.get().getGrade());
 
                 //자리차지
-                KtxSeat foundSeat2 = ktxSeatService.findByKtxRoom(foundRoom2.get()).get();
+                KtxSeatNormal foundSeat2 = (KtxSeatNormal) ktxSeatService.findKtxSeat(foundRoom2.get().getKtxSeat().getId()).get();
                 reservation2.setSeats(normalSeatDto.returnSeats());
                 foundSeat2.normalDtoToEntity(normalSeatDto);
 
@@ -301,10 +298,10 @@ public class ReservationController {
                 passengerService.save(passenger);
                 passengerService.save(passenger2);
 
-                reservation.savePassenger(passenger);
+                reservation.setPassenger(passenger);
                 reservation.setFee(passengerDto.getFee(reservation.getGrade()));
 
-                reservation2.savePassenger(passenger2);
+                reservation2.setPassenger(passenger2);
                 reservation2.setFee(passengerDto.getFee(reservation2.getGrade()));
 
                 //reservation을 db에 저장
@@ -338,7 +335,7 @@ public class ReservationController {
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
             Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoom)).findAny();
 
-            normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
+            normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
             model.addAttribute("going", true);
 
@@ -366,7 +363,7 @@ public class ReservationController {
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
-                normalSeatDto = ktxSeatService.findNormalDtoByKtxRoom(foundRoom.get());
+                normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("passengerNumberNotSame", true);
                 model.addAttribute("going", true);
@@ -387,23 +384,27 @@ public class ReservationController {
             //success logic
             Reservation reservation = new Reservation();
 
-            Long deployId = deployForm.getDeployIdOfGoing();
-            Optional<Deploy> deploy = deployService.findDeploy(deployId);
-            Long trainId = deploy.get().getTrain().getId();
+//            Long deployId = deployForm.getDeployIdOfGoing();
+//            Optional<Deploy> deploy = deployService.findDeploy(deployId);
+//            Long trainId = deploy.get().getTrain().getId();
+//            Ktx ktx = ktxService.findKtx(trainId).get();
+//            List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
 
-            Ktx ktx = ktxService.findKtx(trainId).get();
-            List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
+            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Ktx train = (Ktx) deploy.getTrain();
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomWithSeatFetch(((Ktx) deploy.getTrain()).getId());
+
             Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
             reservation.setRoomName(foundRoom.get().getRoomName());
             reservation.setGrade(foundRoom.get().getGrade());
 
             //자리차지
-            KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+            KtxSeatNormal foundSeat = (KtxSeatNormal) ktxSeatService.findKtxSeat(foundRoom.get().getKtxSeat().getId()).get();
             reservation.setSeats(normalSeatDto.returnSeats());
             foundSeat.normalDtoToEntity(normalSeatDto);
 
             //deploy
-            reservation.setDeploy(deploy.get());
+            reservation.setDeploy(deploy);
 
             //여기까지 멤버를 넘겨야 될 듯 => 세션에 로그인아이디를 담는 방법으로 해결
             HttpSession session = request.getSession();
@@ -418,7 +419,7 @@ public class ReservationController {
             //passenger가 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
             Passenger passenger = passengerDto.dtotoPassenger();
             passengerService.save(passenger);
-            reservation.savePassenger(passenger);
+            reservation.setPassenger(passenger);
             reservation.setFee(passengerDto.getFee(reservation.getGrade()));
 
             //reservation을 db에 저장
@@ -470,7 +471,7 @@ public class ReservationController {
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoom)).findAny();
 
-                vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(foundRoom.get());
+                vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("round", true);
                 model.addAttribute("going", true);
@@ -500,7 +501,7 @@ public class ReservationController {
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
                     Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
-                    vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(foundRoom.get());
+                    vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
@@ -558,7 +559,7 @@ public class ReservationController {
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoom)).findAny();
 
-                vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(foundRoom.get());
+                vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("round", true);
                 model.addAttribute("coming", true);
@@ -588,7 +589,7 @@ public class ReservationController {
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
                     Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
-                    vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(foundRoom.get());
+                    vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
@@ -625,7 +626,7 @@ public class ReservationController {
                     reservation.setRoomName(foundRoom.get().getRoomName());
                     reservation.setGrade(foundRoom.get().getGrade());
 
-                    KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+                    KtxSeatVip foundSeat = (KtxSeatVip) ktxSeatService.findKtxSeat(foundRoom.get().getKtxSeat().getId()).get();
                     reservation.setSeats(beforeVipSeatDto.returnSeats());
                     foundSeat.vipDtoToEntity(beforeVipSeatDto);
                 }
@@ -635,7 +636,7 @@ public class ReservationController {
                     reservation.setRoomName(foundRoom.get().getRoomName());
                     reservation.setGrade(foundRoom.get().getGrade());
 
-                    KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+                    KtxSeatVip foundSeat = (KtxSeatVip) ktxSeatService.findKtxSeat(foundRoom.get().getKtxSeat().getId()).get();
                     reservation.setSeats(beforeNormalSeatDto.returnSeats());
                     foundSeat.normalDtoToEntity(beforeNormalSeatDto);
                 }
@@ -652,7 +653,7 @@ public class ReservationController {
                 reservation2.setGrade(foundRoom2.get().getGrade());
 
                 //자리차지
-                KtxSeat foundSeat2 = ktxSeatService.findByKtxRoom(foundRoom2.get()).get();
+                KtxSeatVip foundSeat2 = (KtxSeatVip) ktxSeatService.findKtxSeat(foundRoom2.get().getKtxSeat().getId()).get();
                 reservation2.setSeats(vipSeatDto.returnSeats());
                 foundSeat2.vipDtoToEntity(vipSeatDto);
 
@@ -678,10 +679,10 @@ public class ReservationController {
                 passengerService.save(passenger);
                 passengerService.save(passenger2);
 
-                reservation.savePassenger(passenger);
+                reservation.setPassenger(passenger);
                 reservation.setFee(passengerDto.getFee(reservation.getGrade()));
 
-                reservation2.savePassenger(passenger2);
+                reservation2.setPassenger(passenger2);
                 reservation2.setFee(passengerDto.getFee(reservation2.getGrade()));
 
                 //reservation을 db에 저장
@@ -715,7 +716,7 @@ public class ReservationController {
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
             Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoom)).findAny();
 
-            vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(foundRoom.get());
+            vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
             model.addAttribute("going", true);
             model.addAttribute("departurePlace", departurePlace);
@@ -742,7 +743,7 @@ public class ReservationController {
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
-                vipSeatDto = ktxSeatService.findVipDtoByKtxRoom(foundRoom.get());
+                vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("passengerNumberNotSame", true);
                 model.addAttribute("going", true);
@@ -773,7 +774,7 @@ public class ReservationController {
             reservation.setGrade(foundRoom.get().getGrade());
 
             //자리차지
-            KtxSeat foundSeat = ktxSeatService.findByKtxRoom(foundRoom.get()).get();
+            KtxSeatVip foundSeat = (KtxSeatVip) ktxSeatService.findKtxSeat(foundRoom.get().getKtxSeat().getId()).get();
             reservation.setSeats(vipSeatDto.returnSeats());
             foundSeat.vipDtoToEntity(vipSeatDto);
 
@@ -793,7 +794,7 @@ public class ReservationController {
             //passenger가 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
             Passenger passenger = passengerDto.dtotoPassenger();
             passengerService.save(passenger);
-            reservation.savePassenger(passenger);
+            reservation.setPassenger(passenger);
             reservation.setFee(passengerDto.getFee(reservation.getGrade()));
 
             //reservation을 db에 저장

@@ -13,9 +13,9 @@ public class SaemaulSeat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "room_id")
-    private SaemaulRoom saemaulRoom;
+//    양방향 ㄴㄴ
+//    @OneToOne(mappedBy = "saemaulSeat")
+//    private SaemaulRoom saemaulRoom;
 
     private Boolean k1A;
     private Boolean k2A;

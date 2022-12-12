@@ -17,9 +17,13 @@ public class MugunghwaRoom {
 
     private String roomName;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "mugunghwa_id")
     private Mugunghwa mugunghwa;
+
+    @OneToOne
+    @JoinColumn(name = "seat_id")
+    private MugunghwaSeat mugunghwaSeat;
 
     @Enumerated(EnumType.STRING)
     private Grade grade;

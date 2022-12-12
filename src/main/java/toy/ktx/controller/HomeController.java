@@ -12,11 +12,9 @@ import toy.ktx.domain.Train;
 import toy.ktx.domain.constant.SessionConst;
 import toy.ktx.domain.dto.ScheduleForm;
 import toy.ktx.domain.enums.Authorizations;
-import toy.ktx.domain.ktx.Ktx;
-import toy.ktx.domain.ktx.KtxRoom;
-import toy.ktx.domain.ktx.KtxSeat;
-import toy.ktx.service.KtxSeatService;
-import toy.ktx.service.ReservationService;
+import toy.ktx.domain.enums.Grade;
+import toy.ktx.domain.ktx.*;
+import toy.ktx.service.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,7 +31,10 @@ import java.util.Optional;
 public class HomeController {
 
     private final ReservationService reservationService;
+    private final KtxRoomService ktxRoomService;
     private final KtxSeatService ktxSeatService;
+    private final KtxSeatNormalService ktxSeatNormalService;
+    private final KtxSeatVipService ktxSeatVipService;
 
     @GetMapping("/")
     public String getHome(Model model,
@@ -91,44 +92,33 @@ public class HomeController {
                             @RequestParam(required = false) Long reservationId,
                             Model model) {
 
-        // 예약 삭제 로직
+        //예약 삭제 로직
+        //예상 쿼리 3개 -> 실제 6개 select passenger 나가는 이유 => 프록시 초기화해야 pk 값을 가져올 수 있기 때문에
+        //grade controller 예매 가능 불가 logic부터 시작하면 될 듯
+        //예상
         if (reservationId != null) {
             Optional<Reservation> foundReservation = reservationService.getReservationWithFetch(reservationId);
             if (foundReservation.isPresent()) {
                 Reservation reservation = foundReservation.get();
-                log.info("시발 ={}", reservation);
                 Ktx train = (Ktx) reservation.getDeploy().getTrain();
-                List<KtxRoom> ktxRooms = train.getKtxRooms();
+                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomWithSeatFetch(train.getId());
+                Optional<KtxRoom> roomOptional = ktxRooms.stream().filter(r -> r.getRoomName().equals(reservation.getRoomName())).findFirst();
+                KtxRoom ktxRoom = roomOptional.get();
+                KtxSeat ktxSeat = ktxRoom.getKtxSeat();
 
-                String roomName = reservation.getRoomName();
-                Optional<KtxRoom> ktxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-//              여기 GetKtxSeat 없애야 됨
-                KtxSeat ktxSeat = ktxRoom.get().getKtxSeat();
                 //reservation 등의 entity 뿐만 아니라 seat entity 안의 자리까지 체크 해제해줘야 됨
+                if (ktxRoom.getGrade().equals(Grade.NORMAL)) {
+                    ktxSeat = (KtxSeatNormal) ktxSeat;
+                    System.out.println("ktxSeat = " + ktxSeat.getClass());
+                } else {
+                    ktxSeat = (KtxSeatVip) ktxSeat;
+                }
                 ktxSeatService.updateSeatsWithReflection(ktxSeat, reservation.getSeats());
             }
 
             //cascade option을 켰기 때문에 passenger를 굳이 손으로 안 지워줘도 됨
             reservationService.deleteById(reservationId);
         }
-
-//        List<Reservation> reservations = reservationService.findByMember(member);
-//        List<Deploy> deploys = new ArrayList<>();
-//
-//        for (Reservation reservation : reservations) {
-//            Deploy deploy = reservation.getDeploy();
-//            deploys.add(deploy);
-//        }
-//
-//        List<String> durations = getDuration(deploys);
-//
-//        if (reservations.isEmpty() != true) {
-//            model.addAttribute("reservations", reservations);
-//            model.addAttribute("durations", durations);
-//            log.info("시발 ={}", durations);
-//            log.info("시발 ={}", reservations);
-//        }
-
         //prg
         return "redirect:/my-page";
     }
