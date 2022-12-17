@@ -25,6 +25,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @Slf4j
@@ -32,12 +33,11 @@ import java.util.*;
 public class SeatController {
 
     private final KtxRoomService ktxRoomService;
-    private final KtxSeatService ktxSeatService;
-    private final KtxService ktxService;
     private final DeployService deployService;
 
     private final String[] alpha = {"A", "B", "C", "D"};
-    Map seat = new HashMap();
+    //never used
+//    Map seat = new HashMap();
 
     @PostMapping("/seat")
     public String chooseSeat(@ModelAttribute DeployForm deployForm,
@@ -62,10 +62,13 @@ public class SeatController {
         if (round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+//            updated point
+//            List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, beforeDateTime);
+//            //오는 날에는 가는 날의 출발지가 도착지고 도착지가 출발지임 따라서 getArrivalPlace가 departurePlace(출발지)에 위치해야 됨
+//            List<Deploy> deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, afterDateTime);
 
-            List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, beforeDateTime);
-            //오는 날에는 가는 날의 출발지가 도착지고 도착지가 출발지임 따라서 getArrivalPlace가 departurePlace(출발지)에 위치해야 됨
-            List<Deploy> deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, afterDateTime);
+//            List<Deploy> deploysWhenGoing = null;
+//            List<Deploy> deploysWhenComing = null;
 
             LocalDateTime dateTime = null;
             Boolean noBefore = false;
@@ -73,16 +76,31 @@ public class SeatController {
 
             if (prevGoing != null) {
                 LocalDateTime newTime = beforeDateTime.minusDays(1);
+                //updated point
+                List<Deploy> deploysWhenGoing = null;
+                List<Deploy> deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, afterDateTime);
 
                 if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() != LocalDateTime.now().getDayOfMonth()) {
-                    bindingResult.reject("noBefore", null);
+                    deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, beforeDateTime);
 
+                    bindingResult.reject("noBefore", null);
                     model.addAttribute("before", beforeDateTime);
                     model.addAttribute("after", afterDateTime);
 
                     dateTime = beforeDateTime;
                     noBefore = true;
-                } else {
+                }
+
+                if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() == LocalDateTime.now().getDayOfMonth()) {
+                    model.addAttribute("before", newTime);
+                    model.addAttribute("after", afterDateTime);
+
+                    dateTime = LocalDateTime.now();
+
+                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                }
+
+                if(!newTime.isBefore(LocalDateTime.now())) {
                     model.addAttribute("before", newTime);
                     model.addAttribute("after", afterDateTime);
 
@@ -94,14 +112,21 @@ public class SeatController {
                     deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
                 }
 
-                if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() == LocalDateTime.now().getDayOfMonth()) {
-                    model.addAttribute("before", newTime);
-                    model.addAttribute("after", afterDateTime);
+                //fullCheck list 넘겨줘야 됨
+                List<List<Boolean>> fullCheck = new ArrayList<>();
+                List<List<Boolean>> fullCheck2 = new ArrayList<>();
 
-                    dateTime = LocalDateTime.now();
+                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
 
-                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
-                }
+                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
+                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys2);
+
+                doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
+                doCheck(deploysWhenComing, ktxRooms2, passengerDto, fullCheck2);
+
+                model.addAttribute("fullCheck", fullCheck);
+                model.addAttribute("fullCheck2", fullCheck2);
 
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
@@ -124,7 +149,7 @@ public class SeatController {
                     return "schedule";
                 }
 
-                if (deploysWhenGoing.isEmpty() == false && deploysWhenComing.isEmpty() == true) {
+                if (deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
 
@@ -153,24 +178,18 @@ public class SeatController {
             if (nextGoing != null) {
                 LocalDateTime newTime = beforeDateTime.plusDays(1);
 
-                if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
-                    bindingResult.reject("noAfter", null);
+                List<Deploy> deploysWhenGoing = null;
+                List<Deploy> deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, afterDateTime);
 
+                if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
+                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, beforeDateTime);
+
+                    bindingResult.reject("noAfter", null);
                     model.addAttribute("before", beforeDateTime);
                     model.addAttribute("after", afterDateTime);
 
                     dateTime = beforeDateTime;
                     noAfter = true;
-                } else {
-                    model.addAttribute("before", newTime);
-                    model.addAttribute("after", afterDateTime);
-
-                    int year = newTime.getYear();
-                    int monthValue = newTime.getMonthValue();
-                    int dayOfMonth = newTime.getDayOfMonth();
-
-                    dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
                 }
 
                 if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() == LocalDateTime.now().plusDays(30).getDayOfMonth()) {
@@ -182,8 +201,38 @@ public class SeatController {
                     int dayOfMonth = LocalDateTime.now().plusDays(30).getDayOfMonth();
 
                     dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                    //이새끼 뭐야
+                    //deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
                 }
+
+                if(!newTime.isAfter(LocalDateTime.now().plusDays(30))) {
+                    model.addAttribute("before", newTime);
+                    model.addAttribute("after", afterDateTime);
+
+                    int year = newTime.getYear();
+                    int monthValue = newTime.getMonthValue();
+                    int dayOfMonth = newTime.getDayOfMonth();
+
+                    dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                }
+
+                //fullCheck list 넘겨줘야 됨
+                List<List<Boolean>> fullCheck = new ArrayList<>();
+                List<List<Boolean>> fullCheck2 = new ArrayList<>();
+
+                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
+                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys2);
+
+                doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
+                doCheck(deploysWhenComing, ktxRooms2, passengerDto, fullCheck2);
+
+                model.addAttribute("fullCheck", fullCheck);
+                model.addAttribute("fullCheck2", fullCheck2);
 
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
@@ -206,7 +255,7 @@ public class SeatController {
                     return "schedule";
                 }
 
-                if (deploysWhenGoing.isEmpty() == false && deploysWhenComing.isEmpty() == true) {
+                if (deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
 
@@ -235,15 +284,32 @@ public class SeatController {
             if (prevComing != null) {
                 LocalDateTime newTime = afterDateTime.minusDays(1);
 
-                if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() != LocalDateTime.now().getDayOfMonth()) {
-                    bindingResult.reject("noBefore", null);
+                List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, beforeDateTime);
+                List<Deploy> deploysWhenComing = null;
 
+                if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() != LocalDateTime.now().getDayOfMonth()) {
+                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, afterDateTime);
+
+                    bindingResult.reject("noBefore", null);
                     model.addAttribute("before", beforeDateTime);
                     model.addAttribute("after", afterDateTime);
 
                     dateTime = afterDateTime;
                     noBefore = true;
-                } else {
+                }
+
+                if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() == LocalDateTime.now().getDayOfMonth()) {
+                    model.addAttribute("before", beforeDateTime);
+                    model.addAttribute("after", newTime);
+
+                    dateTime = LocalDateTime.now();
+
+                    //이 새끼 뭐임?
+//                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                }
+
+                if(!newTime.isBefore(LocalDateTime.now())) {
                     model.addAttribute("before", beforeDateTime);
                     model.addAttribute("after", newTime);
 
@@ -255,16 +321,23 @@ public class SeatController {
                     deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
                 }
 
-                if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() == LocalDateTime.now().getDayOfMonth()) {
-                    model.addAttribute("before", beforeDateTime);
-                    model.addAttribute("after", newTime);
+                //fullCheck list 넘겨줘야 됨
+                List<List<Boolean>> fullCheck = new ArrayList<>();
+                List<List<Boolean>> fullCheck2 = new ArrayList<>();
 
-                    dateTime = LocalDateTime.now();
+                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
 
-                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
-                }
+                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
+                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys2);
 
-                if (deploysWhenComing.isEmpty() == true && deploysWhenGoing.isEmpty() == true) {
+                doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
+                doCheck(deploysWhenComing, ktxRooms2, passengerDto, fullCheck2);
+
+                model.addAttribute("fullCheck", fullCheck);
+                model.addAttribute("fullCheck2", fullCheck2);
+
+                if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("emptyWhenGoing", true);
 
@@ -285,7 +358,7 @@ public class SeatController {
                     return "schedule";
                 }
 
-                if (deploysWhenComing.isEmpty() == false && deploysWhenGoing.isEmpty() == true) {
+                if (deploysWhenGoing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
 
@@ -314,24 +387,18 @@ public class SeatController {
             if (nextComing != null) {
                 LocalDateTime newTime = afterDateTime.plusDays(1);
 
-                if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
-                    bindingResult.reject("noAfter", null);
+                List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, beforeDateTime);
+                List<Deploy> deploysWhenComing = null;
 
+                if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
+                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, afterDateTime);
+
+                    bindingResult.reject("noAfter", null);
                     model.addAttribute("before", beforeDateTime);
                     model.addAttribute("after", afterDateTime);
 
                     dateTime = afterDateTime;
                     noAfter = true;
-                } else {
-                    model.addAttribute("before", beforeDateTime);
-                    model.addAttribute("after", newTime);
-
-                    int year = newTime.getYear();
-                    int monthValue = newTime.getMonthValue();
-                    int dayOfMonth = newTime.getDayOfMonth();
-
-                    dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
                 }
 
                 if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() == LocalDateTime.now().plusDays(30).getDayOfMonth()) {
@@ -346,7 +413,35 @@ public class SeatController {
                     deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
                 }
 
-                if (deploysWhenComing.isEmpty() == true && deploysWhenGoing.isEmpty() == true) {
+                if(!newTime.isAfter(LocalDateTime.now().plusDays(30))) {
+                    model.addAttribute("before", beforeDateTime);
+                    model.addAttribute("after", newTime);
+
+                    int year = newTime.getYear();
+                    int monthValue = newTime.getMonthValue();
+                    int dayOfMonth = newTime.getDayOfMonth();
+
+                    dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                }
+
+                //fullCheck list 넘겨줘야 됨
+                List<List<Boolean>> fullCheck = new ArrayList<>();
+                List<List<Boolean>> fullCheck2 = new ArrayList<>();
+
+                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
+                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys2);
+
+                doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
+                doCheck(deploysWhenComing, ktxRooms2, passengerDto, fullCheck2);
+
+                model.addAttribute("fullCheck", fullCheck);
+                model.addAttribute("fullCheck2", fullCheck2);
+
+                if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("emptyWhenGoing", true);
 
@@ -367,7 +462,7 @@ public class SeatController {
                     return "schedule";
                 }
 
-                if (deploysWhenComing.isEmpty() == false && deploysWhenGoing.isEmpty() == true) {
+                if (deploysWhenGoing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
 
@@ -394,7 +489,8 @@ public class SeatController {
             }
 
             //success logic
-//            List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deployForm.getDeployIdOfGoing());
+            //예상 select query 2개? => 2개 맞음
+            //List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deployForm.getDeployIdOfGoing());
             Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
             Ktx train = (Ktx) deploy.getTrain();
             List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomWithSeatFetch(train.getId());
@@ -405,37 +501,21 @@ public class SeatController {
             for (KtxRoom ktxRoom : ktxRooms) {
                 if (ktxRoom.getGrade() == Grade.NORMAL) {
                     KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
-                    if (ktxSeatNormal.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                    if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
                         normalReserveOkList.add(ktxRoom.getRoomName());
                     }
                 }
                 else {
                     KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
-                    if (ktxSeatVip.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                    if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
                         vipReserveOkList.add(ktxRoom.getRoomName());
                     }
                 }
             }
 
-//            for (KtxSeat ktxSeat : ktxSeats) {
-//                if (ktxSeat.getKtxRoom().getGrade() == Grade.NORMAL) {
-//                    KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxSeat;
-//                    if (ktxSeatNormal.howManyRemain(passengerDto.howManyOccupied()) != null) {
-//                        normalReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
-//                    }
-//                }
-//                else {
-//                    KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxSeat;
-//                    if (ktxSeatVip.howManyRemain(passengerDto.howManyOccupied()) != null) {
-//                        vipReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
-//                    }
-//                }
-//            }
-
             log.info("시발 ={}", normalReserveOkList);
             log.info("시발 ={}", vipReserveOkList);
 
-            //updated
             if(normalReserveOkList.isEmpty()) {
                 model.addAttribute("normalDisabled", true);
                 model.addAttribute("normalReserveOkList", normalReserveOkList);
@@ -453,33 +533,25 @@ public class SeatController {
 
             return "normalVip";
         }
-// --------------------------------------------------------------------------------------------------------------------------
+// round vs one-way --------------------------------------------------------------------------------------------------------------------------
         LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-        List<Deploy> deploysWhenGoing = deployService.searchDeployWithTrain(departurePlace, arrivalPlace, beforeDateTime);
-
         LocalDateTime dateTime = null;
+
         Boolean noBefore = false;
         Boolean noAfter = false;
 
         if (prevGoing != null) {
             LocalDateTime newTime = beforeDateTime.minusDays(1);
+            List<Deploy> deploysWhenGoing = null;
 
             if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() != LocalDateTime.now().getDayOfMonth()) {
-                bindingResult.reject("noBefore", null);
+                deploysWhenGoing = deployService.searchDeployWithTrain(departurePlace, arrivalPlace, beforeDateTime);
 
+                bindingResult.reject("noBefore", null);
                 model.addAttribute("before", beforeDateTime);
 
                 dateTime = beforeDateTime;
                 noBefore = true;
-            } else {
-                model.addAttribute("before", newTime);
-
-                int year = newTime.getYear();
-                int monthValue = newTime.getMonthValue();
-                int dayOfMonth = newTime.getDayOfMonth();
-
-                dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
             }
 
             if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() == LocalDateTime.now().getDayOfMonth()) {
@@ -490,9 +562,30 @@ public class SeatController {
                 deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
             }
 
+            if(!newTime.isBefore(LocalDateTime.now())) {
+                model.addAttribute("before", newTime);
+
+                int year = newTime.getYear();
+                int monthValue = newTime.getMonthValue();
+                int dayOfMonth = newTime.getDayOfMonth();
+
+                dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+            }
+
+            //fullCheck list 넘겨줘야 됨
+            List<List<Boolean>> fullCheck = new ArrayList<>();
+
+            List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
+
+            doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
+
+            model.addAttribute("fullCheck", fullCheck);
+
             if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
-
                 model.addAttribute("dateTimeOfGoing", dateTime.toString());
                 model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
                 return "schedule";
@@ -510,23 +603,16 @@ public class SeatController {
 
         if (nextGoing != null) {
             LocalDateTime newTime = beforeDateTime.plusDays(1);
+            List<Deploy> deploysWhenGoing = null;
 
             if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
-                bindingResult.reject("noAfter", null);
+                deploysWhenGoing = deployService.searchDeployWithTrain(departurePlace, arrivalPlace, beforeDateTime);
 
+                bindingResult.reject("noAfter", null);
                 model.addAttribute("before", beforeDateTime);
 
                 dateTime = beforeDateTime;
                 noAfter = true;
-            } else {
-                model.addAttribute("before", newTime);
-
-                int year = newTime.getYear();
-                int monthValue = newTime.getMonthValue();
-                int dayOfMonth = newTime.getDayOfMonth();
-
-                dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
             }
 
             if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() == LocalDateTime.now().plusDays(30).getDayOfMonth()) {
@@ -537,12 +623,35 @@ public class SeatController {
                 int dayOfMonth = LocalDateTime.now().plusDays(30).getDayOfMonth();
 
                 dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                //이 ㅅㄲ 뭐임?
+//                deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
             }
+
+            if(!newTime.isAfter(LocalDateTime.now().plusDays(30))) {
+                model.addAttribute("before", newTime);
+
+                int year = newTime.getYear();
+                int monthValue = newTime.getMonthValue();
+                int dayOfMonth = newTime.getDayOfMonth();
+
+                dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
+                deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+            }
+
+            //fullCheck list 넘겨줘야 됨
+            List<List<Boolean>> fullCheck = new ArrayList<>();
+
+            List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
+
+            doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
+
+            model.addAttribute("fullCheck", fullCheck);
 
             if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
-
                 model.addAttribute("dateTimeOfGoing", dateTime.toString());
                 model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
                 return "schedule";
@@ -557,11 +666,10 @@ public class SeatController {
             deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
             return "schedule";
         }
-
         //success Logic
-//        List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deployForm.getDeployIdOfGoing());
+        //예상 select query 2개? => 2개 맞음
+        //List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deployForm.getDeployIdOfGoing());
         Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
-        log.info("fuck = {}", deploy.getTrain().getClass());
         Ktx train = (Ktx) deploy.getTrain();
         List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomWithSeatFetch(train.getId());
 
@@ -571,32 +679,17 @@ public class SeatController {
         for (KtxRoom ktxRoom : ktxRooms) {
             if (ktxRoom.getGrade() == Grade.NORMAL) {
                 KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
-                if (ktxSeatNormal.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
                     normalReserveOkList.add(ktxRoom.getRoomName());
                 }
             }
             else {
                 KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
-                if (ktxSeatVip.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
                     vipReserveOkList.add(ktxRoom.getRoomName());
                 }
             }
         }
-
-//        for (KtxSeat ktxSeat : ktxSeats) {
-//            if (ktxSeat.getKtxRoom().getGrade() == Grade.NORMAL) {
-//                KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxSeat;
-//                if (ktxSeatNormal.howManyRemain(passengerDto.howManyOccupied()) != null) {
-//                    normalReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
-//                }
-//            }
-//            else {
-//                KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxSeat;
-//                if (ktxSeatVip.howManyRemain(passengerDto.howManyOccupied()) != null) {
-//                    vipReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
-//                }
-//            }
-//        }
 
         log.info("시발 ={}", normalReserveOkList);
         log.info("시발 ={}", vipReserveOkList);
@@ -635,5 +728,54 @@ public class SeatController {
     private LocalDateTime getLocalDateTime(String dateTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
         return LocalDateTime.parse(dateTime, formatter);
+    }
+
+    private void doCheck(List<Deploy> deploysWhen, List<KtxRoom> ktxRooms, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
+        for (Deploy deploy : deploysWhen) {
+            //실험중 select 3개에서 2개로 줄임(using in clause)
+            List<String> normalReserveOkList = new ArrayList<>();
+            List<String> vipReserveOkList = new ArrayList<>();
+
+            for (KtxRoom ktxRoom : ktxRooms) {
+                if (ktxRoom.getGrade() == Grade.NORMAL) {
+                    KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                    if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                        normalReserveOkList.add(ktxRoom.getRoomName());
+                    }
+                }
+                else {
+                    KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
+                    if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                        vipReserveOkList.add(ktxRoom.getRoomName());
+                    }
+                }
+            }
+
+            log.info("fuck = {}",normalReserveOkList);
+            log.info("fuck = {}",vipReserveOkList);
+
+            List<Boolean> check = new ArrayList<>();
+
+            if(!normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
+                check.add(true);
+                check.add(true);
+            }
+
+            if(!normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
+                check.add(true);
+                check.add(false);
+            }
+
+            if(normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
+                check.add(false);
+                check.add(true);
+            }
+
+            if (normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
+                check.add(false);
+                check.add(false);
+            }
+            fullCheck.add(check);
+        }
     }
 }

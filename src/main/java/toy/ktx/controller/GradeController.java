@@ -9,19 +9,17 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import toy.ktx.domain.Deploy;
-import toy.ktx.domain.Train;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
 import toy.ktx.domain.dto.projections.NormalSeatDto;
 import toy.ktx.domain.dto.projections.VipSeatDto;
 import toy.ktx.domain.enums.Grade;
-import toy.ktx.domain.ktx.Ktx;
-import toy.ktx.domain.ktx.KtxRoom;
-import toy.ktx.domain.ktx.KtxSeat;
+import toy.ktx.domain.ktx.*;
 import toy.ktx.service.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,6 +34,9 @@ public class GradeController {
     private final KtxRoomService ktxRoomService;
     private final KtxSeatNormalService ktxSeatNormalService;
     private final KtxSeatVipService ktxSeatVipService;
+
+    //동시성 제어
+    private ThreadLocal<List<String>> okList = new ThreadLocal<>();
 
     @PostMapping("/grade")
     public String choiceGrade(@ModelAttribute DeployForm deployForm,
@@ -55,16 +56,35 @@ public class GradeController {
         model.addAttribute("arrivalPlace", arrivalPlace);
         model.addAttribute("passengers", passengerDto.howManyOccupied());
 
+        okList.set(new ArrayList<>());
+
         if (normal != null && round == true && coming == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
             Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfComing());
             Ktx ktx = (Ktx) deploy.getTrain();
-            List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
-            KtxRoom ktxRoom = ktxRooms.get(0);
 
-            NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(ktxRoom.getKtxSeat().getId());
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.NORMAL);
+            KtxRoom targetRoom = null;
+
+            for (KtxRoom ktxRoom : ktxRooms) {
+                KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                    okList.get().add(ktxRoom.getRoomName());
+                }
+            }
+
+            for (String roomName : okList.get()) {
+                Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+                if (optionalKtxRoom.isPresent()) {
+                    targetRoom = optionalKtxRoom.get();
+                    break;
+                }
+            }
+            log.info("fuck = {}", okList.get());
+
+            NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map map = objectMapper.convertValue(normalSeatDto, Map.class);
@@ -76,7 +96,9 @@ public class GradeController {
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
-            model.addAttribute("roomName", ktxRoom.getRoomName());
+            model.addAttribute("roomName", targetRoom.getRoomName());
+            model.addAttribute("okList", okList.get());
+            okList.remove();
 
             return "chooseNormalSeat";
         }
@@ -85,15 +107,29 @@ public class GradeController {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
-            Long deployId = deployForm.getDeployIdOfGoing();
-            Optional<Deploy> deploy = deployService.findDeploy(deployId);
-            Long trainId = deploy.get().getTrain().getId();
+            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Ktx ktx = (Ktx) deploy.getTrain();
 
-            Ktx ktx = ktxService.findKtx(trainId).get();
-            List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
-            KtxRoom ktxRoom = ktxRooms.get(0);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.NORMAL);
+            KtxRoom targetRoom = null;
 
-            NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(ktxRoom.getKtxSeat().getId());
+            for (KtxRoom ktxRoom : ktxRooms) {
+                KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                    okList.get().add(ktxRoom.getRoomName());
+                }
+            }
+
+            for (String roomName : okList.get()) {
+                Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+                if (optionalKtxRoom.isPresent()) {
+                    targetRoom = optionalKtxRoom.get();
+                    break;
+                }
+            }
+            log.info("fuck = {}", okList.get());
+
+            NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map map = objectMapper.convertValue(normalSeatDto, Map.class);
@@ -105,7 +141,9 @@ public class GradeController {
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
-            model.addAttribute("roomName", ktxRoom.getRoomName());
+            model.addAttribute("roomName", targetRoom.getRoomName());
+            model.addAttribute("okList", okList.get());
+            okList.remove();
 
             return "chooseNormalSeat";
         }
@@ -113,15 +151,29 @@ public class GradeController {
         if (normal != null) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
 
-            Long deployId = deployForm.getDeployIdOfGoing();
-            Optional<Deploy> deploy = deployService.findDeploy(deployId);
-            Long trainId = deploy.get().getTrain().getId();
+            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Ktx ktx = (Ktx) deploy.getTrain();
 
-            Ktx ktx = ktxService.findKtx(trainId).get();
-            List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);;
-            KtxRoom ktxRoom = ktxRooms.get(0);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.NORMAL);
+            KtxRoom targetRoom = null;
 
-            NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(ktxRoom.getKtxSeat().getId());
+            for (KtxRoom ktxRoom : ktxRooms) {
+                KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                    okList.get().add(ktxRoom.getRoomName());
+                }
+            }
+
+            for (String roomName : okList.get()) {
+                Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+                if (optionalKtxRoom.isPresent()) {
+                    targetRoom = optionalKtxRoom.get();
+                    break;
+                }
+            }
+            log.info("fuck1234 = {}", okList.get());
+
+            NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map map = objectMapper.convertValue(normalSeatDto, Map.class);
@@ -131,7 +183,9 @@ public class GradeController {
             model.addAttribute("going", going);
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
-            model.addAttribute("roomName", ktxRoom.getRoomName());
+            model.addAttribute("roomName", targetRoom.getRoomName());
+            model.addAttribute("okList", okList.get());
+            okList.remove();
 
             return "chooseNormalSeat";
         }
@@ -141,15 +195,29 @@ public class GradeController {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
-            Long deployId = deployForm.getDeployIdOfComing();
-            Optional<Deploy> deploy = deployService.findDeploy(deployId);
-            Long trainId = deploy.get().getTrain().getId();
+            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfComing());
+            Ktx ktx = (Ktx) deploy.getTrain();
 
-            Ktx ktx = ktxService.findKtx(trainId).get();
-            List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
-            KtxRoom ktxRoom = ktxRooms.get(0);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.VIP);
+            KtxRoom targetRoom = null;
 
-            VipSeatDto vipSeatDto = ktxSeatVipService.findVipDtoById(ktxRoom.getKtxSeat().getId());
+            for (KtxRoom ktxRoom : ktxRooms) {
+                KtxSeatVip ktxSeatNormal = (KtxSeatVip) ktxRoom.getKtxSeat();
+                if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                    okList.get().add(ktxRoom.getRoomName());
+                }
+            }
+
+            for (String roomName : okList.get()) {
+                Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+                if (optionalKtxRoom.isPresent()) {
+                    targetRoom = optionalKtxRoom.get();
+                    break;
+                }
+            }
+            log.info("fuck = {}", okList.get());
+
+            VipSeatDto vipSeatDto = ktxSeatVipService.findVipDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map map = objectMapper.convertValue(vipSeatDto, Map.class);
@@ -161,8 +229,9 @@ public class GradeController {
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
-            model.addAttribute("roomName", ktxRoom.getRoomName());
-            log.info("시발 ={}", ktxRoom.getRoomName());
+            model.addAttribute("roomName", targetRoom.getRoomName());
+            model.addAttribute("okList", okList.get());
+            okList.remove();
 
             return "chooseVipSeat";
         }
@@ -171,15 +240,29 @@ public class GradeController {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
-            Long deployId = deployForm.getDeployIdOfGoing();
-            Optional<Deploy> deploy = deployService.findDeploy(deployId);
-            Long trainId = deploy.get().getTrain().getId();
+            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Ktx ktx = (Ktx) deploy.getTrain();
 
-            Ktx ktx = ktxService.findKtx(trainId).get();
-            List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
-            KtxRoom ktxRoom = ktxRooms.get(0);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.VIP);
+            KtxRoom targetRoom = null;
 
-            VipSeatDto vipSeatDto = ktxSeatVipService.findVipDtoById(ktxRoom.getKtxSeat().getId());
+            for (KtxRoom ktxRoom : ktxRooms) {
+                KtxSeatVip ktxSeatNormal = (KtxSeatVip) ktxRoom.getKtxSeat();
+                if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                    okList.get().add(ktxRoom.getRoomName());
+                }
+            }
+
+            for (String roomName : okList.get()) {
+                Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+                if (optionalKtxRoom.isPresent()) {
+                    targetRoom = optionalKtxRoom.get();
+                    break;
+                }
+            }
+            log.info("fuck = {}", okList.get());
+
+            VipSeatDto vipSeatDto = ktxSeatVipService.findVipDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map map = objectMapper.convertValue(vipSeatDto, Map.class);
@@ -191,8 +274,9 @@ public class GradeController {
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
-            model.addAttribute("roomName", ktxRoom.getRoomName());
-            log.info("시발 ={}", ktxRoom.getRoomName());
+            model.addAttribute("roomName", targetRoom.getRoomName());
+            model.addAttribute("okList", okList.get());
+            okList.remove();
 
             return "chooseVipSeat";
         }
@@ -200,15 +284,29 @@ public class GradeController {
         else {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
 
-            Long deployId = deployForm.getDeployIdOfGoing();
-            Optional<Deploy> deploy = deployService.findDeploy(deployId);
-            Long trainId = deploy.get().getTrain().getId();
+            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Ktx ktx = (Ktx) deploy.getTrain();
 
-            Ktx ktx = ktxService.findKtx(trainId).get();
-            List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
-            KtxRoom ktxRoom = ktxRooms.get(0);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.NORMAL);
+            KtxRoom targetRoom = null;
 
-            VipSeatDto vipSeatDto = ktxSeatVipService.findVipDtoById(ktxRoom.getKtxSeat().getId());
+            for (KtxRoom ktxRoom : ktxRooms) {
+                KtxSeatVip ktxSeatNormal = (KtxSeatVip) ktxRoom.getKtxSeat();
+                if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                    okList.get().add(ktxRoom.getRoomName());
+                }
+            }
+
+            for (String roomName : okList.get()) {
+                Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+                if (optionalKtxRoom.isPresent()) {
+                    targetRoom = optionalKtxRoom.get();
+                    break;
+                }
+            }
+            log.info("fuck = {}", okList.get());
+
+            VipSeatDto vipSeatDto = ktxSeatVipService.findVipDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map map = objectMapper.convertValue(vipSeatDto, Map.class);
@@ -218,8 +316,9 @@ public class GradeController {
             model.addAttribute("going", going);
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
-            model.addAttribute("roomName", ktxRoom.getRoomName());
-            log.info("시발 ={}", ktxRoom.getRoomName());
+            model.addAttribute("roomName", targetRoom.getRoomName());
+            model.addAttribute("okList", okList.get());
+            okList.remove();
 
             return "chooseVipSeat";
         }

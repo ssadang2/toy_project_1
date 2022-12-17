@@ -43,4 +43,12 @@ public class KtxRoomService {
     public List<KtxRoom> getKtxRoomWithSeatFetch(Long id) {
         return ktxRoomRepository.getKtxRoomsWithSeatFetch(id);
     }
+
+    public List<KtxRoom> getKtxRoomsWithSeatWithInFetch(List<Long> ids) {
+        return ktxRoomRepository.getKtxRoomsWithSeatWithInFetch(ids);
+    }
+
+    public List<KtxRoom> getKtxRoomsWithSeatByGradeFetch(Ktx ktx, Grade grade) {
+        return ktxRoomRepository.getKtxRoomsWithSeatByGradeFetch(ktx, grade);
+    }
 }

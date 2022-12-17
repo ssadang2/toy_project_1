@@ -4,6 +4,7 @@ import lombok.Getter;
 import toy.ktx.domain.Train;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.List;
 @Getter
 public class Ktx extends Train {
 
-    @OneToMany(mappedBy = "ktx")
+    @OneToMany(mappedBy = "ktx", fetch = FetchType.LAZY)
     private List<KtxRoom> ktxRooms = new ArrayList<>();
 
     public Ktx() {

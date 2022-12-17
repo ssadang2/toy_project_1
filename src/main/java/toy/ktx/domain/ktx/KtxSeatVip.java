@@ -122,7 +122,7 @@ public class KtxSeatVip extends KtxSeat{
         this.k14C = k14C;
     }
 
-    public Boolean howManyRemain(Integer passengers) {
+    public Boolean remain(Integer passengers) {
         ObjectMapper objectMapper = new ObjectMapper();
         Long remain = Long.valueOf(0);
         Map map = objectMapper.convertValue(this, Map.class);
@@ -134,7 +134,7 @@ public class KtxSeatVip extends KtxSeat{
         if (remain >= passengers) {
             return Boolean.TRUE;
         }
-        return null;
+        return Boolean.FALSE;
     }
 
     public void normalDtoToEntity(NormalSeatDto normalSeatDto) {

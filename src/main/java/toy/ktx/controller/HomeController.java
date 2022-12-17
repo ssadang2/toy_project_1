@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import toy.ktx.domain.Deploy;
 import toy.ktx.domain.Member;
 import toy.ktx.domain.Reservation;
-import toy.ktx.domain.Train;
 import toy.ktx.domain.constant.SessionConst;
 import toy.ktx.domain.dto.ScheduleForm;
 import toy.ktx.domain.enums.Authorizations;
@@ -16,8 +15,6 @@ import toy.ktx.domain.enums.Grade;
 import toy.ktx.domain.ktx.*;
 import toy.ktx.service.*;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,8 +30,6 @@ public class HomeController {
     private final ReservationService reservationService;
     private final KtxRoomService ktxRoomService;
     private final KtxSeatService ktxSeatService;
-    private final KtxSeatNormalService ktxSeatNormalService;
-    private final KtxSeatVipService ktxSeatVipService;
 
     @GetMapping("/")
     public String getHome(Model model,
@@ -65,7 +60,7 @@ public class HomeController {
         for (Reservation reservation : reservations) {
             Deploy deploy = reservation.getDeploy();
             //프록시가 튀어 나옴
-            log.info("시발 ={}", deploy.getClass());
+            log.info("fuck ={}", deploy.getClass());
             deploys.add(deploy);
         }
 
@@ -74,8 +69,6 @@ public class HomeController {
         if (reservations.isEmpty() != true) {
             model.addAttribute("reservations", reservations);
             model.addAttribute("durations", durations);
-            log.info("시발 ={}", durations);
-            log.info("시발 ={}", reservations);
         }
 
         if(member.getAuthorizations() == Authorizations.ADMIN) {
@@ -93,9 +86,7 @@ public class HomeController {
                             Model model) {
 
         //예약 삭제 로직
-        //예상 쿼리 3개 -> 실제 6개 select passenger 나가는 이유 => 프록시 초기화해야 pk 값을 가져올 수 있기 때문에
-        //grade controller 예매 가능 불가 logic부터 시작하면 될 듯
-        //예상
+        //예상 select 쿼리 2개 -> 실제 3개 select passenger 나가는 이유 => 프록시 초기화해야 pk 값을 가져올 수 있기 때문에
         if (reservationId != null) {
             Optional<Reservation> foundReservation = reservationService.getReservationWithFetch(reservationId);
             if (foundReservation.isPresent()) {
@@ -116,7 +107,7 @@ public class HomeController {
                 ktxSeatService.updateSeatsWithReflection(ktxSeat, reservation.getSeats());
             }
 
-            //cascade option을 켰기 때문에 passenger를 굳이 손으로 안 지워줘도 됨
+            //cascade option을 켰기 때문에 passenger를 굳이 수동으로 안 지워줘도 됨
             reservationService.deleteById(reservationId);
         }
         //prg

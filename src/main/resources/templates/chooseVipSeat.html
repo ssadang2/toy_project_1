@@ -34,7 +34,7 @@
         <div class="container">
             <div class="row">
                 <div th:each="ktxRoom, roomStat : ${ktxRooms}" class="col-3 text-center">
-                    <input type="submit" class="btn btn-outline-secondary" th:name="${ktxRoom.roomName}" th:value="|${#strings.substring(ktxRoom.roomName, 4, )}호차|">
+                    <input type="submit" class="btn btn-outline-secondary" th:name="${ktxRoom.roomName}" th:value="|${#strings.substring(ktxRoom.roomName, 4, )}호차|" th:disabled="${!#lists.contains(okList, ktxRoom.roomName)}">
                     <div th:if="${roomStat.index % 3 == 0 && roomStat.index >= 1}">
                         <br><br><br>
                     </div>
@@ -63,6 +63,8 @@
                         <br><br>
                     </div>
                 </div>
+
+                <input type="hidden" th:each="ok : ${okList}" th:name="|checkRoom${#strings.substring(ok, 4, )}" th:value="${ok}">
 
                 <input type="hidden" name="toddler" th:value="${passengerDto.toddler}">
                 <input type="hidden" name="kids" th:value="${passengerDto.kids}">

@@ -3,14 +3,12 @@ package toy.ktx.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import toy.ktx.domain.Deploy;
 import toy.ktx.domain.Member;
-import toy.ktx.domain.Train;
 import toy.ktx.domain.constant.SessionConst;
 import toy.ktx.domain.constant.StationsConst;
 import toy.ktx.domain.dto.DeployForm;
@@ -25,6 +23,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @Slf4j
@@ -33,9 +32,6 @@ public class ScheduleController {
 
     private final DeployService deployService;
     private final KtxRoomService ktxRoomService;
-    private final KtxSeatService ktxSeatService;
-    private final KtxSeatNormalService ktxSeatNormalService;
-    private final KtxSeatVipService ktxSeatVipService;
 
     @PostMapping("/schedule")
     public String getSchedule(@Valid @ModelAttribute ScheduleForm scheduleForm,
@@ -47,7 +43,8 @@ public class ScheduleController {
 
         LocalDateTime after = null;
         LocalDateTime before = null;
-        Long total = Long.valueOf(scheduleForm.getTotal());
+        //never used
+        //Long total = Long.valueOf(scheduleForm.getTotal());
 
         if(!StringUtils.hasText(scheduleForm.getDateOfGoing())) {
             bindingResult.reject("noDepartureDate", null);
@@ -108,9 +105,10 @@ public class ScheduleController {
         model.addAttribute("after", after); //오는 날
 
         if(scheduleForm.getRound() == true) {
-            List<Deploy> deploysWhenGoing = deployService.searchDeploy(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
+            //fetch
+            List<Deploy> deploysWhenGoing = deployService.searchDeployWithTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
             //오는 날에는 가는 날의 출발지가 도착지고 도착지가 출발지임 따라서 getArrivalPlace가 departurePlace(출발지)에 위치해야 됨
-            List<Deploy> deploysWhenComing = deployService.searchDeploy(scheduleForm.getArrivalPlace(), scheduleForm.getDeparturePlace(), after);
+            List<Deploy> deploysWhenComing = deployService.searchDeployWithTrain(scheduleForm.getArrivalPlace(), scheduleForm.getDeparturePlace(), after);
 
             if(deploysWhenGoing.isEmpty() == true || deploysWhenComing.isEmpty() == true) {
                 if(deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
@@ -124,6 +122,13 @@ public class ScheduleController {
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
                     model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
                     deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+
+                    List<List<Boolean>> fullCheck = new ArrayList<>();
+                    List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
+
+                    doCheck(deploysWhenComing, ktxRooms, passengerDto, fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck);
                     return "schedule";
                 }
 
@@ -132,10 +137,17 @@ public class ScheduleController {
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                     model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                     deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+
+                    List<List<Boolean>> fullCheck = new ArrayList<>();
+                    List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
+
+                    doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
+                    model.addAttribute("fullCheck", fullCheck);
                     return "schedule";
                 }
             }
-
+            //success logic
             if(deploysWhenGoing.isEmpty() == false && deploysWhenComing.isEmpty() == false) {
                 model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                 model.addAttribute("deploysWhenComing", deploysWhenComing);
@@ -143,14 +155,37 @@ public class ScheduleController {
                 model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                 model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
 
+                List<List<Boolean>> fullCheck = new ArrayList<>();
+                List<List<Boolean>> fullCheck2 = new ArrayList<>();
+
+                //going
+                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                //coming
+                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
+                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys2);
+
+                //going
+                doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
+
+                //coming
+                doCheck(deploysWhenComing, ktxRooms2, passengerDto, fullCheck2);
+
+                model.addAttribute("fullCheck", fullCheck);
+                model.addAttribute("fullCheck2", fullCheck2);
+
                 deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
                 deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
-
                 return "schedule";
             }
         }
-        // success logic--------------------------------------------------------------------------------------------------------------
-        //열차까지 fetch join
+// Round vs one-way--------------------------------------------------------------------------------------------------------------
+//success logic
+        //seat을 기준으로 객체 탐색을 하는 건 deploy, reservation 등의 주 테이블에서 탐색해야 된다는 원칙에서 위배됨 -> 자연스럽지 못한 듯
+        //왜 deploys를 긁어 올 때 seat까지 같이 긁지 않는 것인가? => 연관관계를 가지는 train이 부모 클래스라서 자식 클래스인 ktx로 객체 탐색이 불가함(내가 하는 방법을 모르는 걸 수도)
+        //예상 1 + N = > 1 + N(라고 보기는 애매함 1:1 관계에서의 문제라서) => in 절로 해결하자 => 해결
+        //fetch
         List<Deploy> deploysWhenGoing = deployService.searchDeployWithTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
 
         if(deploysWhenGoing.isEmpty() == true) {
@@ -168,55 +203,39 @@ public class ScheduleController {
             // 필기에는 트랜잭션 하나에 영속성 컨텍스트 하나가 대응되는 그렇다면 multiple services가 같은 Tx를 쓰는 건가?
             // oneToOne query 많이 나가는 거 막으려고 미리 당기는 작업
 //            ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deploy.getId());
-
-//            List<KtxSeatNormal> a = ktxSeatNormalService.findKtxSeatNormalWithDeployIdFetch(deploy.getId());
-//            List<KtxSeatVip> b = ktxSeatVipService.findKtxSeatVipWithDeployIdFetch(deploy.getId());
-
 //        }
 
+        List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+        //얘는 반복되는 대로 1차 캐시에서 안 찾고 쿼리를 날림 => Pk 조회가 아니어서 그런 듯
+        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
 
-        //예상 쿼리 2개?
-        for (Deploy deploy : deploysWhenGoing) {
-            Ktx train = (Ktx) deploy.getTrain();
-            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomWithSeatFetch(train.getId());
-            log.info("fuck??? = {}", ktxRooms);
-            log.info("fuck??? = {}", deploy);
+        doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
+        model.addAttribute("fullCheck", fullCheck);
+        model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
+        deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+        return "schedule";
+    }
 
+    private void doCheck(List<Deploy> deploysWhen, List<KtxRoom> ktxRooms, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
+        for (Deploy deploy : deploysWhen) {
+            //실험중 select 3개에서 2개로 줄임(using in clause)
             List<String> normalReserveOkList = new ArrayList<>();
             List<String> vipReserveOkList = new ArrayList<>();
 
             for (KtxRoom ktxRoom : ktxRooms) {
                 if (ktxRoom.getGrade() == Grade.NORMAL) {
                     KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
-                    log.info("fuck = {}", ktxSeatNormal);
-                    if (ktxSeatNormal.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                    if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
                         normalReserveOkList.add(ktxRoom.getRoomName());
                     }
                 }
                 else {
                     KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
-                    if (ktxSeatVip.howManyRemain(passengerDto.howManyOccupied()) != null) {
+                    if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
                         vipReserveOkList.add(ktxRoom.getRoomName());
                     }
                 }
             }
-            log.info("fuck ={}",normalReserveOkList);
-            log.info("fuck ={}",vipReserveOkList);
-
-//            for (KtxSeat ktxSeat : ktxSeats) {
-//                if (ktxSeat.getKtxRoom().getGrade() == Grade.NORMAL) {
-//                    KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxSeat;
-//                    if (ktxSeatNormal.howManyRemain(passengerDto.howManyOccupied()) != null) {
-//                        normalReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
-//                    }
-//                }
-//                else {
-//                    KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxSeat;
-//                    if (ktxSeatVip.howManyRemain(passengerDto.howManyOccupied()) != null) {
-//                        vipReserveOkList.add(ktxSeat.getKtxRoom().getRoomName());
-//                    }
-//                }
-//            }
 
             log.info("fuck = {}",normalReserveOkList);
             log.info("fuck = {}",vipReserveOkList);
@@ -224,35 +243,26 @@ public class ScheduleController {
             List<Boolean> check = new ArrayList<>();
 
             if(!normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
-                log.info("여기1?");
                 check.add(true);
                 check.add(true);
             }
 
             if(!normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
-                log.info("여기2?");
                 check.add(true);
                 check.add(false);
             }
 
             if(normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
-                log.info("여기3?");
                 check.add(false);
                 check.add(true);
             }
 
             if (normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
-                log.info("여기4?");
                 check.add(false);
                 check.add(false);
             }
             fullCheck.add(check);
         }
-        log.info("fuck ={}",fullCheck);
-        model.addAttribute("fullCheck", fullCheck);
-        model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-        deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-        return "schedule";
     }
 
     private LocalDateTime getLocalDateTime(String dateTime) {
