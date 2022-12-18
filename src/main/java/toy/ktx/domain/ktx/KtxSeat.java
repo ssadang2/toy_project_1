@@ -41,36 +41,4 @@ public class KtxSeat {
 
     public KtxSeat() {
     }
-
-//    public void normalDtoToEntity(NormalSeatDto normalSeatDto) {
-//        Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
-//        try {
-//            Class clazz = Class.forName("toy.ktx.domain.ktx.KtxSeat");
-//            for (Object o : seatMap.keySet()) {
-//                if ((boolean) seatMap.get(o) == true) {
-//                    String temp = "setK" + ((String)o).substring(1);
-//                    Method declaredMethod = clazz.getDeclaredMethod(temp, Boolean.class);
-//                    declaredMethod.invoke(this, true);
-//                }
-//            }
-//        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-//
-//    public void vipDtoToEntity(VipSeatDto vipSeatDto) {
-//        Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
-//        try {
-//            Class clazz = Class.forName("toy.ktx.domain.ktx.KtxSeat");
-//            for (Object o : seatMap.keySet()) {
-//                if ((boolean) seatMap.get(o) == true) {
-//                    String temp = "setK" + ((String)o).substring(1);
-//                    Method declaredMethod = clazz.getDeclaredMethod(temp, Boolean.class);
-//                    declaredMethod.invoke(this, true);
-//                }
-//            }
-//        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
 }

@@ -36,8 +36,6 @@ public class SeatController {
     private final DeployService deployService;
 
     private final String[] alpha = {"A", "B", "C", "D"};
-    //never used
-//    Map seat = new HashMap();
 
     @PostMapping("/seat")
     public String chooseSeat(@ModelAttribute DeployForm deployForm,
@@ -62,13 +60,6 @@ public class SeatController {
         if (round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
-//            updated point
-//            List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, beforeDateTime);
-//            //오는 날에는 가는 날의 출발지가 도착지고 도착지가 출발지임 따라서 getArrivalPlace가 departurePlace(출발지)에 위치해야 됨
-//            List<Deploy> deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, afterDateTime);
-
-//            List<Deploy> deploysWhenGoing = null;
-//            List<Deploy> deploysWhenComing = null;
 
             LocalDateTime dateTime = null;
             Boolean noBefore = false;
@@ -490,7 +481,6 @@ public class SeatController {
 
             //success logic
             //예상 select query 2개? => 2개 맞음
-            //List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deployForm.getDeployIdOfGoing());
             Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
             Ktx train = (Ktx) deploy.getTrain();
             List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomWithSeatFetch(train.getId());
@@ -662,8 +652,8 @@ public class SeatController {
 
             model.addAttribute("dateTimeOfGoing", dateTime.toString());
             model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
-
             deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+
             return "schedule";
         }
         //success Logic

@@ -13,11 +13,14 @@
             <div class="row">
                 <div class="col-6 text-center">
                     <button type="submit" class="btn btn-outline-secondary" name="normal" value="normal" th:disabled="${normalDisabled == true}">일반실</button>
+                    <input type="hidden" name="normalDisabled" th:value="${normalDisabled}">
                 </div>
 
                 <div class="col-6 text-center">
                     <button type="submit" class="btn btn-outline-secondary" name="vip" value="vip" th:disabled="${vipDisabled == true}">특실</button>
-                </div><br><br><br><br><br><br><br><br>
+                    <input type="hidden" name="vipDisabled" th:value="${vipDisabled}">
+                </div>
+                <br><br><br><br><br><br><br><br>
 
                 <div class="d-flex flex-row-reverse">
                     <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/}'|">홈으로 가기</button>

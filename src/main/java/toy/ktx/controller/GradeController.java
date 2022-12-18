@@ -50,11 +50,16 @@ public class GradeController {
                               @RequestParam(required = false) String dateTimeOfLeaving,
                               @RequestParam(required = false) String normal,
                               @RequestParam(required = false) String vip,
+                              @RequestParam(required = false) Boolean normalDisabled,
+                              @RequestParam(required = false) Boolean vipDisabled,
                               Model model) {
 
         model.addAttribute("departurePlace", departurePlace);
         model.addAttribute("arrivalPlace", arrivalPlace);
         model.addAttribute("passengers", passengerDto.howManyOccupied());
+        //해당 없으면 null로 들어옴
+        model.addAttribute("normalDisabled", normalDisabled);
+        model.addAttribute("vipDisabled", vipDisabled);
 
         okList.set(new ArrayList<>());
 

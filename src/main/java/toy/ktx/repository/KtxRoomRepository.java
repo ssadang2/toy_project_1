@@ -22,8 +22,8 @@ public interface KtxRoomRepository extends JpaRepository<KtxRoom, Long> {
 
 //  이것도 데이터 채워 넣기 전에 양방향 없애면 에러 날 코드, 수정되어야 함 => 안 지워도 될 듯
 //  얘 지금 안 쓰여서 지워도 될 듯??
-    @Query("select k from KtxRoom k join fetch k.ktx ktx join fetch ktx.deploy d where d.id = :id")
-    List<KtxRoom> findKtxRoomWithTrainWithDeploy(@Param("id") Long id);
+//    @Query("select k from KtxRoom k join fetch k.ktx ktx join fetch ktx.deploy d where d.id = :id")
+//    List<KtxRoom> findKtxRoomWithTrainWithDeploy(@Param("id") Long id);
 
     @Query("select k from KtxRoom k join fetch k.ktxSeat where k.ktx.id= :id")
     List<KtxRoom> getKtxRoomsWithSeatFetch(@Param("id") Long id);

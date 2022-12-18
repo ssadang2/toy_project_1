@@ -35,10 +35,10 @@ public class KtxRoomService {
         return ktxRoomRepository.findByKtxAndGrade(ktx, grade);
     }
 
-    public List<KtxRoom> findKtxRoomWithTrainWithDeploy(Long id) {
-        //deploy id임
-        return ktxRoomRepository.findKtxRoomWithTrainWithDeploy(id);
-    }
+//    public List<KtxRoom> findKtxRoomWithTrainWithDeploy(Long id) {
+//        //deploy id임
+//        return ktxRoomRepository.findKtxRoomWithTrainWithDeploy(id);
+//    }
 
     public List<KtxRoom> getKtxRoomWithSeatFetch(Long id) {
         return ktxRoomRepository.getKtxRoomsWithSeatFetch(id);
