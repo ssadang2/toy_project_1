@@ -18,9 +18,9 @@ public interface DeployRepository extends JpaRepository<Deploy, Long> {
 
     @Query("select d from Deploy d join fetch d.train where d.departurePlace = :departurePlace and d.arrivalPlace = :arrivalPlace" +
             " and d.departureTime between :departureTime and :until")
-    List<Deploy> searchDeployWithTrain(@Param("departurePlace") String departurePlace, @Param("arrivalPlace") String arrivalPlace,
+    List<Deploy> searchDeployToTrain(@Param("departurePlace") String departurePlace, @Param("arrivalPlace") String arrivalPlace,
                               @Param("departureTime") LocalDateTime departureTime, @Param("until") LocalDateTime until);
 
     @Query("select d from Deploy d join fetch d.train where d.id = :id")
-    Deploy getDeployWithTrain(@Param("id") Long id);
+    Deploy getDeployToTrainById(@Param("id") Long id);
 }

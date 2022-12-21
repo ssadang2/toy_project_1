@@ -41,6 +41,6 @@ class ReservationServiceTest {
     @Test
     @Rollback(value = false)
     void getReservationWithFetch() {
-        reservationService.getReservationWithFetch(Long.valueOf(1));
+        reservationService.getReservationToTrainByIdWithFetch(Long.valueOf(1));
     }
 }

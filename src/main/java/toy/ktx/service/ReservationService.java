@@ -38,7 +38,7 @@ public class ReservationService {
     }
 
     @Transactional
-    public Optional<Reservation> getReservationWithFetch(Long id) {
-        return reservationRepository.getReservationWithFetch(id);
+    public Optional<Reservation> getReservationToTrainByIdWithFetch(Long id) {
+        return reservationRepository.getReservationToTrainByIdWithFetch(id);
     }
 }

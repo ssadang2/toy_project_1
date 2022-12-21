@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,8 +65,6 @@ public class ReservationController {
                           @RequestParam(required = false) String arrivalPlace,
                           @RequestParam(required = false) String dateTimeOfGoing,
                           @RequestParam(required = false) String dateTimeOfLeaving,
-                          @RequestParam(required = false) Boolean normalDisabled,
-                          @RequestParam(required = false) Boolean vipDisabled,
                           HttpServletRequest request,
                           Model model) {
 
@@ -87,7 +86,7 @@ public class ReservationController {
                     }
                 }
 
-                Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 //seat까지 fetch 안 하는 게 맞을까?
@@ -119,7 +118,7 @@ public class ReservationController {
             else {
                 if(normalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
-                    Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Ktx ktx = (Ktx) deploy.getTrain();
 
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
@@ -147,6 +146,36 @@ public class ReservationController {
 
                     return "chooseNormalSeat";
                 }
+                //올 때 고를 때 일반실/특실 좌석 체크 Logic
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
+                Ktx train = (Ktx) deploy.getTrain();
+                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
+
+                List<String> normalReserveOkList = new ArrayList<>();
+                List<String> vipReserveOkList = new ArrayList<>();
+
+                for (KtxRoom ktxRoom : ktxRooms) {
+                    if (ktxRoom.getGrade() == Grade.NORMAL) {
+                        KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                        if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                            normalReserveOkList.add(ktxRoom.getRoomName());
+                        }
+                    }
+                    else {
+                        KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
+                        if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                            vipReserveOkList.add(ktxRoom.getRoomName());
+                        }
+                    }
+                }
+
+                if(normalReserveOkList.isEmpty()) {
+                    model.addAttribute("normalDisabled", true);
+                }
+
+                if(vipReserveOkList.isEmpty()) {
+                    model.addAttribute("vipDisabled", true);
+                }
 
                 model.addAttribute("round", true);
                 model.addAttribute("coming", true);
@@ -156,8 +185,8 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
-                model.addAttribute("normalDisabled", normalDisabled);
-                model.addAttribute("vipDisabled", vipDisabled);
+//                model.addAttribute("normalDisabled", normalDisabled);
+//                model.addAttribute("vipDisabled", vipDisabled);
 
                 beforeRoomName = roomName;
                 beforeNormalSeatDto = normalSeatDto;
@@ -182,7 +211,7 @@ public class ReservationController {
                         break;
                     }
                 }
-                Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfComing());
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
@@ -213,7 +242,7 @@ public class ReservationController {
             else {
                 if(normalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
-                    Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfComing());
+                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                     Ktx ktx = (Ktx) deploy.getTrain();
 
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
@@ -246,12 +275,12 @@ public class ReservationController {
                 Reservation reservation2 = new Reservation();
 
                 //갈 때
-                Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 //자리차지
                 if (beforeNormalSeatDto != null) {
-                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.NORMAL);
+                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
                     Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
                     reservation.setRoomName(optionalKtxRoom.get().getRoomName());
                     reservation.setGrade(optionalKtxRoom.get().getGrade());
@@ -261,7 +290,7 @@ public class ReservationController {
                     foundSeat.normalDtoToEntity(beforeNormalSeatDto);
                 }
                 else{
-                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.VIP);
+                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
                     Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
                     reservation.setRoomName(optionalKtxRoom.get().getRoomName());
                     reservation.setGrade(optionalKtxRoom.get().getGrade());
@@ -273,10 +302,10 @@ public class ReservationController {
                 }
 
                 //올 떄
-                Deploy deploy2 = deployService.getDeployWithTrain(deployForm.getDeployIdOfComing());
+                Deploy deploy2 = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                 Ktx ktx2 = (Ktx) deploy2.getTrain();
 
-                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx2, Grade.NORMAL);
+                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx2, Grade.NORMAL);
                 Optional<KtxRoom> optionalKtxRoom2 = ktxRooms2.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
                 reservation2.setRoomName(optionalKtxRoom2.get().getRoomName());
                 reservation2.setGrade(optionalKtxRoom2.get().getGrade());
@@ -337,7 +366,7 @@ public class ReservationController {
                 }
             }
 
-            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Ktx ktx = (Ktx) deploy.getTrain();
             //굳이 seat까지 Fetch 안 해도 됨
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
@@ -366,7 +395,7 @@ public class ReservationController {
         else {
             if(normalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
-                Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
@@ -396,12 +425,12 @@ public class ReservationController {
             //select query 3개
             Reservation reservation = new Reservation();
 
-            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Ktx ktx = (Ktx) deploy.getTrain();
 
             //seat까지 fetch 안 하면 KtxSeatNormal 다운 캐스팅 부분에서 에러터짐 => 프록시이기 때문에
             //join 때문에 db에 부하가 가더라도 이 방법이 맞을 듯
-            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.NORMAL);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
             Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
             reservation.setRoomName(optionalKtxRoom.get().getRoomName());
@@ -454,8 +483,8 @@ public class ReservationController {
                           @RequestParam(required = false) String arrivalPlace,
                           @RequestParam(required = false) String dateTimeOfGoing,
                           @RequestParam(required = false) String dateTimeOfLeaving,
-                          @RequestParam(required = false) Boolean normalDisabled,
-                          @RequestParam(required = false) Boolean vipDisabled,
+//                          @RequestParam(required = false) Boolean normalDisabled,
+//                          @RequestParam(required = false) Boolean vipDisabled,
                           HttpServletRequest request,
                           Model model) {
 
@@ -475,7 +504,7 @@ public class ReservationController {
                     }
                 }
 
-                Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
@@ -506,7 +535,7 @@ public class ReservationController {
             else {
                 if(vipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
-                    Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Ktx ktx = (Ktx) deploy.getTrain();
 
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
@@ -534,6 +563,35 @@ public class ReservationController {
 
                     return "chooseVipSeat";
                 }
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
+                Ktx train = (Ktx) deploy.getTrain();
+                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
+
+                List<String> normalReserveOkList = new ArrayList<>();
+                List<String> vipReserveOkList = new ArrayList<>();
+
+                for (KtxRoom ktxRoom : ktxRooms) {
+                    if (ktxRoom.getGrade() == Grade.NORMAL) {
+                        KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                        if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                            normalReserveOkList.add(ktxRoom.getRoomName());
+                        }
+                    }
+                    else {
+                        KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
+                        if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                            vipReserveOkList.add(ktxRoom.getRoomName());
+                        }
+                    }
+                }
+
+                if(normalReserveOkList.isEmpty()) {
+                    model.addAttribute("normalDisabled", true);
+                }
+
+                if(vipReserveOkList.isEmpty()) {
+                    model.addAttribute("vipDisabled", true);
+                }
 
                 model.addAttribute("round", true);
                 model.addAttribute("coming", true);
@@ -543,8 +601,8 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
-                model.addAttribute("normalDisabled", normalDisabled);
-                model.addAttribute("vipDisabled", vipDisabled);
+//                model.addAttribute("normalDisabled", normalDisabled);
+//                model.addAttribute("vipDisabled", vipDisabled);
 
                 beforeRoomName = roomName;
                 beforeVipSeatDto = vipSeatDto;
@@ -569,7 +627,7 @@ public class ReservationController {
                     }
                 }
 
-                Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfComing());
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
@@ -600,7 +658,7 @@ public class ReservationController {
             else {
                 if(vipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
-                    Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfComing());
+                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                     Ktx ktx = (Ktx) deploy.getTrain();
 
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
@@ -630,12 +688,12 @@ public class ReservationController {
                 Reservation reservation2 = new Reservation();
 
                 //갈 때
-                Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 //자리차지
                 if (beforeVipSeatDto != null) {
-                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.VIP);
+                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
                     Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
                     reservation.setRoomName(optionalKtxRoom.get().getRoomName());
                     reservation.setGrade(optionalKtxRoom.get().getGrade());
@@ -645,7 +703,7 @@ public class ReservationController {
                     foundSeat.vipDtoToEntity(beforeVipSeatDto);
                 }
                 else {
-                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.NORMAL);
+                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
                     Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
                     reservation.setRoomName(optionalKtxRoom.get().getRoomName());
                     reservation.setGrade(optionalKtxRoom.get().getGrade());
@@ -656,10 +714,10 @@ public class ReservationController {
                 }
 
                 //올 떄
-                Deploy deploy2 = deployService.getDeployWithTrain(deployForm.getDeployIdOfComing());
+                Deploy deploy2 = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                 Ktx ktx2 = (Ktx) deploy2.getTrain();
 
-                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx2, Grade.VIP);
+                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx2, Grade.VIP);
                 Optional<KtxRoom> optionalKtxRoom2 = ktxRooms2.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
                 reservation2.setRoomName(optionalKtxRoom2.get().getRoomName());
                 reservation2.setGrade(optionalKtxRoom2.get().getGrade());
@@ -720,7 +778,7 @@ public class ReservationController {
                 }
             }
 
-            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Ktx ktx = (Ktx) deploy.getTrain();
 
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
@@ -747,7 +805,7 @@ public class ReservationController {
         else {
             if(vipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
-                Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
@@ -777,10 +835,10 @@ public class ReservationController {
             //success logic
             Reservation reservation = new Reservation();
 
-            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Ktx ktx = (Ktx) deploy.getTrain();
 
-            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.VIP);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
             Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
             reservation.setRoomName(optionalKtxRoom.get().getRoomName());
             reservation.setGrade(optionalKtxRoom.get().getGrade());

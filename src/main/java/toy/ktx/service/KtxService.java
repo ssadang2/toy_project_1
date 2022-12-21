@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import toy.ktx.domain.ktx.Ktx;
 import toy.ktx.repository.KtxRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,5 +23,9 @@ public class KtxService {
 
     public Optional<Ktx> findKtx(Long ktxId) {
         return ktxRepository.findById(ktxId);
+    }
+
+    public List<Ktx> getKtxToSeatWithFetchAndIn(List<Long> ids) {
+        return ktxRepository.getKtxToSeatWithFetchAndIn(ids);
     }
 }

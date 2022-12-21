@@ -88,11 +88,11 @@ public class HomeController {
         //예약 삭제 로직
         //예상 select 쿼리 2개 -> 실제 3개 select passenger 나가는 이유 => 프록시 초기화해야 pk 값을 가져올 수 있기 때문에
         if (reservationId != null) {
-            Optional<Reservation> foundReservation = reservationService.getReservationWithFetch(reservationId);
+            Optional<Reservation> foundReservation = reservationService.getReservationToTrainByIdWithFetch(reservationId);
             if (foundReservation.isPresent()) {
                 Reservation reservation = foundReservation.get();
                 Ktx train = (Ktx) reservation.getDeploy().getTrain();
-                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomWithSeatFetch(train.getId());
+                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
                 Optional<KtxRoom> roomOptional = ktxRooms.stream().filter(r -> r.getRoomName().equals(reservation.getRoomName())).findFirst();
                 KtxRoom ktxRoom = roomOptional.get();
                 KtxSeat ktxSeat = ktxRoom.getKtxSeat();

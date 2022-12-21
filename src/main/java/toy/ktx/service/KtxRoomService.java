@@ -35,20 +35,11 @@ public class KtxRoomService {
         return ktxRoomRepository.findByKtxAndGrade(ktx, grade);
     }
 
-//    public List<KtxRoom> findKtxRoomWithTrainWithDeploy(Long id) {
-//        //deploy id임
-//        return ktxRoomRepository.findKtxRoomWithTrainWithDeploy(id);
-//    }
-
-    public List<KtxRoom> getKtxRoomWithSeatFetch(Long id) {
-        return ktxRoomRepository.getKtxRoomsWithSeatFetch(id);
+    public List<KtxRoom> getKtxRoomsToSeatByIdWithFetch(Long id) {
+        return ktxRoomRepository.getKtxRoomsToSeatByIdWithFetch(id);
     }
 
-    public List<KtxRoom> getKtxRoomsWithSeatWithInFetch(List<Long> ids) {
-        return ktxRoomRepository.getKtxRoomsWithSeatWithInFetch(ids);
-    }
-
-    public List<KtxRoom> getKtxRoomsWithSeatByGradeFetch(Ktx ktx, Grade grade) {
-        return ktxRoomRepository.getKtxRoomsWithSeatByGradeFetch(ktx, grade);
+    public List<KtxRoom> getKtxRoomsToSeatByKtxAndGradeWithFetch(Ktx ktx, Grade grade) {
+        return ktxRoomRepository.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, grade);
     }
 }

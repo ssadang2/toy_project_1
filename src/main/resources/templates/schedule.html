@@ -95,6 +95,8 @@
                         <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == true}" th:text="|일반 불가 특 예매가능|"></p>
 
                         <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}" th:text="|일반 불가 특 불가|"></p>
+
+                        <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}" th:text="매진" class="text-danger"></p>
                     </div>
 
                     <div class="form-check col-4 text-center">
@@ -167,10 +169,12 @@
                         <p th:if="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == true}" th:text="|일반 불가 특 예매가능|"></p>
 
                         <p th:if="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}" th:text="|일반 불가 특 불가|"></p>
+
+                        <p th:if="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}" th:text="매진" class="text-danger"></p>
                     </div>
 
                     <div class="form-check col-4 text-center">
-                        <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}">
+                        <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}" th:disabled="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}">
                         <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfComing')}" th:text="예매하기"></label>
                     </div>
                 </div><br><br>
@@ -199,7 +203,7 @@
                 <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/}'|">홈으로 가기</button>
             </div>
 
-            <div class="p-2 bd-highlight">
+            <div class="p-2 bd-highlight" th:if="${disableSeatButton != true}">
                 <button type="submit" class="btn btn-secondary">좌석 선택하기</button>
             </div>
         </div>

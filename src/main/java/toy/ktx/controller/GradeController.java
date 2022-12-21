@@ -50,16 +50,11 @@ public class GradeController {
                               @RequestParam(required = false) String dateTimeOfLeaving,
                               @RequestParam(required = false) String normal,
                               @RequestParam(required = false) String vip,
-                              @RequestParam(required = false) Boolean normalDisabled,
-                              @RequestParam(required = false) Boolean vipDisabled,
                               Model model) {
 
         model.addAttribute("departurePlace", departurePlace);
         model.addAttribute("arrivalPlace", arrivalPlace);
         model.addAttribute("passengers", passengerDto.howManyOccupied());
-        //해당 없으면 null로 들어옴
-        model.addAttribute("normalDisabled", normalDisabled);
-        model.addAttribute("vipDisabled", vipDisabled);
 
         okList.set(new ArrayList<>());
 
@@ -67,10 +62,10 @@ public class GradeController {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
-            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfComing());
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
             Ktx ktx = (Ktx) deploy.getTrain();
 
-            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.NORMAL);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
             KtxRoom targetRoom = null;
 
             for (KtxRoom ktxRoom : ktxRooms) {
@@ -112,10 +107,10 @@ public class GradeController {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
-            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Ktx ktx = (Ktx) deploy.getTrain();
 
-            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.NORMAL);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
             KtxRoom targetRoom = null;
 
             for (KtxRoom ktxRoom : ktxRooms) {
@@ -156,10 +151,10 @@ public class GradeController {
         if (normal != null) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
 
-            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Ktx ktx = (Ktx) deploy.getTrain();
 
-            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.NORMAL);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
             KtxRoom targetRoom = null;
 
             for (KtxRoom ktxRoom : ktxRooms) {
@@ -200,10 +195,10 @@ public class GradeController {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
-            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfComing());
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
             Ktx ktx = (Ktx) deploy.getTrain();
 
-            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.VIP);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
             KtxRoom targetRoom = null;
 
             for (KtxRoom ktxRoom : ktxRooms) {
@@ -245,10 +240,10 @@ public class GradeController {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
-            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Ktx ktx = (Ktx) deploy.getTrain();
 
-            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.VIP);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
             KtxRoom targetRoom = null;
 
             for (KtxRoom ktxRoom : ktxRooms) {
@@ -289,10 +284,10 @@ public class GradeController {
         else {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
 
-            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Ktx ktx = (Ktx) deploy.getTrain();
 
-            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatByGradeFetch(ktx, Grade.NORMAL);
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
             KtxRoom targetRoom = null;
 
             for (KtxRoom ktxRoom : ktxRooms) {

@@ -1,6 +1,5 @@
 package toy.ktx.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -10,15 +9,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import toy.ktx.domain.Deploy;
-import toy.ktx.domain.Train;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
-import toy.ktx.domain.dto.projections.NormalSeatDto;
 import toy.ktx.domain.enums.Grade;
 import toy.ktx.domain.ktx.*;
 import toy.ktx.service.DeployService;
 import toy.ktx.service.KtxRoomService;
-import toy.ktx.service.KtxSeatService;
 import toy.ktx.service.KtxService;
 
 import java.time.Duration;
@@ -34,6 +30,7 @@ public class SeatController {
 
     private final KtxRoomService ktxRoomService;
     private final DeployService deployService;
+    private final KtxService ktxService;
 
     private final String[] alpha = {"A", "B", "C", "D"};
 
@@ -56,6 +53,7 @@ public class SeatController {
         model.addAttribute("arrivalPlace", arrivalPlace);
         model.addAttribute("round", round);
         model.addAttribute("passengers", passengerDto.howManyOccupied());
+
 
         if (round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
@@ -104,65 +102,169 @@ public class SeatController {
                 }
 
                 //fullCheck list 넘겨줘야 됨
-                List<List<Boolean>> fullCheck = new ArrayList<>();
-                List<List<Boolean>> fullCheck2 = new ArrayList<>();
-
-                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
-                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
-
-                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
-                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys2);
-
-                doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
-                doCheck(deploysWhenComing, ktxRooms2, passengerDto, fullCheck2);
-
-                model.addAttribute("fullCheck", fullCheck);
-                model.addAttribute("fullCheck2", fullCheck2);
+//                List<List<Boolean>> fullCheck = new ArrayList<>();
+//                List<List<Boolean>> fullCheck2 = new ArrayList<>();
+//
+//                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+//                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+//
+//                List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+//                List<Ktx> ktxList2 = ktxService.getKtxToSeatWithFetchAndIn(deploys2);
+//
+//                doCheck(ktxList, passengerDto, fullCheck);
+//                doCheck(ktxList2, passengerDto, fullCheck2);
+//
+//                model.addAttribute("fullCheck", fullCheck);
+//                model.addAttribute("fullCheck2", fullCheck2);
 
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("emptyWhenComing", true);
-
                     model.addAttribute("dateTimeOfGoing", dateTime.toString());
                     model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+
                     return "schedule";
                 }
 
                 if (deploysWhenGoing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
-
                     model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
-                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
-
                     model.addAttribute("dateTimeOfGoing", dateTime.toString());
                     model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+
+                    List<List<Boolean>> fullCheck = new ArrayList<>();
+                    List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+                    List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                    doCheck(ktxList, passengerDto, fullCheck);
+
+                    int cntComing = 0;
+
+                    for (List<Boolean> booleans : fullCheck) {
+                        if (booleans.contains(Boolean.TRUE)) {
+                            deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+                            model.addAttribute("fullCheck2", fullCheck);
+                            return "schedule";
+                        }
+                        cntComing += 1;
+                    }
+
+                    model.addAttribute("fullCheck2", fullCheck);
+                    model.addAttribute("disableSeatButton", true);
                     return "schedule";
                 }
 
                 if (deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
-
                     model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-
                     model.addAttribute("dateTimeOfGoing", dateTime.toString());
                     model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+
+                    List<List<Boolean>> fullCheck = new ArrayList<>();
+                    List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                    //updated
+                    List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                    doCheck(ktxList, passengerDto, fullCheck);
+
+                    int cntGoing = 0;
+
+                    for (List<Boolean> booleans : fullCheck) {
+                        if (booleans.contains(Boolean.TRUE)) {
+                            deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                            model.addAttribute("fullCheck", fullCheck);
+                            return "schedule";
+                        }
+                        cntGoing += 1;
+                    }
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("disableSeatButton", true);
                     return "schedule";
                 }
 
                 model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                 model.addAttribute("deploysWhenComing", deploysWhenComing);
-
                 model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                 model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
-
                 model.addAttribute("dateTimeOfGoing", dateTime.toString());
                 model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
 
-                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-                deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+                List<List<Boolean>> fullCheck = new ArrayList<>();
+                List<List<Boolean>> fullCheck2 = new ArrayList<>();
+
+                //going
+                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                //coming
+                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+                //updated
+                List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                List<Ktx> ktxList2 = ktxService.getKtxToSeatWithFetchAndIn(deploys2);
+
+                //going
+                doCheck(ktxList, passengerDto, fullCheck);
+
+                //coming
+                doCheck(ktxList2, passengerDto, fullCheck2);
+
+                Boolean noSeatGoing = Boolean.TRUE;
+                Boolean noSeatComing = Boolean.TRUE;
+                int cntGoing = 0;
+                int cntComing = 0;
+
+                for (List<Boolean> booleans : fullCheck) {
+                    if (booleans.contains(Boolean.TRUE)) {
+                        noSeatGoing = Boolean.FALSE;
+                        break;
+                    }
+                    cntGoing += 1;
+                }
+
+                for (List<Boolean> booleans : fullCheck2) {
+                    if (booleans.contains(Boolean.TRUE)) {
+                        noSeatComing = Boolean.FALSE;
+                        break;
+                    }
+                    cntComing += 1;
+                }
+
+                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.TRUE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.FALSE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+
+                    deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                if (noSeatGoing == Boolean.FALSE || noSeatComing == Boolean.TRUE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+
+                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                model.addAttribute("fullCheck", fullCheck);
+                model.addAttribute("fullCheck2", fullCheck2);
+
+                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+
                 return "schedule";
             }
 
@@ -209,22 +311,6 @@ public class SeatController {
                     deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
                 }
 
-                //fullCheck list 넘겨줘야 됨
-                List<List<Boolean>> fullCheck = new ArrayList<>();
-                List<List<Boolean>> fullCheck2 = new ArrayList<>();
-
-                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
-                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
-
-                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
-                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys2);
-
-                doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
-                doCheck(deploysWhenComing, ktxRooms2, passengerDto, fullCheck2);
-
-                model.addAttribute("fullCheck", fullCheck);
-                model.addAttribute("fullCheck2", fullCheck2);
-
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("emptyWhenComing", true);
@@ -237,38 +323,141 @@ public class SeatController {
                 if (deploysWhenGoing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
-
                     model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
-                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
-
                     model.addAttribute("dateTimeOfGoing", dateTime.toString());
                     model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+
+                    List<List<Boolean>> fullCheck = new ArrayList<>();
+                    List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+                    List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                    doCheck(ktxList, passengerDto, fullCheck);
+
+                    int cntComing = 0;
+
+                    for (List<Boolean> booleans : fullCheck) {
+                        if (booleans.contains(Boolean.TRUE)) {
+                            deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+                            model.addAttribute("fullCheck2", fullCheck);
+                            return "schedule";
+                        }
+                        cntComing += 1;
+                    }
+
+                    model.addAttribute("fullCheck2", fullCheck);
+                    model.addAttribute("disableSeatButton", true);
                     return "schedule";
                 }
 
                 if (deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
-
                     model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-
                     model.addAttribute("dateTimeOfGoing", dateTime.toString());
                     model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+
+                    List<List<Boolean>> fullCheck = new ArrayList<>();
+                    List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                    //updated
+                    List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                    doCheck(ktxList, passengerDto, fullCheck);
+
+                    int cntGoing = 0;
+
+                    for (List<Boolean> booleans : fullCheck) {
+                        if (booleans.contains(Boolean.TRUE)) {
+                            deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                            model.addAttribute("fullCheck", fullCheck);
+                            return "schedule";
+                        }
+                        cntGoing += 1;
+                    }
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("disableSeatButton", true);
                     return "schedule";
                 }
 
                 model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                 model.addAttribute("deploysWhenComing", deploysWhenComing);
-
                 model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                 model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
-
                 model.addAttribute("dateTimeOfGoing", dateTime.toString());
                 model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
 
-                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-                deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+                List<List<Boolean>> fullCheck = new ArrayList<>();
+                List<List<Boolean>> fullCheck2 = new ArrayList<>();
+
+                //going
+                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                //coming
+                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+                List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                List<Ktx> ktxList2 = ktxService.getKtxToSeatWithFetchAndIn(deploys2);
+
+                //going
+                doCheck(ktxList, passengerDto, fullCheck);
+
+                //coming
+                doCheck(ktxList2, passengerDto, fullCheck2);
+
+                Boolean noSeatGoing = Boolean.TRUE;
+                Boolean noSeatComing = Boolean.TRUE;
+                int cntGoing = 0;
+                int cntComing = 0;
+
+                for (List<Boolean> booleans : fullCheck) {
+                    if (booleans.contains(Boolean.TRUE)) {
+                        noSeatGoing = Boolean.FALSE;
+                        break;
+                    }
+                    cntGoing += 1;
+                }
+
+                for (List<Boolean> booleans : fullCheck2) {
+                    if (booleans.contains(Boolean.TRUE)) {
+                        noSeatComing = Boolean.FALSE;
+                        break;
+                    }
+                    cntComing += 1;
+                }
+
+                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.TRUE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.FALSE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+
+                    deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                if (noSeatGoing == Boolean.FALSE || noSeatComing == Boolean.TRUE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+
+                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                model.addAttribute("fullCheck", fullCheck);
+                model.addAttribute("fullCheck2", fullCheck2);
+
+                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+
                 return "schedule";
             }
 
@@ -295,8 +484,6 @@ public class SeatController {
 
                     dateTime = LocalDateTime.now();
 
-                    //이 새끼 뭐임?
-//                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
                     deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
                 }
 
@@ -312,22 +499,6 @@ public class SeatController {
                     deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
                 }
 
-                //fullCheck list 넘겨줘야 됨
-                List<List<Boolean>> fullCheck = new ArrayList<>();
-                List<List<Boolean>> fullCheck2 = new ArrayList<>();
-
-                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
-                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
-
-                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
-                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys2);
-
-                doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
-                doCheck(deploysWhenComing, ktxRooms2, passengerDto, fullCheck2);
-
-                model.addAttribute("fullCheck", fullCheck);
-                model.addAttribute("fullCheck2", fullCheck2);
-
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("emptyWhenGoing", true);
@@ -340,38 +511,141 @@ public class SeatController {
                 if (deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
-
                     model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-
                     model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
                     model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+
+                    List<List<Boolean>> fullCheck = new ArrayList<>();
+                    List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                    //updated
+                    List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                    doCheck(ktxList, passengerDto, fullCheck);
+
+                    int cntGoing = 0;
+
+                    for (List<Boolean> booleans : fullCheck) {
+                        if (booleans.contains(Boolean.TRUE)) {
+                            deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                            model.addAttribute("fullCheck", fullCheck);
+                            return "schedule";
+                        }
+                        cntGoing += 1;
+                    }
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("disableSeatButton", true);
                     return "schedule";
                 }
 
                 if (deploysWhenGoing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
-
                     model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
-                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
-
                     model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
                     model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+
+                    List<List<Boolean>> fullCheck = new ArrayList<>();
+                    List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+                    List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                    doCheck(ktxList, passengerDto, fullCheck);
+
+                    int cntComing = 0;
+
+                    for (List<Boolean> booleans : fullCheck) {
+                        if (booleans.contains(Boolean.TRUE)) {
+                            deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+                            model.addAttribute("fullCheck2", fullCheck);
+                            return "schedule";
+                        }
+                        cntComing += 1;
+                    }
+
+                    model.addAttribute("fullCheck2", fullCheck);
+                    model.addAttribute("disableSeatButton", true);
                     return "schedule";
                 }
 
                 model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                 model.addAttribute("deploysWhenComing", deploysWhenComing);
-
                 model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                 model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
-
                 model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
                 model.addAttribute("dateTimeOfLeaving", dateTime.toString());
 
-                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-                deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+                List<List<Boolean>> fullCheck = new ArrayList<>();
+                List<List<Boolean>> fullCheck2 = new ArrayList<>();
+
+                //going
+                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                //coming
+                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+                List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                List<Ktx> ktxList2 = ktxService.getKtxToSeatWithFetchAndIn(deploys2);
+
+                //going
+                doCheck(ktxList, passengerDto, fullCheck);
+
+                //coming
+                doCheck(ktxList2, passengerDto, fullCheck2);
+
+                Boolean noSeatGoing = Boolean.TRUE;
+                Boolean noSeatComing = Boolean.TRUE;
+                int cntGoing = 0;
+                int cntComing = 0;
+
+                for (List<Boolean> booleans : fullCheck) {
+                    if (booleans.contains(Boolean.TRUE)) {
+                        noSeatGoing = Boolean.FALSE;
+                        break;
+                    }
+                    cntGoing += 1;
+                }
+
+                for (List<Boolean> booleans : fullCheck2) {
+                    if (booleans.contains(Boolean.TRUE)) {
+                        noSeatComing = Boolean.FALSE;
+                        break;
+                    }
+                    cntComing += 1;
+                }
+
+                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.TRUE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.FALSE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+
+                    deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                if (noSeatGoing == Boolean.FALSE || noSeatComing == Boolean.TRUE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+
+                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                model.addAttribute("fullCheck", fullCheck);
+                model.addAttribute("fullCheck2", fullCheck2);
+
+                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+
                 return "schedule";
             }
 
@@ -416,21 +690,6 @@ public class SeatController {
                     deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
                 }
 
-                //fullCheck list 넘겨줘야 됨
-                List<List<Boolean>> fullCheck = new ArrayList<>();
-                List<List<Boolean>> fullCheck2 = new ArrayList<>();
-
-                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
-                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
-
-                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
-                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys2);
-
-                doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
-                doCheck(deploysWhenComing, ktxRooms2, passengerDto, fullCheck2);
-
-                model.addAttribute("fullCheck", fullCheck);
-                model.addAttribute("fullCheck2", fullCheck2);
 
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
@@ -444,46 +703,149 @@ public class SeatController {
                 if (deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
-
                     model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-
                     model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
                     model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+
+                    List<List<Boolean>> fullCheck = new ArrayList<>();
+                    List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+                    List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                    doCheck(ktxList, passengerDto, fullCheck);
+
+                    int cntGoing = 0;
+
+                    for (List<Boolean> booleans : fullCheck) {
+                        if (booleans.contains(Boolean.TRUE)) {
+                            deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                            model.addAttribute("fullCheck", fullCheck);
+                            return "schedule";
+                        }
+                        cntGoing += 1;
+                    }
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("disableSeatButton", true);
                     return "schedule";
                 }
 
                 if (deploysWhenGoing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
-
                     model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
-                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
-
                     model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
                     model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+
+                    List<List<Boolean>> fullCheck = new ArrayList<>();
+                    List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+                    List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                    doCheck(ktxList, passengerDto, fullCheck);
+
+                    int cntComing = 0;
+
+                    for (List<Boolean> booleans : fullCheck) {
+                        if (booleans.contains(Boolean.TRUE)) {
+                            deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+                            model.addAttribute("fullCheck2", fullCheck);
+                            return "schedule";
+                        }
+                        cntComing += 1;
+                    }
+
+                    model.addAttribute("fullCheck2", fullCheck);
+                    model.addAttribute("disableSeatButton", true);
                     return "schedule";
                 }
 
                 model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                 model.addAttribute("deploysWhenComing", deploysWhenComing);
-
                 model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                 model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
-
                 model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
                 model.addAttribute("dateTimeOfLeaving", dateTime.toString());
 
-                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-                deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+                List<List<Boolean>> fullCheck = new ArrayList<>();
+                List<List<Boolean>> fullCheck2 = new ArrayList<>();
+
+                //going
+                List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                //coming
+                List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+                List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                List<Ktx> ktxList2 = ktxService.getKtxToSeatWithFetchAndIn(deploys2);
+
+                //going
+                doCheck(ktxList, passengerDto, fullCheck);
+
+                //coming
+                doCheck(ktxList2, passengerDto, fullCheck2);
+
+                Boolean noSeatGoing = Boolean.TRUE;
+                Boolean noSeatComing = Boolean.TRUE;
+                int cntGoing = 0;
+                int cntComing = 0;
+
+                for (List<Boolean> booleans : fullCheck) {
+                    if (booleans.contains(Boolean.TRUE)) {
+                        noSeatGoing = Boolean.FALSE;
+                        break;
+                    }
+                    cntGoing += 1;
+                }
+
+                for (List<Boolean> booleans : fullCheck2) {
+                    if (booleans.contains(Boolean.TRUE)) {
+                        noSeatComing = Boolean.FALSE;
+                        break;
+                    }
+                    cntComing += 1;
+                }
+
+                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.TRUE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.FALSE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+
+                    deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                if (noSeatGoing == Boolean.FALSE || noSeatComing == Boolean.TRUE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+
+                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                model.addAttribute("fullCheck", fullCheck);
+                model.addAttribute("fullCheck2", fullCheck2);
+
+                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+
                 return "schedule";
             }
 
             //success logic
             //예상 select query 2개? => 2개 맞음
-            Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Ktx train = (Ktx) deploy.getTrain();
-            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomWithSeatFetch(train.getId());
+            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
 
             List<String> normalReserveOkList = new ArrayList<>();
             List<String> vipReserveOkList = new ArrayList<>();
@@ -503,17 +865,15 @@ public class SeatController {
                 }
             }
 
-            log.info("시발 ={}", normalReserveOkList);
-            log.info("시발 ={}", vipReserveOkList);
+            log.info("Fuck ={}", normalReserveOkList);
+            log.info("fuck ={}", vipReserveOkList);
 
             if(normalReserveOkList.isEmpty()) {
                 model.addAttribute("normalDisabled", true);
-                model.addAttribute("normalReserveOkList", normalReserveOkList);
             }
 
             if(vipReserveOkList.isEmpty()) {
                 model.addAttribute("vipDisabled", true);
-                model.addAttribute("vipReserveOkList", vipReserveOkList);
             }
 
             model.addAttribute("round", true);
@@ -535,7 +895,7 @@ public class SeatController {
             List<Deploy> deploysWhenGoing = null;
 
             if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() != LocalDateTime.now().getDayOfMonth()) {
-                deploysWhenGoing = deployService.searchDeployWithTrain(departurePlace, arrivalPlace, beforeDateTime);
+                deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, beforeDateTime);
 
                 bindingResult.reject("noBefore", null);
                 model.addAttribute("before", beforeDateTime);
@@ -563,17 +923,6 @@ public class SeatController {
                 deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
             }
 
-            //fullCheck list 넘겨줘야 됨
-            List<List<Boolean>> fullCheck = new ArrayList<>();
-
-            List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
-
-            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
-
-            doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
-
-            model.addAttribute("fullCheck", fullCheck);
-
             if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
                 model.addAttribute("dateTimeOfGoing", dateTime.toString());
@@ -583,11 +932,27 @@ public class SeatController {
 
             model.addAttribute("deploysWhenGoing", deploysWhenGoing);
             model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-
             model.addAttribute("dateTimeOfGoing", dateTime.toString());
             model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
 
-            deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+            List<List<Boolean>> fullCheck = new ArrayList<>();
+            List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+            List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+            doCheck(ktxList, passengerDto, fullCheck);
+
+            int cntGoing = 0;
+
+            for (List<Boolean> booleans : fullCheck) {
+                if (booleans.contains(Boolean.TRUE)) {
+                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                    model.addAttribute("fullCheck", fullCheck);
+                    return "schedule";
+                }
+                cntGoing += 1;
+            }
+            model.addAttribute("fullCheck", fullCheck);
+            model.addAttribute("disableSeatButton", true);
             return "schedule";
         }
 
@@ -596,7 +961,7 @@ public class SeatController {
             List<Deploy> deploysWhenGoing = null;
 
             if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
-                deploysWhenGoing = deployService.searchDeployWithTrain(departurePlace, arrivalPlace, beforeDateTime);
+                deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, beforeDateTime);
 
                 bindingResult.reject("noAfter", null);
                 model.addAttribute("before", beforeDateTime);
@@ -613,8 +978,6 @@ public class SeatController {
                 int dayOfMonth = LocalDateTime.now().plusDays(30).getDayOfMonth();
 
                 dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                //이 ㅅㄲ 뭐임?
-//                deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
                 deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
             }
 
@@ -629,17 +992,6 @@ public class SeatController {
                 deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
             }
 
-            //fullCheck list 넘겨줘야 됨
-            List<List<Boolean>> fullCheck = new ArrayList<>();
-
-            List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
-
-            List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
-
-            doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
-
-            model.addAttribute("fullCheck", fullCheck);
-
             if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
                 model.addAttribute("dateTimeOfGoing", dateTime.toString());
@@ -649,19 +1001,34 @@ public class SeatController {
 
             model.addAttribute("deploysWhenGoing", deploysWhenGoing);
             model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-
             model.addAttribute("dateTimeOfGoing", dateTime.toString());
             model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
-            deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
 
+            List<List<Boolean>> fullCheck = new ArrayList<>();
+            List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
+
+            List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+            doCheck(ktxList, passengerDto, fullCheck);
+
+            int cntGoing = 0;
+
+            for (List<Boolean> booleans : fullCheck) {
+                if (booleans.contains(Boolean.TRUE)) {
+                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                    model.addAttribute("fullCheck", fullCheck);
+                    return "schedule";
+                }
+                cntGoing += 1;
+            }
+            model.addAttribute("fullCheck", fullCheck);
+            model.addAttribute("disableSeatButton", true);
             return "schedule";
         }
         //success Logic
         //예상 select query 2개? => 2개 맞음
-        //List<KtxSeat> ktxSeats = ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deployForm.getDeployIdOfGoing());
-        Deploy deploy = deployService.getDeployWithTrain(deployForm.getDeployIdOfGoing());
+        Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
         Ktx train = (Ktx) deploy.getTrain();
-        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomWithSeatFetch(train.getId());
+        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
 
         List<String> normalReserveOkList = new ArrayList<>();
         List<String> vipReserveOkList = new ArrayList<>();
@@ -720,9 +1087,10 @@ public class SeatController {
         return LocalDateTime.parse(dateTime, formatter);
     }
 
-    private void doCheck(List<Deploy> deploysWhen, List<KtxRoom> ktxRooms, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
-        for (Deploy deploy : deploysWhen) {
-            //실험중 select 3개에서 2개로 줄임(using in clause)
+    private void doCheck(List<Ktx> ktxList, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
+        for (Ktx ktx : ktxList) {
+            List<KtxRoom> ktxRooms = ktx.getKtxRooms();
+
             List<String> normalReserveOkList = new ArrayList<>();
             List<String> vipReserveOkList = new ArrayList<>();
 
@@ -741,8 +1109,8 @@ public class SeatController {
                 }
             }
 
-            log.info("fuck = {}",normalReserveOkList);
-            log.info("fuck = {}",vipReserveOkList);
+            log.info("doCheck = {}",normalReserveOkList);
+            log.info("doCheck = {}",vipReserveOkList);
 
             List<Boolean> check = new ArrayList<>();
 

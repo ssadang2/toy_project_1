@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class ScheduleController {
 
     private final DeployService deployService;
-    private final KtxRoomService ktxRoomService;
+    private final KtxService ktxService;
 
     @PostMapping("/schedule")
     public String getSchedule(@Valid @ModelAttribute ScheduleForm scheduleForm,
@@ -43,8 +43,11 @@ public class ScheduleController {
 
         LocalDateTime after = null;
         LocalDateTime before = null;
-        //never used
-        //Long total = Long.valueOf(scheduleForm.getTotal());
+
+        //passengers number control
+        if(passengerDto.howManyOccupied() > Long.valueOf(9)) {
+            bindingResult.reject("tooManyPassengers", null);
+        }
 
         if(!StringUtils.hasText(scheduleForm.getDateOfGoing())) {
             bindingResult.reject("noDepartureDate", null);
@@ -106,9 +109,9 @@ public class ScheduleController {
 
         if(scheduleForm.getRound() == true) {
             //fetch
-            List<Deploy> deploysWhenGoing = deployService.searchDeployWithTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
+            List<Deploy> deploysWhenGoing = deployService.searchDeployToTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
             //오는 날에는 가는 날의 출발지가 도착지고 도착지가 출발지임 따라서 getArrivalPlace가 departurePlace(출발지)에 위치해야 됨
-            List<Deploy> deploysWhenComing = deployService.searchDeployWithTrain(scheduleForm.getArrivalPlace(), scheduleForm.getDeparturePlace(), after);
+            List<Deploy> deploysWhenComing = deployService.searchDeployToTrain(scheduleForm.getArrivalPlace(), scheduleForm.getDeparturePlace(), after);
 
             if(deploysWhenGoing.isEmpty() == true || deploysWhenComing.isEmpty() == true) {
                 if(deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
@@ -121,14 +124,26 @@ public class ScheduleController {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
                     model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
-                    deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
-                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
 
-                    doCheck(deploysWhenComing, ktxRooms, passengerDto, fullCheck);
+                    List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                    doCheck(ktxList, passengerDto, fullCheck);
+
+                    int cntComing = 0;
+
+                    for (List<Boolean> booleans : fullCheck) {
+                        if (booleans.contains(Boolean.TRUE)) {
+                            deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+                            model.addAttribute("fullCheck2", fullCheck);
+                            return "schedule";
+                        }
+                        cntComing += 1;
+                    }
+
                     model.addAttribute("fullCheck2", fullCheck);
+                    model.addAttribute("disableSeatButton", true);
                     return "schedule";
                 }
 
@@ -136,14 +151,25 @@ public class ScheduleController {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                     model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
-                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
+                    //updated
+                    List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                    doCheck(ktxList, passengerDto, fullCheck);
 
-                    doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
+                    int cntGoing = 0;
+
+                    for (List<Boolean> booleans : fullCheck) {
+                        if (booleans.contains(Boolean.TRUE)) {
+                            deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                            model.addAttribute("fullCheck", fullCheck);
+                            return "schedule";
+                        }
+                        cntGoing += 1;
+                    }
                     model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("disableSeatButton", true);
                     return "schedule";
                 }
             }
@@ -163,20 +189,73 @@ public class ScheduleController {
                 //coming
                 List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
 
-                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
-                List<KtxRoom> ktxRooms2 = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys2);
+                //updated
+                List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                List<Ktx> ktxList2 = ktxService.getKtxToSeatWithFetchAndIn(deploys2);
 
                 //going
-                doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
+                doCheck(ktxList, passengerDto, fullCheck);
 
                 //coming
-                doCheck(deploysWhenComing, ktxRooms2, passengerDto, fullCheck2);
+                doCheck(ktxList2, passengerDto, fullCheck2);
+
+                Boolean noSeatGoing = Boolean.TRUE;
+                Boolean noSeatComing = Boolean.TRUE;
+                int cntGoing = 0;
+                int cntComing = 0;
+
+                for (List<Boolean> booleans : fullCheck) {
+                    if (booleans.contains(Boolean.TRUE)) {
+                        noSeatGoing = Boolean.FALSE;
+                        break;
+                    }
+                    cntGoing += 1;
+                }
+
+                for (List<Boolean> booleans : fullCheck2) {
+                    if (booleans.contains(Boolean.TRUE)) {
+                        noSeatComing = Boolean.FALSE;
+                        break;
+                    }
+                    cntComing += 1;
+                }
+
+                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.TRUE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.FALSE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+
+                    deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
+
+                if (noSeatGoing == Boolean.FALSE || noSeatComing == Boolean.TRUE) {
+                    model.addAttribute("fullCheck", fullCheck);
+                    model.addAttribute("fullCheck2", fullCheck2);
+
+                    deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+
+                    model.addAttribute("disableSeatButton", true);
+
+                    return "schedule";
+                }
 
                 model.addAttribute("fullCheck", fullCheck);
                 model.addAttribute("fullCheck2", fullCheck2);
 
-                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
-                deployForm.setDeployIdOfComing(deploysWhenComing.get(0).getId());
+                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+
                 return "schedule";
             }
         }
@@ -186,7 +265,7 @@ public class ScheduleController {
         //왜 deploys를 긁어 올 때 seat까지 같이 긁지 않는 것인가? => 연관관계를 가지는 train이 부모 클래스라서 자식 클래스인 ktx로 객체 탐색이 불가함(내가 하는 방법을 모르는 걸 수도)
         //예상 1 + N = > 1 + N(라고 보기는 애매함 1:1 관계에서의 문제라서) => in 절로 해결하자 => 해결
         //fetch
-        List<Deploy> deploysWhenGoing = deployService.searchDeployWithTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
+        List<Deploy> deploysWhenGoing = deployService.searchDeployToTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
 
         if(deploysWhenGoing.isEmpty() == true) {
             model.addAttribute("emptyWhenGoing", true);
@@ -194,31 +273,37 @@ public class ScheduleController {
         }
 
         model.addAttribute("deploysWhenGoing", deploysWhenGoing);
+        model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
 
         List<List<Boolean>> fullCheck = new ArrayList<>();
-
-//        for (Deploy deploy : deploysWhenGoing) {
-            // oneToOne 때문에 발생하는 문제 해결하기 위해 먼저 초기화 N + 1 문제라고 보기는 애매한 듯?
-            // select query가 50번 나가던 걸 5번으로 줄임 => 1/10
-            // 필기에는 트랜잭션 하나에 영속성 컨텍스트 하나가 대응되는 그렇다면 multiple services가 같은 Tx를 쓰는 건가?
-            // oneToOne query 많이 나가는 거 막으려고 미리 당기는 작업
-//            ktxSeatService.findKtxSeatWithKtxRoomWithTrainWithDeploy(deploy.getId());
-//        }
-
         List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
-        //얘는 반복되는 대로 1차 캐시에서 안 찾고 쿼리를 날림 => Pk 조회가 아니어서 그런 듯
-        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsWithSeatWithInFetch(deploys);
 
-        doCheck(deploysWhenGoing, ktxRooms, passengerDto, fullCheck);
+        // select query가 50번 나가던 걸 5번으로 줄임 => 1/10 (oneToOne + batch fetch 때문에 일어난 문제인 듯)
+        // 필기에는 트랜잭션 하나에 영속성 컨텍스트 하나가 대응되는 그렇다면 multiple services가 같은 Tx를 쓰는 건가?
+        // oneToOne query 많이 나가는 거 막으려고 미리 당기는 작업
+        //얘는 반복되는 대로 1차 캐시에서 안 찾고 쿼리를 날림 => Pk 조회가 아니어서 그런 듯
+        List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
+        doCheck(ktxList, passengerDto, fullCheck);
+
+        int cntGoing = 0;
+
+        for (List<Boolean> booleans : fullCheck) {
+            if (booleans.contains(Boolean.TRUE)) {
+                deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
+                model.addAttribute("fullCheck", fullCheck);
+                return "schedule";
+            }
+            cntGoing += 1;
+        }
         model.addAttribute("fullCheck", fullCheck);
-        model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
-        deployForm.setDeployIdOfGoing(deploysWhenGoing.get(0).getId());
+        model.addAttribute("disableSeatButton", true);
         return "schedule";
     }
 
-    private void doCheck(List<Deploy> deploysWhen, List<KtxRoom> ktxRooms, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
-        for (Deploy deploy : deploysWhen) {
-            //실험중 select 3개에서 2개로 줄임(using in clause)
+    private void doCheck(List<Ktx> ktxList, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
+        for (Ktx ktx : ktxList) {
+            List<KtxRoom> ktxRooms = ktx.getKtxRooms();
+
             List<String> normalReserveOkList = new ArrayList<>();
             List<String> vipReserveOkList = new ArrayList<>();
 
@@ -237,8 +322,8 @@ public class ScheduleController {
                 }
             }
 
-            log.info("fuck = {}",normalReserveOkList);
-            log.info("fuck = {}",vipReserveOkList);
+            log.info("doCheck = {}",normalReserveOkList);
+            log.info("doCheck = {}",vipReserveOkList);
 
             List<Boolean> check = new ArrayList<>();
 

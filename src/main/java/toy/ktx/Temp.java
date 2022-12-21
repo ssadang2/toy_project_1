@@ -22,12 +22,24 @@ import java.util.*;
 @Slf4j
 public class Temp {
     public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        List<Integer> a = new ArrayList<>();
-        a.add(1);
-        a.add(2);
-        a.add(3);
+        List<List<Boolean>> a = new ArrayList<>();
+        List<Boolean> b = new ArrayList<>();
+        b.add(Boolean.TRUE);
+        b.add(Boolean.TRUE);
 
+        List<Boolean> c = new ArrayList<>();
+        b.add(Boolean.TRUE);
+        b.add(Boolean.TRUE);
 
+        List<Boolean> d = new ArrayList<>();
+        b.add(Boolean.TRUE);
+        b.add(Boolean.TRUE);
+
+        a.add(b);
+        a.add(c);
+        a.add(d);
+
+        System.out.println("a.size() = " + a.size());
 
     }
 }

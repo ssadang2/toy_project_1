@@ -44,7 +44,7 @@ public class DeployService {
         return deployRepository.searchDeploy(departurePlace, arrivalPlace, departureTime, until);
     }
 
-    public List<Deploy> searchDeployWithTrain(String departurePlace, String arrivalPlace,
+    public List<Deploy> searchDeployToTrain(String departurePlace, String arrivalPlace,
                                      LocalDateTime departureTime) {
 
         int year = departureTime.getYear();
@@ -58,11 +58,11 @@ public class DeployService {
             departureTime = LocalDateTime.now();
         }
 
-        return deployRepository.searchDeployWithTrain(departurePlace, arrivalPlace, departureTime, until);
+        return deployRepository.searchDeployToTrain(departurePlace, arrivalPlace, departureTime, until);
     }
 
-    public Deploy getDeployWithTrain(Long id) {
-        return deployRepository.getDeployWithTrain(id);
+    public Deploy getDeployToTrainById(Long id) {
+        return deployRepository.getDeployToTrainById(id);
     }
 
 }

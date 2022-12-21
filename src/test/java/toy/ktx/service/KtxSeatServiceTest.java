@@ -161,10 +161,4 @@ class KtxSeatServiceTest {
 //        Assertions.assertThat(ktxSeat1).isEqualTo(ktxSeat);
 //
 //    }
-
-    @Test
-    public void temp() {
-        Deploy deploy = deployService.getDeployWithTrain(Long.valueOf(1));
-//        ktxService.findKtx(Long.valueOf(1));
-    }
 }

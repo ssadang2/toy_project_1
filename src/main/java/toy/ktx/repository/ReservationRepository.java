@@ -18,5 +18,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     List<Reservation> findByMember(Member member);
 
     @Query("select distinct r from Reservation r join fetch r.deploy d join fetch d.train t where r.id = :id")
-    Optional<Reservation> getReservationWithFetch(@Param("id") Long reservationId);
+    Optional<Reservation> getReservationToTrainByIdWithFetch(@Param("id") Long reservationId);
 }
