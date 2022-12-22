@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor;
+import toy.ktx.domain.Member;
 import toy.ktx.domain.dto.RoomDto;
 import toy.ktx.domain.dto.projections.NormalSeatDto;
 import toy.ktx.domain.ktx.KtxSeat;
@@ -21,25 +23,11 @@ import java.util.*;
 
 @Slf4j
 public class Temp {
-    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        List<List<Boolean>> a = new ArrayList<>();
-        List<Boolean> b = new ArrayList<>();
-        b.add(Boolean.TRUE);
-        b.add(Boolean.TRUE);
+    private static final Member temp = new Member();
 
-        List<Boolean> c = new ArrayList<>();
-        b.add(Boolean.TRUE);
-        b.add(Boolean.TRUE);
-
-        List<Boolean> d = new ArrayList<>();
-        b.add(Boolean.TRUE);
-        b.add(Boolean.TRUE);
-
-        a.add(b);
-        a.add(c);
-        a.add(d);
-
-        System.out.println("a.size() = " + a.size());
+    public static void main(String[] args){
+        ThreadLocal<String> a = new ThreadLocal<>();
+        System.out.println("a.get( = " + a.get());
 
     }
 }

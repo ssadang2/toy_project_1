@@ -76,6 +76,7 @@ public class HomeController {
             return "mypage/adminMYPage";
         }
 
+        model.addAttribute("localDateTime", LocalDateTime.now());
         model.addAttribute("member", member);
         return "mypage/userMyPage";
     }

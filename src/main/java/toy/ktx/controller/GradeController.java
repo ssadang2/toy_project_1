@@ -30,12 +30,11 @@ import java.util.Optional;
 public class GradeController {
 
     private final DeployService deployService;
-    private final KtxService ktxService;
     private final KtxRoomService ktxRoomService;
     private final KtxSeatNormalService ktxSeatNormalService;
     private final KtxSeatVipService ktxSeatVipService;
 
-    //동시성 제어
+    //동시성 제어 => 원래 쓰레드 로컬은 로직이 끝나면 Remove하는 게 맞으나 postMapping 호출하자마자 new ArrayList를 set하므로 remove 굳이 필요없을 듯
     private ThreadLocal<List<String>> okList = new ThreadLocal<>();
 
     @PostMapping("/grade")
@@ -50,15 +49,28 @@ public class GradeController {
                               @RequestParam(required = false) String dateTimeOfLeaving,
                               @RequestParam(required = false) String normal,
                               @RequestParam(required = false) String vip,
+                              @RequestParam(required = false) Boolean beforeNormal,
+                              @RequestParam(required = false) Boolean beforeVip,
+                              @RequestParam(required = false) String beforeChosenSeats,
+                              @RequestParam(required = false) String beforeRoomName,
                               Model model) {
 
         model.addAttribute("departurePlace", departurePlace);
         model.addAttribute("arrivalPlace", arrivalPlace);
         model.addAttribute("passengers", passengerDto.howManyOccupied());
 
+        log.info("fuck123 = {}", beforeNormal);
+        log.info("fuck123 = {}", beforeVip);
+        log.info("fuck123 = {}", beforeChosenSeats);
+
         okList.set(new ArrayList<>());
 
         if (normal != null && round == true && coming == Boolean.TRUE) {
+            model.addAttribute("beforeNormal", beforeNormal);
+            model.addAttribute("beforeVip", beforeVip);
+            model.addAttribute("beforeChosenSeats", beforeChosenSeats);
+            model.addAttribute("beforeRoomName", beforeRoomName);
+
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
@@ -82,7 +94,6 @@ public class GradeController {
                     break;
                 }
             }
-            log.info("fuck = {}", okList.get());
 
             NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(targetRoom.getKtxSeat().getId());
 
@@ -98,7 +109,6 @@ public class GradeController {
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
-            okList.remove();
 
             return "chooseNormalSeat";
         }
@@ -143,7 +153,6 @@ public class GradeController {
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
-            okList.remove();
 
             return "chooseNormalSeat";
         }
@@ -185,13 +194,17 @@ public class GradeController {
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
-            okList.remove();
 
             return "chooseNormalSeat";
         }
 
 // normal vs vip -------------------------------------------------------------------------------------------------------------------------------------
         if (vip != null && round == true && coming == Boolean.TRUE) {
+            model.addAttribute("beforeNormal", beforeNormal);
+            model.addAttribute("beforeVip", beforeVip);
+            model.addAttribute("beforeChosenSeats", beforeChosenSeats);
+            model.addAttribute("beforeRoomName", beforeRoomName);
+
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
 
@@ -231,7 +244,6 @@ public class GradeController {
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
-            okList.remove();
 
             return "chooseVipSeat";
         }
@@ -276,7 +288,6 @@ public class GradeController {
             model.addAttribute("dateTimeOfLeaving", afterDateTime);
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
-            okList.remove();
 
             return "chooseVipSeat";
         }
@@ -318,7 +329,6 @@ public class GradeController {
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
-            okList.remove();
 
             return "chooseVipSeat";
         }

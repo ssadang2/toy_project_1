@@ -43,13 +43,9 @@ public class ReservationController {
     private final PassengerService passengerService;
 
     //공유변수 주의하자(동시성 문제)
-    private ObjectMapper objectMapper = new ObjectMapper();
-    private String targetRoomName = null;
-
-    private NormalSeatDto beforeNormalSeatDto = null;
-    private VipSeatDto beforeVipSeatDto = null;
-    private String beforeRoomName = null;
-
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    // logic 상 굳이 Remove할 필요없을 듯
+    private ThreadLocal<String> targetRoomName = new ThreadLocal<>();
 
     @PostMapping("/reservation/normal")
     public String reserveNormal(@ModelAttribute NormalSeatDto normalSeatDto,
@@ -61,10 +57,13 @@ public class ReservationController {
                           @ModelAttribute RoomDto roomDto,
                           @ModelAttribute CheckRoomDto checkRoomDto,
                           @RequestParam String roomName,
+                          @RequestParam(required = false) String beforeRoomName,
                           @RequestParam(required = false) String departurePlace,
                           @RequestParam(required = false) String arrivalPlace,
                           @RequestParam(required = false) String dateTimeOfGoing,
                           @RequestParam(required = false) String dateTimeOfLeaving,
+                          @RequestParam(required = false) Boolean beforeNormal,
+                          @RequestParam(required = false) String beforeChosenSeats,
                           HttpServletRequest request,
                           Model model) {
 
@@ -80,8 +79,7 @@ public class ReservationController {
             if(roomChange.isPresent()){
                 for (Object key : map.keySet()) {
                     if (map.get(key) != null) {
-                        targetRoomName = (String) key;
-                        //updated
+                        targetRoomName.set((String) key);
                         break;
                     }
                 }
@@ -91,7 +89,7 @@ public class ReservationController {
 
                 //seat까지 fetch 안 하는 게 맞을까?
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
-                Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName)).findAny();
+                Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
                 normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
@@ -107,7 +105,7 @@ public class ReservationController {
                 Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
                 model.addAttribute("map", seatMap);
                 model.addAttribute("ktxRooms", ktxRooms);
-                model.addAttribute("roomName", targetRoomName);
+                model.addAttribute("roomName", targetRoomName.get());
 
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                 model.addAttribute("okList", checkMap.values());
@@ -118,13 +116,18 @@ public class ReservationController {
             else {
                 if(normalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
+//                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+//                    Ktx ktx = (Ktx) deploy.getTrain();
+//
+//                    List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
+//                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+//
+//                    normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
+
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Ktx ktx = (Ktx) deploy.getTrain();
 
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
-                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-
-                    normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
@@ -185,12 +188,10 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
-//                model.addAttribute("normalDisabled", normalDisabled);
-//                model.addAttribute("vipDisabled", vipDisabled);
-
-                beforeRoomName = roomName;
-                beforeNormalSeatDto = normalSeatDto;
-                beforeVipSeatDto = null;
+                model.addAttribute("beforeRoomName", roomName);
+                model.addAttribute("beforeNormal", true);
+                model.addAttribute("beforeVip", false);
+                model.addAttribute("beforeChosenSeats", normalSeatDto.returnSeats());
 
                 return "normalVip";
             }
@@ -206,8 +207,7 @@ public class ReservationController {
             if(roomChange.isPresent()){
                 for (Object key : map.keySet()) {
                     if (map.get(key) != null) {
-                        targetRoomName = (String) key;
-                        //updated
+                        targetRoomName.set((String) key);
                         break;
                     }
                 }
@@ -215,7 +215,7 @@ public class ReservationController {
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
-                Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName)).findAny();
+                Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
                 normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
@@ -227,11 +227,15 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
+                model.addAttribute("beforeRoomName", beforeRoomName);
+                model.addAttribute("beforeNormal", beforeNormal);
+                model.addAttribute("beforeChosenSeats", beforeChosenSeats);
+
                 ObjectMapper objectMapper = new ObjectMapper();
                 Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
                 model.addAttribute("map", seatMap);
                 model.addAttribute("ktxRooms", ktxRooms);
-                model.addAttribute("roomName", targetRoomName);
+                model.addAttribute("roomName", targetRoomName.get());
 
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                 model.addAttribute("okList", checkMap.values());
@@ -242,13 +246,18 @@ public class ReservationController {
             else {
                 if(normalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
+//                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
+//                    Ktx ktx = (Ktx) deploy.getTrain();
+//
+//                    List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
+//                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+//
+//                    normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
+
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                     Ktx ktx = (Ktx) deploy.getTrain();
 
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
-                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-
-                    normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
@@ -258,6 +267,11 @@ public class ReservationController {
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
                     model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    //updated
+                    model.addAttribute("beforeRoomName", beforeRoomName);
+                    model.addAttribute("beforeNormal", beforeNormal);
+                    model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
                     ObjectMapper objectMapper = new ObjectMapper();
                     Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
@@ -279,15 +293,15 @@ public class ReservationController {
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 //자리차지
-                if (beforeNormalSeatDto != null) {
+                if (beforeNormal) {
                     List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
                     Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
                     reservation.setRoomName(optionalKtxRoom.get().getRoomName());
                     reservation.setGrade(optionalKtxRoom.get().getGrade());
 
                     KtxSeatNormal foundSeat = (KtxSeatNormal) optionalKtxRoom.get().getKtxSeat();
-                    reservation.setSeats(beforeNormalSeatDto.returnSeats());
-                    foundSeat.normalDtoToEntity(beforeNormalSeatDto);
+                    reservation.setSeats(beforeChosenSeats);
+                    foundSeat.checkSeats(beforeChosenSeats);
                 }
                 else{
                     List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
@@ -297,8 +311,8 @@ public class ReservationController {
 
                     //updated point
                     KtxSeatVip foundSeat = (KtxSeatVip) optionalKtxRoom.get().getKtxSeat();
-                    reservation.setSeats(beforeVipSeatDto.returnSeats());
-                    foundSeat.vipDtoToEntity(beforeVipSeatDto);
+                    reservation.setSeats(beforeChosenSeats);
+                    foundSeat.checkSeats(beforeChosenSeats);
                 }
 
                 //올 떄
@@ -345,8 +359,6 @@ public class ReservationController {
                 //reservation을 db에 저장
                 reservationService.saveReservation(reservation);
                 reservationService.saveReservation(reservation2);
-                //이 값을 초기화해줘야지 일반 => 특실 전환 등의 작업이 가능함
-                beforeNormalSeatDto = null;
 
                 return "redirect:/my-page";
             }
@@ -360,8 +372,7 @@ public class ReservationController {
         if(roomChange.isPresent()){
             for (Object key : map.keySet()) {
                 if (map.get(key) != null) {
-                    targetRoomName = (String) key;
-                    //이게 맞을 듯
+                    targetRoomName.set((String) key);
                     break;
                 }
             }
@@ -370,7 +381,7 @@ public class ReservationController {
             Ktx ktx = (Ktx) deploy.getTrain();
             //굳이 seat까지 Fetch 안 해도 됨
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
-            Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName)).findAny();
+            Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
             //1차 캐시에서 찾아오겠지?? => dto projection이라 1차 캐시에서 못 긁어 오는 듯
             normalSeatDto = ktxSeatNormalService.findNormalDtoById(optionalKtxRoom.get().getKtxSeat().getId());
@@ -384,7 +395,7 @@ public class ReservationController {
             Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
             model.addAttribute("map", seatMap);
             model.addAttribute("ktxRooms", ktxRooms);
-            model.addAttribute("roomName", targetRoomName);
+            model.addAttribute("roomName", targetRoomName.get());
 
             Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
             model.addAttribute("okList", checkMap.values());
@@ -395,13 +406,18 @@ public class ReservationController {
         else {
             if(normalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
+//                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+//                Ktx ktx = (Ktx) deploy.getTrain();
+//
+//                List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
+//                Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+//
+//                normalSeatDto = ktxSeatNormalService.findNormalDtoById(optionalKtxRoom.get().getKtxSeat().getId());
+
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
-                Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-
-                normalSeatDto = ktxSeatNormalService.findNormalDtoById(optionalKtxRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("passengerNumberNotSame", true);
                 model.addAttribute("going", true);
@@ -468,8 +484,6 @@ public class ReservationController {
     }
 
     @PostMapping("/reservation/vip")
-    //postmapping에 Transactional 거는 게 에바라는 의견이 좀 있고 본인도 그렇게 생각, service쪽으로 빼야 될 것 같음(이래도 동작은 됨)
-//    @Transactional
     public String reserveVip(@ModelAttribute VipSeatDto vipSeatDto,
                           @ModelAttribute DeployForm deployForm,
                           @ModelAttribute PassengerDto passengerDto,
@@ -479,12 +493,13 @@ public class ReservationController {
                           @ModelAttribute RoomDto roomDto,
                           @ModelAttribute CheckRoomDto checkRoomDto,
                           @RequestParam String roomName,
+                          @RequestParam(required = false) String beforeRoomName,
                           @RequestParam(required = false) String departurePlace,
                           @RequestParam(required = false) String arrivalPlace,
                           @RequestParam(required = false) String dateTimeOfGoing,
                           @RequestParam(required = false) String dateTimeOfLeaving,
-//                          @RequestParam(required = false) Boolean normalDisabled,
-//                          @RequestParam(required = false) Boolean vipDisabled,
+                          @RequestParam(required = false) Boolean beforeVip,
+                          @RequestParam(required = false) String beforeChosenSeats,
                           HttpServletRequest request,
                           Model model) {
 
@@ -500,7 +515,7 @@ public class ReservationController {
             if(roomChange.isPresent()){
                 for (Object key : map.keySet()) {
                     if (map.get(key) != null) {
-                        targetRoomName = (String) key;
+                        targetRoomName.set((String) key);
                     }
                 }
 
@@ -508,7 +523,7 @@ public class ReservationController {
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
-                Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName)).findAny();
+                Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
                 vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
@@ -524,7 +539,7 @@ public class ReservationController {
                 Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
                 model.addAttribute("map", seatMap);
                 model.addAttribute("ktxRooms", ktxRooms);
-                model.addAttribute("roomName", targetRoomName);
+                model.addAttribute("roomName", targetRoomName.get());
 
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                 model.addAttribute("okList", checkMap.values());
@@ -535,13 +550,18 @@ public class ReservationController {
             else {
                 if(vipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
+//                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+//                    Ktx ktx = (Ktx) deploy.getTrain();
+//
+//                    List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
+//                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+//
+//                    vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
+
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Ktx ktx = (Ktx) deploy.getTrain();
 
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
-                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-
-                    vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
@@ -601,12 +621,10 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
-//                model.addAttribute("normalDisabled", normalDisabled);
-//                model.addAttribute("vipDisabled", vipDisabled);
-
-                beforeRoomName = roomName;
-                beforeVipSeatDto = vipSeatDto;
-                beforeNormalSeatDto = null;
+                model.addAttribute("beforeRoomName", roomName);
+                model.addAttribute("beforeVip", true);
+                model.addAttribute("beforeNormal", false);
+                model.addAttribute("beforeChosenSeats", vipSeatDto.returnSeats());
 
                 return "normalVip";
             }
@@ -622,7 +640,7 @@ public class ReservationController {
             if(roomChange.isPresent()){
                 for (Object key : map.keySet()) {
                     if (map.get(key) != null) {
-                        targetRoomName = (String) key;
+                        targetRoomName.set((String) key);
                         break;
                     }
                 }
@@ -631,7 +649,7 @@ public class ReservationController {
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
-                Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName)).findAny();
+                Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
                 vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
@@ -643,11 +661,16 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
+                //updated
+                model.addAttribute("beforeRoomName", beforeRoomName);
+                model.addAttribute("beforeVip", beforeVip);
+                model.addAttribute("beforeChosenSeats", beforeChosenSeats);
+
                 ObjectMapper objectMapper = new ObjectMapper();
                 Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
                 model.addAttribute("map", seatMap);
                 model.addAttribute("ktxRooms", ktxRooms);
-                model.addAttribute("roomName", targetRoomName);
+                model.addAttribute("roomName", targetRoomName.get());
 
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                 model.addAttribute("okList", checkMap.values());
@@ -658,12 +681,17 @@ public class ReservationController {
             else {
                 if(vipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
+//                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
+//                    Ktx ktx = (Ktx) deploy.getTrain();
+//
+//                    List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
+//                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+//                    vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
+
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                     Ktx ktx = (Ktx) deploy.getTrain();
 
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
-                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-                    vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
@@ -673,6 +701,11 @@ public class ReservationController {
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
                     model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    //updated
+                    model.addAttribute("beforeRoomName", beforeRoomName);
+                    model.addAttribute("beforeVip", beforeVip);
+                    model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
                     ObjectMapper objectMapper = new ObjectMapper();
                     Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
@@ -692,15 +725,15 @@ public class ReservationController {
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 //자리차지
-                if (beforeVipSeatDto != null) {
+                if (beforeVip == true) {
                     List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
                     Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
                     reservation.setRoomName(optionalKtxRoom.get().getRoomName());
                     reservation.setGrade(optionalKtxRoom.get().getGrade());
 
                     KtxSeatVip foundSeat = (KtxSeatVip) optionalKtxRoom.get().getKtxSeat();
-                    reservation.setSeats(beforeVipSeatDto.returnSeats());
-                    foundSeat.vipDtoToEntity(beforeVipSeatDto);
+                    reservation.setSeats(beforeChosenSeats);
+                    foundSeat.checkSeats(beforeChosenSeats);
                 }
                 else {
                     List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
@@ -709,8 +742,8 @@ public class ReservationController {
                     reservation.setGrade(optionalKtxRoom.get().getGrade());
 
                     KtxSeatNormal foundSeat = (KtxSeatNormal) optionalKtxRoom.get().getKtxSeat();
-                    reservation.setSeats(beforeNormalSeatDto.returnSeats());
-                    foundSeat.normalDtoToEntity(beforeNormalSeatDto);
+                    reservation.setSeats(beforeChosenSeats);
+                    foundSeat.checkSeats(beforeChosenSeats);
                 }
 
                 //올 떄
@@ -758,8 +791,6 @@ public class ReservationController {
                 //reservation을 db에 저장
                 reservationService.saveReservation(reservation);
                 reservationService.saveReservation(reservation2);
-                //이 값을 초기화해줘야지 일반 => 특실 전환 등의 작업이 가능함
-                beforeVipSeatDto = null;
 
                 return "redirect:/my-page";
             }
@@ -773,7 +804,7 @@ public class ReservationController {
         if(roomChange.isPresent()){
             for (Object key : map.keySet()) {
                 if (map.get(key) != null) {
-                    targetRoomName = (String) key;
+                    targetRoomName.set((String) key);
                     break;
                 }
             }
@@ -782,7 +813,7 @@ public class ReservationController {
             Ktx ktx = (Ktx) deploy.getTrain();
 
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
-            Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName)).findAny();
+            Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
             vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
             model.addAttribute("going", true);
@@ -794,7 +825,7 @@ public class ReservationController {
             Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
             model.addAttribute("map", seatMap);
             model.addAttribute("ktxRooms", ktxRooms);
-            model.addAttribute("roomName", targetRoomName);
+            model.addAttribute("roomName", targetRoomName.get());
 
             Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
             model.addAttribute("okList", checkMap.values());
@@ -805,12 +836,17 @@ public class ReservationController {
         else {
             if(vipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
 
+//                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+//                Ktx ktx = (Ktx) deploy.getTrain();
+//
+//                List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
+//                Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+//                vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
+
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
-                Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-                vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("passengerNumberNotSame", true);
                 model.addAttribute("going", true);

@@ -24,9 +24,9 @@ class DeployServiceTest {
     @Test
     @Rollback(value = false)
     public void saveDeploy() {
-//        Deploy deploy = new Deploy(LocalDateTime.of(2022, 12, 30, 18, 0, 0),
-//                LocalDateTime.of(2022, 12, 30, 18, 0, 0).plusHours(2).plusMinutes(40)
-//                , "서울역", "부산역", ktxService.findKtx(Long.valueOf(1)).get());
+        Deploy deploy = new Deploy(LocalDateTime.of(2022, 12, 20, 18, 0, 0),
+                LocalDateTime.of(2022, 12, 20, 18, 0, 0).plusHours(2).plusMinutes(40)
+                , "서울역", "부산역", ktxService.findKtx(Long.valueOf(1)).get());
 //        Deploy deploy2 = new Deploy(LocalDateTime.of(2022, 12, 30, 19, 0, 0),
 //                LocalDateTime.of(2022, 12, 30, 19, 0, 0).plusHours(2).plusMinutes(45)
 //                , "서울역", "부산역", ktxService.findKtx(Long.valueOf(2)).get());
@@ -40,12 +40,12 @@ class DeployServiceTest {
 //                LocalDateTime.of(2022, 12, 30, 21, 0, 0).plusHours(2).plusMinutes(42)
 //                , "서울역", "부산역", ktxService.findKtx(Long.valueOf(5)).get());
 //
-        Deploy deploy = new Deploy(LocalDateTime.of(2022, 12, 31, 11, 0, 0),
-                LocalDateTime.of(2022, 12, 31, 11, 0, 0).plusHours(2).plusMinutes(40)
-                , "부산역", "서울역", ktxService.findKtx(Long.valueOf(3)).get());
-        Deploy deploy2 = new Deploy(LocalDateTime.of(2022, 12, 31, 12, 0, 0),
-                LocalDateTime.of(2022, 12, 31, 12, 0, 0).plusHours(2).plusMinutes(45)
-                , "부산역", "서울역", ktxService.findKtx(Long.valueOf(4)).get());
+//        Deploy deploy = new Deploy(LocalDateTime.of(2022, 12, 31, 11, 0, 0),
+//                LocalDateTime.of(2022, 12, 31, 11, 0, 0).plusHours(2).plusMinutes(40)
+//                , "부산역", "서울역", ktxService.findKtx(Long.valueOf(3)).get());
+//        Deploy deploy2 = new Deploy(LocalDateTime.of(2022, 12, 31, 12, 0, 0),
+//                LocalDateTime.of(2022, 12, 31, 12, 0, 0).plusHours(2).plusMinutes(45)
+//                , "부산역", "서울역", ktxService.findKtx(Long.valueOf(4)).get());
 //        Deploy deploy3 = new Deploy(LocalDateTime.of(2022, 12, 31, 13, 0, 0),
 //                LocalDateTime.of(2022, 12, 31, 13, 0, 0).plusHours(2).plusMinutes(43)
 //                , "부산역", "서울역", ktxService.findKtx(Long.valueOf(8)).get());
@@ -57,7 +57,7 @@ class DeployServiceTest {
 //                , "부산역", "서울역", ktxService.findKtx(Long.valueOf(10)).get());
 
         deployService.saveDeploy(deploy);
-        deployService.saveDeploy(deploy2);
+//        deployService.saveDeploy(deploy2);
 //        deployService.saveDeploy(deploy3);
 //        deployService.saveDeploy(deploy4);
 //        deployService.saveDeploy(deploy5);

@@ -170,4 +170,19 @@ public class KtxSeatNormal extends KtxSeat{
             throw new RuntimeException(e);
         }
     }
+
+    public void checkSeats(String beforeChosenSeats) {
+        String[] split = beforeChosenSeats.split(" ");
+        log.info("fuck = {}", split);
+        try {
+            Class clazz = Class.forName("toy.ktx.domain.ktx.KtxSeatNormal");
+            for (String s : split) {
+                String seat = "setK" + s.substring(1);
+                Method declaredMethod = clazz.getDeclaredMethod(seat, Boolean.class);
+                declaredMethod.invoke(this, true);
+            }
+        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

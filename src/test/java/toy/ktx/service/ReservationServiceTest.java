@@ -26,12 +26,19 @@ class ReservationServiceTest {
     @Autowired
     MemberService memberService;
     @Autowired
+    DeployService deployService;
+    @Autowired
     EntityManager em;
 
     @Test
+    @Rollback(value = false)
     void saveReservation() {
         Optional<Member> member = memberService.findByLoginId("user");
-        List<Reservation> byMember = reservationService.findByMember(member.get());
+        Reservation reservation = new Reservation();
+        Optional<Deploy> deploy = deployService.findDeploy(Long.valueOf(5));
+        reservation.setDeploy(deploy.get());
+        reservation.setMember(member.get());
+        reservationService.saveReservation(reservation);
     }
 
     @Test

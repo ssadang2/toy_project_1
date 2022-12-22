@@ -19,14 +19,19 @@
                         <p th:text="|${reservation.deploy.departurePlace}  -->  ${reservation.deploy.arrivalPlace}|" class="text-center"></p>
                         <p th:text="|${#temporals.monthName(reservation.deploy.departureTime)} ${#temporals.day(reservation.deploy.departureTime)}일 (${#temporals.dayOfWeekNameShort(reservation.deploy.departureTime)})|" class="text-center"></p>
                         <p th:text="${reservation.deploy.train.trainName}"></p>
+
                         <span th:text="|${#temporals.format(reservation.deploy.departureTime, 'HH:mm')} --> ${#temporals.format(reservation.deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
                         <span th:text="${durations[reservationStat.index]}"></span><br><br>
                         <span th:text="|${#strings.substring(reservation.roomName, 4, )}호차|"></span>&nbsp;&nbsp;
-                        <span th:text="|좌석: ${reservation.seats}|"></span>
+                        <span th:text="|좌석: ${reservation.seats}|"></span><br><br>
+
+                        <span th:text="|예매 취소 가능|" class="text-success" th:if="${localDateTime.isBefore(reservation.deploy.departureTime.minusMinutes(20))}"></span>
+                        <span th:text="|예매 취소 불가|" class="text-danger" th:unless="${localDateTime.isBefore(reservation.deploy.departureTime.minusMinutes(20))}"></span> &nbsp;
+                        <span th:text="|요금: ${reservation.fee}원|"></span>
                     </div>
 
                     <div class="form-check col-4 text-center">
-                        <button type="submit" class="btn-close" onclick="alert('삭제 완료')" th:name="reservationId" th:value="${reservation.id}"></button>
+                        <button type="submit" class="btn-close" onclick="alert('삭제 완료')" th:name="reservationId" th:value="${reservation.id}" th:disabled="!${localDateTime.isBefore(reservation.deploy.departureTime.minusMinutes(20))}"></button>
                     </div>
                 </div><br><br>
             </th:block>

@@ -32,6 +32,7 @@ public class SeatController {
     private final DeployService deployService;
     private final KtxService ktxService;
 
+    //final으로 쓰기가 불가함으로 threadLocal에 넣을 필요 없을 듯
     private final String[] alpha = {"A", "B", "C", "D"};
 
     @PostMapping("/seat")

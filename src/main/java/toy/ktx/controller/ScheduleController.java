@@ -86,7 +86,7 @@ public class ScheduleController {
             bindingResult.reject("noStation", null);
         }
 
-        if(scheduleForm.getDeparturePlace().equals(scheduleForm.getArrivalPlace())) {
+        if(!scheduleForm.getDeparturePlace().isBlank() && scheduleForm.getDeparturePlace().equals(scheduleForm.getArrivalPlace())) {
             bindingResult.reject("noSamePlace", null);
         }
 
@@ -220,7 +220,7 @@ public class ScheduleController {
                     cntComing += 1;
                 }
 
-                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.TRUE) {
+                if (noSeatGoing == Boolean.TRUE && noSeatComing == Boolean.TRUE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
                     model.addAttribute("disableSeatButton", true);
@@ -228,7 +228,7 @@ public class ScheduleController {
                     return "schedule";
                 }
 
-                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.FALSE) {
+                if (noSeatGoing == Boolean.TRUE && noSeatComing == Boolean.FALSE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
 
@@ -239,7 +239,7 @@ public class ScheduleController {
                     return "schedule";
                 }
 
-                if (noSeatGoing == Boolean.FALSE || noSeatComing == Boolean.TRUE) {
+                if (noSeatGoing == Boolean.FALSE && noSeatComing == Boolean.TRUE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
 
@@ -255,6 +255,9 @@ public class ScheduleController {
 
                 deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
                 deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
+
+                log.info("fuck = {}", cntGoing);
+                log.info("fuck = {}", cntComing);
 
                 return "schedule";
             }

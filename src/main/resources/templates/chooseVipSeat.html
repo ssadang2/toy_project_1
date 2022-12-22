@@ -81,6 +81,11 @@
                 <input type="hidden" name="dateTimeOfGoing" th:value="${dateTimeOfGoing}">
                 <input type="hidden" name="dateTimeOfLeaving" th:value="${dateTimeOfLeaving}">
 
+                <input type="hidden" name="beforeNormal" th:value="${beforeNormal}">
+                <input type="hidden" name="beforeVip" th:value="${beforeVip}">
+                <input type="hidden" name="beforeChosenSeats" th:value="${beforeChosenSeats}">
+                <input type="hidden" name="beforeRoomName" th:value="${beforeRoomName}">
+
                 <div th:if="${(round == true && coming == true) || (round != true && going == true)}">
                     <button type="submit" class="btn btn-secondary" name="reserve" value="true">예매하기</button>
                 </div>
