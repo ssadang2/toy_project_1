@@ -8,7 +8,7 @@ import java.util.Map;
 
 @Data
 @Slf4j
-public class VipSeatDto {
+public class KtxVipSeatDto {
 
     private final Boolean k1A;
     private final Boolean k1B;

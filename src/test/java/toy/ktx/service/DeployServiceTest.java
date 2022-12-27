@@ -6,6 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import toy.ktx.domain.Deploy;
+import toy.ktx.repository.MugunghwaRepository;
+import toy.ktx.repository.SaemaulRepository;
 
 import java.time.LocalDateTime;
 
@@ -21,15 +23,21 @@ class DeployServiceTest {
     @Autowired
     KtxService ktxService;
 
+    @Autowired
+    MugunghwaRepository mugunghwaRepository;
+
+    @Autowired
+    SaemaulRepository saemaulRepository;
+
     @Test
     @Rollback(value = false)
     public void saveDeploy() {
-        Deploy deploy = new Deploy(LocalDateTime.of(2022, 12, 20, 18, 0, 0),
-                LocalDateTime.of(2022, 12, 20, 18, 0, 0).plusHours(2).plusMinutes(40)
-                , "서울역", "부산역", ktxService.findKtx(Long.valueOf(1)).get());
+//        Deploy deploy = new Deploy(LocalDateTime.of(2022, 12, 30, 16, 0, 0),
+//                LocalDateTime.of(2022, 12, 30, 16, 0, 0).plusHours(2).plusMinutes(40)
+//                , "서울역", "부산역", saemaulRepository.findById(Long.valueOf(11)).get());
 //        Deploy deploy2 = new Deploy(LocalDateTime.of(2022, 12, 30, 19, 0, 0),
 //                LocalDateTime.of(2022, 12, 30, 19, 0, 0).plusHours(2).plusMinutes(45)
-//                , "서울역", "부산역", ktxService.findKtx(Long.valueOf(2)).get());
+//                , "서울역", "부산역", mugunghwaRepository.findById(Long.valueOf(1)).get());
 //        Deploy deploy3 = new Deploy(LocalDateTime.of(2022, 12, 30, 20, 0, 0),
 //                LocalDateTime.of(2022, 12, 30, 20, 0, 0).plusHours(2).plusMinutes(43)
 //                , "서울역", "부산역", ktxService.findKtx(Long.valueOf(3)).get());
@@ -40,9 +48,9 @@ class DeployServiceTest {
 //                LocalDateTime.of(2022, 12, 30, 21, 0, 0).plusHours(2).plusMinutes(42)
 //                , "서울역", "부산역", ktxService.findKtx(Long.valueOf(5)).get());
 //
-//        Deploy deploy = new Deploy(LocalDateTime.of(2022, 12, 31, 11, 0, 0),
-//                LocalDateTime.of(2022, 12, 31, 11, 0, 0).plusHours(2).plusMinutes(40)
-//                , "부산역", "서울역", ktxService.findKtx(Long.valueOf(3)).get());
+        Deploy deploy = new Deploy(LocalDateTime.of(2022, 12, 31, 9, 0, 0),
+                LocalDateTime.of(2022, 12, 31, 9, 0, 0).plusHours(2).plusMinutes(40)
+                , "부산역", "서울역", saemaulRepository.findById(Long.valueOf(12)).get());
 //        Deploy deploy2 = new Deploy(LocalDateTime.of(2022, 12, 31, 12, 0, 0),
 //                LocalDateTime.of(2022, 12, 31, 12, 0, 0).plusHours(2).plusMinutes(45)
 //                , "부산역", "서울역", ktxService.findKtx(Long.valueOf(4)).get());

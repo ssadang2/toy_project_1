@@ -25,6 +25,12 @@ public class MugunghwaRoom {
     @JoinColumn(name = "seat_id")
     private MugunghwaSeat mugunghwaSeat;
 
-    @Enumerated(EnumType.STRING)
-    private Grade grade;
+    public MugunghwaRoom() {
+    }
+
+    public MugunghwaRoom(String roomName, Mugunghwa mugunghwa, MugunghwaSeat mugunghwaSeat) {
+        this.roomName = roomName;
+        this.mugunghwa = mugunghwa;
+        this.mugunghwaSeat = mugunghwaSeat;
+    }
 }

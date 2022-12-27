@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import toy.ktx.domain.Deploy;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
-import toy.ktx.domain.dto.projections.NormalSeatDto;
-import toy.ktx.domain.dto.projections.VipSeatDto;
+import toy.ktx.domain.dto.projections.KtxNormalSeatDto;
+import toy.ktx.domain.dto.projections.KtxVipSeatDto;
 import toy.ktx.domain.enums.Grade;
 import toy.ktx.domain.ktx.*;
 import toy.ktx.service.*;
@@ -59,10 +59,6 @@ public class GradeController {
         model.addAttribute("arrivalPlace", arrivalPlace);
         model.addAttribute("passengers", passengerDto.howManyOccupied());
 
-        log.info("fuck123 = {}", beforeNormal);
-        log.info("fuck123 = {}", beforeVip);
-        log.info("fuck123 = {}", beforeChosenSeats);
-
         okList.set(new ArrayList<>());
 
         if (normal != null && round == true && coming == Boolean.TRUE) {
@@ -95,10 +91,10 @@ public class GradeController {
                 }
             }
 
-            NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(targetRoom.getKtxSeat().getId());
+            KtxNormalSeatDto ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
-            Map map = objectMapper.convertValue(normalSeatDto, Map.class);
+            Map map = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
             model.addAttribute("map", map);
 
             model.addAttribute("ktxRooms", ktxRooms);
@@ -110,7 +106,7 @@ public class GradeController {
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
 
-            return "chooseNormalSeat";
+            return "trainseat/chooseKtxNormalSeat";
         }
 
         else if (normal != null && round == true) {
@@ -139,10 +135,10 @@ public class GradeController {
             }
             log.info("fuck = {}", okList.get());
 
-            NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(targetRoom.getKtxSeat().getId());
+            KtxNormalSeatDto ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
-            Map map = objectMapper.convertValue(normalSeatDto, Map.class);
+            Map map = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
             model.addAttribute("map", map);
 
             model.addAttribute("ktxRooms", ktxRooms);
@@ -154,7 +150,7 @@ public class GradeController {
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
 
-            return "chooseNormalSeat";
+            return "trainseat/chooseKtxNormalSeat";
         }
 
         if (normal != null) {
@@ -182,10 +178,10 @@ public class GradeController {
             }
             log.info("fuck1234 = {}", okList.get());
 
-            NormalSeatDto normalSeatDto = ktxSeatNormalService.findNormalDtoById(targetRoom.getKtxSeat().getId());
+            KtxNormalSeatDto ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
-            Map map = objectMapper.convertValue(normalSeatDto, Map.class);
+            Map map = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
             model.addAttribute("map", map);
 
             model.addAttribute("ktxRooms", ktxRooms);
@@ -195,7 +191,7 @@ public class GradeController {
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
 
-            return "chooseNormalSeat";
+            return "trainseat/chooseKtxNormalSeat";
         }
 
 // normal vs vip -------------------------------------------------------------------------------------------------------------------------------------
@@ -230,10 +226,10 @@ public class GradeController {
             }
             log.info("fuck = {}", okList.get());
 
-            VipSeatDto vipSeatDto = ktxSeatVipService.findVipDtoById(targetRoom.getKtxSeat().getId());
+            KtxVipSeatDto ktxVipSeatDto = ktxSeatVipService.findVipDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
-            Map map = objectMapper.convertValue(vipSeatDto, Map.class);
+            Map map = objectMapper.convertValue(ktxVipSeatDto, Map.class);
             model.addAttribute("map", map);
 
             model.addAttribute("ktxRooms", ktxRooms);
@@ -245,7 +241,7 @@ public class GradeController {
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
 
-            return "chooseVipSeat";
+            return "trainseat/chooseKtxVipSeat";
         }
 
         else if (vip != null && round == true) {
@@ -274,10 +270,10 @@ public class GradeController {
             }
             log.info("fuck = {}", okList.get());
 
-            VipSeatDto vipSeatDto = ktxSeatVipService.findVipDtoById(targetRoom.getKtxSeat().getId());
+            KtxVipSeatDto ktxVipSeatDto = ktxSeatVipService.findVipDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
-            Map map = objectMapper.convertValue(vipSeatDto, Map.class);
+            Map map = objectMapper.convertValue(ktxVipSeatDto, Map.class);
             model.addAttribute("map", map);
 
             model.addAttribute("ktxRooms", ktxRooms);
@@ -289,7 +285,7 @@ public class GradeController {
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
 
-            return "chooseVipSeat";
+            return "trainseat/chooseKtxVipSeat";
         }
 
         else {
@@ -317,10 +313,10 @@ public class GradeController {
             }
             log.info("fuck = {}", okList.get());
 
-            VipSeatDto vipSeatDto = ktxSeatVipService.findVipDtoById(targetRoom.getKtxSeat().getId());
+            KtxVipSeatDto ktxVipSeatDto = ktxSeatVipService.findVipDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
-            Map map = objectMapper.convertValue(vipSeatDto, Map.class);
+            Map map = objectMapper.convertValue(ktxVipSeatDto, Map.class);
             model.addAttribute("map", map);
 
             model.addAttribute("ktxRooms", ktxRooms);
@@ -330,7 +326,7 @@ public class GradeController {
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
 
-            return "chooseVipSeat";
+            return "trainseat/chooseKtxVipSeat";
         }
     }
 

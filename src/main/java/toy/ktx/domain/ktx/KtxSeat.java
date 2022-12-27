@@ -5,15 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.BatchSize;
-import org.springframework.transaction.annotation.Transactional;
-import toy.ktx.domain.dto.projections.NormalSeatDto;
-import toy.ktx.domain.dto.projections.VipSeatDto;
 
 import javax.persistence.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Map;
 
 @Entity
 @Data

@@ -3,13 +3,10 @@ package toy.ktx.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import toy.ktx.domain.dto.projections.VipSeatDto;
-import toy.ktx.domain.ktx.KtxRoom;
-import toy.ktx.domain.ktx.KtxSeatNormal;
+import toy.ktx.domain.dto.projections.KtxVipSeatDto;
 import toy.ktx.domain.ktx.KtxSeatVip;
 import toy.ktx.repository.KtxSeatVipRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -23,7 +20,7 @@ public class KtxSeatVipService {
         return ktxSeatVipRepository.findById(id);
     }
 
-    public VipSeatDto findVipDtoById(Long id) {
+    public KtxVipSeatDto findVipDtoById(Long id) {
         return ktxSeatVipRepository.findVipDtoById(id);
     }
 

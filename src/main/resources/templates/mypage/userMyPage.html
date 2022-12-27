@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<link th:href = "@{../css/bootstrap.min.css}" rel = "stylesheet">
+<link th:href = "@{../../css/bootstrap.min.css}" rel = "stylesheet">
 <head>
     <meta charset="UTF-8">
     <title>userMyPage</title>
@@ -31,7 +31,7 @@
                     </div>
 
                     <div class="form-check col-4 text-center">
-                        <button type="submit" class="btn-close" onclick="alert('삭제 완료')" th:name="reservationId" th:value="${reservation.id}" th:disabled="!${localDateTime.isBefore(reservation.deploy.departureTime.minusMinutes(20))}"></button>
+                        <button type="submit" class="btn-close" onclick="alert('예매 취소 완료')" th:name="reservationId" th:value="${reservation.id}" th:disabled="!${localDateTime.isBefore(reservation.deploy.departureTime.minusMinutes(20))}"></button>
                     </div>
                 </div><br><br>
             </th:block>

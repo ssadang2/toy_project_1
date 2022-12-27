@@ -14,10 +14,18 @@ import toy.ktx.domain.dto.CheckRoomDto;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
 import toy.ktx.domain.dto.RoomDto;
-import toy.ktx.domain.dto.projections.NormalSeatDto;
-import toy.ktx.domain.dto.projections.VipSeatDto;
+import toy.ktx.domain.dto.projections.KtxNormalSeatDto;
+import toy.ktx.domain.dto.projections.KtxVipSeatDto;
+import toy.ktx.domain.dto.projections.MugunghwaSeatDto;
+import toy.ktx.domain.dto.projections.SaemaulSeatDto;
 import toy.ktx.domain.enums.Grade;
 import toy.ktx.domain.ktx.*;
+import toy.ktx.domain.mugunhwa.Mugunghwa;
+import toy.ktx.domain.mugunhwa.MugunghwaRoom;
+import toy.ktx.domain.mugunhwa.MugunghwaSeat;
+import toy.ktx.domain.saemaul.Saemaul;
+import toy.ktx.domain.saemaul.SaemaulRoom;
+import toy.ktx.domain.saemaul.SaemaulSeat;
 import toy.ktx.service.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,8 +43,12 @@ import java.util.Optional;
 public class ReservationController {
 
     private final KtxRoomService ktxRoomService;
+    private final MugunghwaRoomService mugunghwaRoomService;
+    private final SaemaulRoomService saemaulRoomService;
     private final KtxSeatNormalService ktxSeatNormalService;
     private final KtxSeatVipService ktxSeatVipService;
+    private final MugunghwaSeatService mugunghwaSeatService;
+    private final SaemaulSeatService saemaulSeatService;
     private final DeployService deployService;
     private final MemberService memberService;
     private final ReservationService reservationService;
@@ -44,11 +56,13 @@ public class ReservationController {
 
     //공유변수 주의하자(동시성 문제)
     private final ObjectMapper objectMapper = new ObjectMapper();
-    // logic 상 굳이 Remove할 필요없을 듯
+    // logic 상 굳이 remove할 필요없을 듯
     private ThreadLocal<String> targetRoomName = new ThreadLocal<>();
+    // logic 상 굳이 remove할 필요없을 듯
+    private ThreadLocal<List<String>> okList = new ThreadLocal<>();
 
-    @PostMapping("/reservation/normal")
-    public String reserveNormal(@ModelAttribute NormalSeatDto normalSeatDto,
+    @PostMapping("/reservation/ktx/normal")
+    public String reserveKtxNormal(@ModelAttribute KtxNormalSeatDto ktxNormalSeatDto,
                           @ModelAttribute DeployForm deployForm,
                           @ModelAttribute PassengerDto passengerDto,
                           @RequestParam(required = false) Boolean round,
@@ -57,11 +71,11 @@ public class ReservationController {
                           @ModelAttribute RoomDto roomDto,
                           @ModelAttribute CheckRoomDto checkRoomDto,
                           @RequestParam String roomName,
-                          @RequestParam(required = false) String beforeRoomName,
                           @RequestParam(required = false) String departurePlace,
                           @RequestParam(required = false) String arrivalPlace,
                           @RequestParam(required = false) String dateTimeOfGoing,
                           @RequestParam(required = false) String dateTimeOfLeaving,
+                          @RequestParam(required = false) String beforeRoomName,
                           @RequestParam(required = false) Boolean beforeNormal,
                           @RequestParam(required = false) String beforeChosenSeats,
                           HttpServletRequest request,
@@ -91,7 +105,7 @@ public class ReservationController {
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
-                normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
+                ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("round", true);
                 model.addAttribute("going", true);
@@ -102,7 +116,7 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
                 ObjectMapper objectMapper = new ObjectMapper();
-                Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
+                Map seatMap = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
                 model.addAttribute("map", seatMap);
                 model.addAttribute("ktxRooms", ktxRooms);
                 model.addAttribute("roomName", targetRoomName.get());
@@ -110,24 +124,18 @@ public class ReservationController {
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                 model.addAttribute("okList", checkMap.values());
 
-                return "chooseNormalSeat";
+                return "trainseat/chooseKtxNormalSeat";
             }
 
             else {
-                if(normalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
-
-//                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
-//                    Ktx ktx = (Ktx) deploy.getTrain();
-//
-//                    List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
-//                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-//
-//                    normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
-
+                if(ktxNormalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Ktx ktx = (Ktx) deploy.getTrain();
 
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
+                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                    ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
@@ -139,7 +147,7 @@ public class ReservationController {
                     model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
                     ObjectMapper objectMapper = new ObjectMapper();
-                    Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
+                    Map seatMap = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
                     model.addAttribute("map", seatMap);
                     model.addAttribute("ktxRooms", ktxRooms);
                     model.addAttribute("roomName", roomName);
@@ -147,7 +155,7 @@ public class ReservationController {
                     Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                     model.addAttribute("okList", checkMap.values());
 
-                    return "chooseNormalSeat";
+                    return "trainseat/chooseKtxNormalSeat";
                 }
                 //올 때 고를 때 일반실/특실 좌석 체크 Logic
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
@@ -191,7 +199,7 @@ public class ReservationController {
                 model.addAttribute("beforeRoomName", roomName);
                 model.addAttribute("beforeNormal", true);
                 model.addAttribute("beforeVip", false);
-                model.addAttribute("beforeChosenSeats", normalSeatDto.returnSeats());
+                model.addAttribute("beforeChosenSeats", ktxNormalSeatDto.returnSeats());
 
                 return "normalVip";
             }
@@ -217,7 +225,7 @@ public class ReservationController {
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
-                normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
+                ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("round", true);
                 model.addAttribute("coming", true);
@@ -232,7 +240,7 @@ public class ReservationController {
                 model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
                 ObjectMapper objectMapper = new ObjectMapper();
-                Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
+                Map seatMap = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
                 model.addAttribute("map", seatMap);
                 model.addAttribute("ktxRooms", ktxRooms);
                 model.addAttribute("roomName", targetRoomName.get());
@@ -240,24 +248,18 @@ public class ReservationController {
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                 model.addAttribute("okList", checkMap.values());
 
-                return "chooseNormalSeat";
+                return "trainseat/chooseKtxNormalSeat";
             }
 
             else {
-                if(normalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
-
-//                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
-//                    Ktx ktx = (Ktx) deploy.getTrain();
-//
-//                    List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
-//                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-//
-//                    normalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
-
+                if(ktxNormalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                     Ktx ktx = (Ktx) deploy.getTrain();
 
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
+                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                    ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(foundRoom.get().getKtxSeat().getId());
 
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
@@ -274,7 +276,7 @@ public class ReservationController {
                     model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
                     ObjectMapper objectMapper = new ObjectMapper();
-                    Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
+                    Map seatMap = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
                     model.addAttribute("map", seatMap);
                     model.addAttribute("ktxRooms", ktxRooms);
                     model.addAttribute("roomName", roomName);
@@ -282,7 +284,7 @@ public class ReservationController {
                     Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                     model.addAttribute("okList", checkMap.values());
 
-                    return "chooseNormalSeat";
+                    return "trainseat/chooseKtxNormalSeat";
                 }
                 //success logic
                 Reservation reservation = new Reservation();
@@ -326,8 +328,8 @@ public class ReservationController {
 
                 //자리차지
                 KtxSeatNormal foundSeat2 = (KtxSeatNormal) optionalKtxRoom2.get().getKtxSeat();
-                reservation2.setSeats(normalSeatDto.returnSeats());
-                foundSeat2.normalDtoToEntity(normalSeatDto);
+                reservation2.setSeats(ktxNormalSeatDto.returnSeats());
+                foundSeat2.normalDtoToEntity(ktxNormalSeatDto);
 
                 //deploy
                 reservation.setDeploy(deploy);
@@ -384,7 +386,7 @@ public class ReservationController {
             Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
             //1차 캐시에서 찾아오겠지?? => dto projection이라 1차 캐시에서 못 긁어 오는 듯
-            normalSeatDto = ktxSeatNormalService.findNormalDtoById(optionalKtxRoom.get().getKtxSeat().getId());
+            ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(optionalKtxRoom.get().getKtxSeat().getId());
 
             model.addAttribute("going", true);
             model.addAttribute("departurePlace", departurePlace);
@@ -392,7 +394,7 @@ public class ReservationController {
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
 
             ObjectMapper objectMapper = new ObjectMapper();
-            Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
+            Map seatMap = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
             model.addAttribute("map", seatMap);
             model.addAttribute("ktxRooms", ktxRooms);
             model.addAttribute("roomName", targetRoomName.get());
@@ -400,24 +402,20 @@ public class ReservationController {
             Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
             model.addAttribute("okList", checkMap.values());
 
-            return "chooseNormalSeat";
+            return "trainseat/chooseKtxNormalSeat";
         }
 
         else {
-            if(normalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
-
-//                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
-//                Ktx ktx = (Ktx) deploy.getTrain();
-//
-//                List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
-//                Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-//
-//                normalSeatDto = ktxSeatNormalService.findNormalDtoById(optionalKtxRoom.get().getKtxSeat().getId());
-
+            if(ktxNormalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
+                Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                //1차 캐시에서 찾아오겠지?? => dto projection이라 1차 캐시에서 못 긁어 오는 듯
+                ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(optionalKtxRoom.get().getKtxSeat().getId());
+
 
                 model.addAttribute("passengerNumberNotSame", true);
                 model.addAttribute("going", true);
@@ -427,7 +425,7 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
 
                 ObjectMapper objectMapper = new ObjectMapper();
-                Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
+                Map seatMap = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
                 model.addAttribute("map", seatMap);
                 model.addAttribute("ktxRooms", ktxRooms);
                 model.addAttribute("roomName", roomName);
@@ -435,7 +433,7 @@ public class ReservationController {
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                 model.addAttribute("okList", checkMap.values());
 
-                return "chooseNormalSeat";
+                return "trainseat/chooseKtxNormalSeat";
             }
             //success logic
             //select query 3개
@@ -454,8 +452,8 @@ public class ReservationController {
 
             //자리차지
             KtxSeatNormal foundSeat = (KtxSeatNormal) optionalKtxRoom.get().getKtxSeat();
-            reservation.setSeats(normalSeatDto.returnSeats());
-            foundSeat.normalDtoToEntity(normalSeatDto);
+            reservation.setSeats(ktxNormalSeatDto.returnSeats());
+            foundSeat.normalDtoToEntity(ktxNormalSeatDto);
 
             //deploy
             reservation.setDeploy(deploy);
@@ -483,8 +481,8 @@ public class ReservationController {
         }
     }
 
-    @PostMapping("/reservation/vip")
-    public String reserveVip(@ModelAttribute VipSeatDto vipSeatDto,
+    @PostMapping("/reservation/ktx/vip")
+    public String reserveKtxVip(@ModelAttribute KtxVipSeatDto ktxVipSeatDto,
                           @ModelAttribute DeployForm deployForm,
                           @ModelAttribute PassengerDto passengerDto,
                           @RequestParam(required = false) Boolean round,
@@ -525,7 +523,7 @@ public class ReservationController {
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
-                vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
+                ktxVipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("round", true);
                 model.addAttribute("going", true);
@@ -536,7 +534,7 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
                 ObjectMapper objectMapper = new ObjectMapper();
-                Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
+                Map seatMap = objectMapper.convertValue(ktxVipSeatDto, Map.class);
                 model.addAttribute("map", seatMap);
                 model.addAttribute("ktxRooms", ktxRooms);
                 model.addAttribute("roomName", targetRoomName.get());
@@ -544,24 +542,18 @@ public class ReservationController {
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                 model.addAttribute("okList", checkMap.values());
 
-                return "chooseVipSeat";
+                return "trainseat/chooseKtxVipSeat";
             }
 
             else {
-                if(vipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
-
-//                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
-//                    Ktx ktx = (Ktx) deploy.getTrain();
-//
-//                    List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
-//                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-//
-//                    vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
-
+                if(ktxVipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Ktx ktx = (Ktx) deploy.getTrain();
 
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
+                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                    ktxVipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
@@ -573,7 +565,7 @@ public class ReservationController {
                     model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
                     ObjectMapper objectMapper = new ObjectMapper();
-                    Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
+                    Map seatMap = objectMapper.convertValue(ktxVipSeatDto, Map.class);
                     model.addAttribute("map", seatMap);
                     model.addAttribute("ktxRooms", ktxRooms);
                     model.addAttribute("roomName", roomName);
@@ -581,7 +573,7 @@ public class ReservationController {
                     Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                     model.addAttribute("okList", checkMap.values());
 
-                    return "chooseVipSeat";
+                    return "trainseat/chooseKtxVipSeat";
                 }
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                 Ktx train = (Ktx) deploy.getTrain();
@@ -624,7 +616,7 @@ public class ReservationController {
                 model.addAttribute("beforeRoomName", roomName);
                 model.addAttribute("beforeVip", true);
                 model.addAttribute("beforeNormal", false);
-                model.addAttribute("beforeChosenSeats", vipSeatDto.returnSeats());
+                model.addAttribute("beforeChosenSeats", ktxVipSeatDto.returnSeats());
 
                 return "normalVip";
             }
@@ -651,7 +643,7 @@ public class ReservationController {
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
-                vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
+                ktxVipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("round", true);
                 model.addAttribute("coming", true);
@@ -667,7 +659,7 @@ public class ReservationController {
                 model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
                 ObjectMapper objectMapper = new ObjectMapper();
-                Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
+                Map seatMap = objectMapper.convertValue(ktxVipSeatDto, Map.class);
                 model.addAttribute("map", seatMap);
                 model.addAttribute("ktxRooms", ktxRooms);
                 model.addAttribute("roomName", targetRoomName.get());
@@ -675,23 +667,18 @@ public class ReservationController {
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                 model.addAttribute("okList", checkMap.values());
 
-                return "chooseVipSeat";
+                return "trainseat/chooseKtxVipSeat";
             }
 
             else {
-                if(vipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
-
-//                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
-//                    Ktx ktx = (Ktx) deploy.getTrain();
-//
-//                    List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
-//                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-//                    vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
-
+                if(ktxVipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                     Ktx ktx = (Ktx) deploy.getTrain();
 
                     List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
+                    Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                    ktxVipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                     model.addAttribute("passengerNumberNotSame", true);
                     model.addAttribute("round", true);
@@ -708,12 +695,12 @@ public class ReservationController {
                     model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
                     ObjectMapper objectMapper = new ObjectMapper();
-                    Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
+                    Map seatMap = objectMapper.convertValue(ktxVipSeatDto, Map.class);
                     model.addAttribute("map", seatMap);
                     model.addAttribute("ktxRooms", ktxRooms);
                     model.addAttribute("roomName", roomName);
 
-                    return "chooseVipSeat";
+                    return "trainseat/chooseKtxVipSeat";
                 }
 
                 //success logic
@@ -757,8 +744,8 @@ public class ReservationController {
 
                 //자리차지
                 KtxSeatVip foundSeat2 = (KtxSeatVip) optionalKtxRoom2.get().getKtxSeat();
-                reservation2.setSeats(vipSeatDto.returnSeats());
-                foundSeat2.vipDtoToEntity(vipSeatDto);
+                reservation2.setSeats(ktxVipSeatDto.returnSeats());
+                foundSeat2.vipDtoToEntity(ktxVipSeatDto);
 
                 //deploy
                 reservation.setDeploy(deploy);
@@ -814,7 +801,7 @@ public class ReservationController {
 
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
             Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
-            vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
+            ktxVipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
             model.addAttribute("going", true);
             model.addAttribute("departurePlace", departurePlace);
@@ -822,7 +809,7 @@ public class ReservationController {
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
 
             ObjectMapper objectMapper = new ObjectMapper();
-            Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
+            Map seatMap = objectMapper.convertValue(ktxVipSeatDto, Map.class);
             model.addAttribute("map", seatMap);
             model.addAttribute("ktxRooms", ktxRooms);
             model.addAttribute("roomName", targetRoomName.get());
@@ -830,23 +817,18 @@ public class ReservationController {
             Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
             model.addAttribute("okList", checkMap.values());
 
-            return "chooseVipSeat";
+            return "trainseat/chooseKtxVipSeat";
         }
 
         else {
-            if(vipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
-
-//                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
-//                Ktx ktx = (Ktx) deploy.getTrain();
-//
-//                List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
-//                Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
-//                vipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
-
+            if(ktxVipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.VIP);
+                Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                ktxVipSeatDto = ktxSeatVipService.findVipDtoById(foundRoom.get().getKtxSeat().getId());
 
                 model.addAttribute("passengerNumberNotSame", true);
                 model.addAttribute("going", true);
@@ -856,7 +838,7 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
 
                 ObjectMapper objectMapper = new ObjectMapper();
-                Map seatMap = objectMapper.convertValue(vipSeatDto, Map.class);
+                Map seatMap = objectMapper.convertValue(ktxVipSeatDto, Map.class);
                 model.addAttribute("map", seatMap);
                 model.addAttribute("ktxRooms", ktxRooms);
                 //이거 빠져 있었음
@@ -865,7 +847,7 @@ public class ReservationController {
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
                 model.addAttribute("okList", checkMap.values());
 
-                return "chooseVipSeat";
+                return "trainseat/chooseKtxVipSeat";
             }
 
             //success logic
@@ -881,8 +863,826 @@ public class ReservationController {
 
             //자리차지
             KtxSeatVip foundSeat = (KtxSeatVip) optionalKtxRoom.get().getKtxSeat();
-            reservation.setSeats(vipSeatDto.returnSeats());
-            foundSeat.vipDtoToEntity(vipSeatDto);
+            reservation.setSeats(ktxVipSeatDto.returnSeats());
+            foundSeat.vipDtoToEntity(ktxVipSeatDto);
+
+            //deploy
+            reservation.setDeploy(deploy);
+
+            //여기까지 멤버를 넘겨야 될 듯 => 세션에 로그인아이디를 담는 방법으로 해결
+            HttpSession session = request.getSession();
+            String loginId = (String) session.getAttribute(SessionConst.LOGIN_MEMBER_ID);
+            Member foundMember = memberService.findByLoginId(loginId).orElse(null);
+
+            if (foundMember != null) {
+                reservation.setMember(foundMember);
+            }
+
+            //passenger가 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
+            Passenger passenger = passengerDto.dtotoPassenger();
+            passengerService.save(passenger);
+
+            reservation.setPassenger(passenger);
+            reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+
+            //reservation을 db에 저장
+            reservationService.saveReservation(reservation);
+
+            return "redirect:/my-page";
+        }
+    }
+
+    @PostMapping("/reservation/mugunghwa")
+    public String reserveMugunghwa(@ModelAttribute MugunghwaSeatDto mugunghwaSeatDto,
+                                   @ModelAttribute DeployForm deployForm,
+                                   @ModelAttribute PassengerDto passengerDto,
+                                   @RequestParam(required = false) Boolean round,
+                                   @RequestParam(required = false) Boolean going,
+                                   @RequestParam(required = false) Boolean coming,
+                                   @ModelAttribute RoomDto roomDto,
+                                   @ModelAttribute CheckRoomDto checkRoomDto,
+                                   @RequestParam String roomName,
+                                   @RequestParam(required = false) String departurePlace,
+                                   @RequestParam(required = false) String arrivalPlace,
+                                   @RequestParam(required = false) String dateTimeOfGoing,
+                                   @RequestParam(required = false) String dateTimeOfLeaving,
+                                   @RequestParam(required = false) String beforeRoomName,
+                                   @RequestParam(required = false) String beforeChosenSeats,
+                                   HttpServletRequest request,
+                                   Model model) {
+
+        model.addAttribute("passengers", passengerDto.howManyOccupied());
+        okList.set(new ArrayList<>());
+
+        if(round == Boolean.TRUE && going == Boolean.TRUE) {
+            LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+
+            Map map = objectMapper.convertValue(roomDto, Map.class);
+            Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
+
+            if(roomChange.isPresent()){
+                for (Object key : map.keySet()) {
+                    if (map.get(key) != null) {
+                        targetRoomName.set((String) key);
+                        break;
+                    }
+                }
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+                Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                //query 몇 개 나가는지 보기
+                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
+
+                mugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(foundRoom.get().getMugunghwaSeat().getId());
+
+                model.addAttribute("round", true);
+                model.addAttribute("going", true);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map seatMap = objectMapper.convertValue(mugunghwaSeatDto, Map.class);
+                model.addAttribute("map", seatMap);
+                model.addAttribute("mugunghwaRooms", mugunghwaRooms);
+                model.addAttribute("roomName", targetRoomName.get());
+
+                Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                model.addAttribute("okList", checkMap.values());
+
+                return "trainseat/chooseMugunghwaSeat";
+            }
+
+            else {
+                if(mugunghwaSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
+                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+                    Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                    Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                    mugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(foundRoom.get().getMugunghwaSeat().getId());
+
+                    model.addAttribute("passengerNumberNotSame", true);
+                    model.addAttribute("round", true);
+                    model.addAttribute("going", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map seatMap = objectMapper.convertValue(mugunghwaSeatDto, Map.class);
+                    model.addAttribute("map", seatMap);
+                    model.addAttribute("mugunghwaRooms", mugunghwaRooms);
+                    model.addAttribute("roomName", roomName);
+
+                    Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                    model.addAttribute("okList", checkMap.values());
+
+                    return "trainseat/chooseMugunghwaSeat";
+                }
+                //올 때 자리 체크하기로 보내는 logic
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
+                Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                MugunghwaRoom targetRoom = null;
+
+                for (MugunghwaRoom mugunghwaRoom : mugunghwaRooms) {
+                    if (mugunghwaRoom.getMugunghwaSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                        okList.get().add(mugunghwaRoom.getRoomName());
+                    }
+                }
+
+                for (String rName : okList.get()) {
+                    Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(rName)).findAny();
+                    if (optionalMugunghwaRoom.isPresent()) {
+                        targetRoom = optionalMugunghwaRoom.get();
+                        break;
+                    }
+                }
+                log.info("fuck = {}", okList.get());
+
+                MugunghwaSeatDto targetMugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(targetRoom.getMugunghwaSeat().getId());
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map seatMap = objectMapper.convertValue(targetMugunghwaSeatDto, Map.class);
+                model.addAttribute("map", seatMap);
+
+                model.addAttribute("mugunghwaRooms", mugunghwaRooms);
+                model.addAttribute("roomName", targetRoomName.get());
+
+                Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                model.addAttribute("okList", checkMap.values());
+
+                model.addAttribute("round", true);
+                model.addAttribute("coming", true);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                model.addAttribute("beforeRoomName", roomName);
+                model.addAttribute("beforeChosenSeats", mugunghwaSeatDto.returnSeats());
+
+                return "trainseat/chooseMugunghwaSeat";
+            }
+        }
+
+        if(round == Boolean.TRUE && coming == Boolean.TRUE) {
+            LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+
+            Map map = objectMapper.convertValue(roomDto, Map.class);
+            Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
+
+            if(roomChange.isPresent()){
+                for (Object key : map.keySet()) {
+                    if (map.get(key) != null) {
+                        targetRoomName.set((String) key);
+                        break;
+                    }
+                }
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
+                Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                //query 몇 개 나가는지 보기
+                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
+
+                mugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(foundRoom.get().getMugunghwaSeat().getId());
+
+                model.addAttribute("round", true);
+                model.addAttribute("coming", true);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                model.addAttribute("beforeRoomName", beforeRoomName);
+                model.addAttribute("beforeChosenSeats", beforeChosenSeats);
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map seatMap = objectMapper.convertValue(mugunghwaSeatDto, Map.class);
+                model.addAttribute("map", seatMap);
+                model.addAttribute("mugunghwaRooms", mugunghwaRooms);
+                model.addAttribute("roomName", targetRoomName.get());
+
+                Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                model.addAttribute("okList", checkMap.values());
+
+                return "trainseat/chooseMugunghwaSeat";
+            }
+
+            else {
+                if(mugunghwaSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
+                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
+                    Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                    Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                    mugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(foundRoom.get().getMugunghwaSeat().getId());
+
+                    model.addAttribute("passengerNumberNotSame", true);
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    //updated
+                    model.addAttribute("beforeRoomName", beforeRoomName);
+                    model.addAttribute("beforeChosenSeats", beforeChosenSeats);
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map seatMap = objectMapper.convertValue(mugunghwaSeatDto, Map.class);
+                    model.addAttribute("map", seatMap);
+                    model.addAttribute("mugunghwaRooms", mugunghwaRooms);
+                    model.addAttribute("roomName", roomName);
+
+                    Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                    model.addAttribute("okList", checkMap.values());
+
+                    return "trainseat/chooseMugunghwaSeat";
+                }
+                //success logic
+                Reservation reservation = new Reservation();
+                Reservation reservation2 = new Reservation();
+
+                //갈 때
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+                Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                //자리차지
+                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+
+                reservation.setRoomName(optionalMugunghwaRoom.get().getRoomName());
+                reservation.setGrade(null);
+
+                MugunghwaSeat foundSeat = optionalMugunghwaRoom.get().getMugunghwaSeat();
+                reservation.setSeats(beforeChosenSeats);
+                foundSeat.checkSeats(beforeChosenSeats);
+
+                //올 떄
+                Deploy deploy2 = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
+                Mugunghwa mugunghwa2 = (Mugunghwa) deploy2.getTrain();
+
+                //자리차지
+                List<MugunghwaRoom> mugunghwaRooms2 = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa2.getId());
+                Optional<MugunghwaRoom> optionalMugunghwaRoom2 = mugunghwaRooms2.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                reservation.setRoomName(optionalMugunghwaRoom2.get().getRoomName());
+                reservation.setGrade(null);
+
+                MugunghwaSeat foundSeat2 = optionalMugunghwaRoom2.get().getMugunghwaSeat();
+                reservation.setSeats(mugunghwaSeatDto.returnSeats());
+                foundSeat2.mugunghwaDtoToEntity(mugunghwaSeatDto);
+
+                //deploy
+                reservation.setDeploy(deploy);
+                reservation2.setDeploy(deploy2);
+
+                //여기까지 멤버를 넘겨야 될 듯 => 세션에 로그인아이디를 담는 방법으로 해결
+                HttpSession session = request.getSession();
+                String loginId = (String) session.getAttribute(SessionConst.LOGIN_MEMBER_ID);
+                Member foundMember = memberService.findByLoginId(loginId).orElse(null);
+
+                if (foundMember != null) {
+                    reservation.setMember(foundMember);
+                    reservation2.setMember(foundMember);
+                }
+
+                //passenger entity가 꼭 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
+                Passenger passenger = passengerDto.dtotoPassenger();
+                Passenger passenger2 = passengerDto.dtotoPassenger();
+
+                passengerService.save(passenger);
+                passengerService.save(passenger2);
+
+                reservation.setPassenger(passenger);
+                reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+
+                reservation2.setPassenger(passenger2);
+                reservation2.setFee(passengerDto.getFee(reservation2.getGrade()));
+
+                //reservation을 db에 저장
+                reservationService.saveReservation(reservation);
+                reservationService.saveReservation(reservation2);
+
+                return "redirect:/my-page";
+            }
+        }
+//round vs one-way--------------------------------------------------------------------------------------------------------------------------------------
+        LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
+
+        Map map = objectMapper.convertValue(roomDto, Map.class);
+        Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
+
+        if(roomChange.isPresent()){
+            for (Object key : map.keySet()) {
+                if (map.get(key) != null) {
+                    targetRoomName.set((String) key);
+                    break;
+                }
+            }
+
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+            Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+            //query 몇 개 나가는지 보기
+            List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+            Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
+
+            //1차 캐시에서 찾아오겠지?? => dto projection이라 1차 캐시에서 못 긁어 오는 듯
+            mugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(foundRoom.get().getMugunghwaSeat().getId());
+
+            model.addAttribute("going", true);
+            model.addAttribute("departurePlace", departurePlace);
+            model.addAttribute("arrivalPlace", arrivalPlace);
+            model.addAttribute("dateTimeOfGoing", beforeDateTime);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map seatMap = objectMapper.convertValue(mugunghwaSeatDto, Map.class);
+            model.addAttribute("map", seatMap);
+            model.addAttribute("mugunghwaRooms", mugunghwaRooms);
+            model.addAttribute("roomName", targetRoomName.get());
+
+            Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+            model.addAttribute("okList", checkMap.values());
+
+            return "trainseat/chooseMugunghwaSeat";
+        }
+
+        else {
+            if(mugunghwaSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+                Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                //query 몇 개 나가는지 보기
+                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                mugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(foundRoom.get().getMugunghwaSeat().getId());
+
+                model.addAttribute("passengerNumberNotSame", true);
+                model.addAttribute("going", true);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map seatMap = objectMapper.convertValue(mugunghwaSeatDto, Map.class);
+                model.addAttribute("map", seatMap);
+                model.addAttribute("mugunghwaRooms", mugunghwaRooms);
+                model.addAttribute("roomName", roomName);
+
+                Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                model.addAttribute("okList", checkMap.values());
+
+                return "trainseat/chooseMugunghwaSeat";
+            }
+            //success logic
+            Reservation reservation = new Reservation();
+
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+            Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+            //seat까지 fetch 안 하면 KtxSeatNormal 다운 캐스팅 부분에서 에러터짐 => 프록시이기 때문에
+            //join 때문에 db에 부하가 가더라도 이 방법이 맞을 듯
+            List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+            Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+            reservation.setRoomName(optionalMugunghwaRoom.get().getRoomName());
+            reservation.setGrade(null);
+
+            //자리차지
+            MugunghwaSeat foundSeat = optionalMugunghwaRoom.get().getMugunghwaSeat();
+            reservation.setSeats(mugunghwaSeatDto.returnSeats());
+            foundSeat.mugunghwaDtoToEntity(mugunghwaSeatDto);
+
+            //deploy
+            reservation.setDeploy(deploy);
+
+            //여기까지 멤버를 넘겨야 될 듯 => 세션에 로그인아이디를 담는 방법으로 해결
+            HttpSession session = request.getSession();
+            String loginId = (String) session.getAttribute(SessionConst.LOGIN_MEMBER_ID);
+            Member foundMember = memberService.findByLoginId(loginId).orElse(null);
+
+            if (foundMember != null) {
+                reservation.setMember(foundMember);
+            }
+
+            //passenger가 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
+            Passenger passenger = passengerDto.dtotoPassenger();
+            passengerService.save(passenger);
+
+            reservation.setPassenger(passenger);
+            reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+
+            //reservation을 db에 저장
+            reservationService.saveReservation(reservation);
+
+            return "redirect:/my-page";
+        }
+    }
+
+    @PostMapping("/reservation/saemaul")
+    public String reserveSaemaul(@ModelAttribute SaemaulSeatDto saemaulSeatDto,
+                                   @ModelAttribute DeployForm deployForm,
+                                   @ModelAttribute PassengerDto passengerDto,
+                                   @RequestParam(required = false) Boolean round,
+                                   @RequestParam(required = false) Boolean going,
+                                   @RequestParam(required = false) Boolean coming,
+                                   @ModelAttribute RoomDto roomDto,
+                                   @ModelAttribute CheckRoomDto checkRoomDto,
+                                   @RequestParam String roomName,
+                                   @RequestParam(required = false) String departurePlace,
+                                   @RequestParam(required = false) String arrivalPlace,
+                                   @RequestParam(required = false) String dateTimeOfGoing,
+                                   @RequestParam(required = false) String dateTimeOfLeaving,
+                                   @RequestParam(required = false) String beforeRoomName,
+                                   @RequestParam(required = false) String beforeChosenSeats,
+                                   HttpServletRequest request,
+                                   Model model) {
+
+        model.addAttribute("passengers", passengerDto.howManyOccupied());
+        okList.set(new ArrayList<>());
+
+        if(round == Boolean.TRUE && going == Boolean.TRUE) {
+            LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+
+            Map map = objectMapper.convertValue(roomDto, Map.class);
+            Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
+
+            if(roomChange.isPresent()){
+                for (Object key : map.keySet()) {
+                    if (map.get(key) != null) {
+                        targetRoomName.set((String) key);
+                        break;
+                    }
+                }
+
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+                Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                //query 몇 개 나가는지 보기
+                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
+
+                saemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(foundRoom.get().getSaemaulSeat().getId());
+
+                model.addAttribute("round", true);
+                model.addAttribute("going", true);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map seatMap = objectMapper.convertValue(saemaulSeatDto, Map.class);
+                model.addAttribute("map", seatMap);
+                model.addAttribute("saemaulRooms", saemaulRooms);
+                model.addAttribute("roomName", targetRoomName.get());
+
+                Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                model.addAttribute("okList", checkMap.values());
+
+                return "trainseat/chooseSaemaulSeat";
+            }
+
+            else {
+                if(saemaulSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
+                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+                    Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                    //query 몇 개 나가는지 보기
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                    Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                    saemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(foundRoom.get().getSaemaulSeat().getId());
+
+                    model.addAttribute("passengerNumberNotSame", true);
+                    model.addAttribute("round", true);
+                    model.addAttribute("going", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map seatMap = objectMapper.convertValue(saemaulSeatDto, Map.class);
+                    model.addAttribute("map", seatMap);
+                    model.addAttribute("saemaulRooms", saemaulRooms);
+                    model.addAttribute("roomName", roomName);
+
+                    Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                    model.addAttribute("okList", checkMap.values());
+
+                    return "trainseat/chooseSaemaulSeat";
+                }
+                //올 때 자리 체크하기로 보내는 logic
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+                Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                //query 몇 개 나가는지 보기
+                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                SaemaulRoom targetRoom = null;
+
+                for (SaemaulRoom saemaulRoom : saemaulRooms) {
+                    if (saemaulRoom.getSaemaulSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                        okList.get().add(saemaulRoom.getRoomName());
+                    }
+                }
+
+                for (String rName : okList.get()) {
+                    Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(rName)).findAny();
+                    if (optionalSaemaulRoom.isPresent()) {
+                        targetRoom = optionalSaemaulRoom.get();
+                        break;
+                    }
+                }
+                log.info("fuck = {}", okList.get());
+
+                SaemaulSeatDto targetSaemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(targetRoom.getSaemaulSeat().getId());
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map seatMap = objectMapper.convertValue(targetSaemaulSeatDto, Map.class);
+                model.addAttribute("map", seatMap);
+
+                model.addAttribute("saemaulRooms", saemaulRooms);
+                model.addAttribute("roomName", targetRoomName.get());
+
+                Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                model.addAttribute("okList", checkMap.values());
+
+                model.addAttribute("round", true);
+                model.addAttribute("coming", true);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                model.addAttribute("beforeRoomName", roomName);
+                model.addAttribute("beforeChosenSeats", saemaulSeatDto.returnSeats());
+
+                return "trainseat/chooseSaemaulSeat";
+            }
+        }
+
+        if(round == Boolean.TRUE && coming == Boolean.TRUE) {
+            LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+
+            Map map = objectMapper.convertValue(roomDto, Map.class);
+            Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
+
+            if(roomChange.isPresent()){
+                for (Object key : map.keySet()) {
+                    if (map.get(key) != null) {
+                        targetRoomName.set((String) key);
+                        break;
+                    }
+                }
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
+                Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                //query 몇 개 나가는지 보기
+                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
+
+                saemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(foundRoom.get().getSaemaulSeat().getId());
+
+                model.addAttribute("round", true);
+                model.addAttribute("coming", true);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                model.addAttribute("beforeRoomName", beforeRoomName);
+                model.addAttribute("beforeChosenSeats", beforeChosenSeats);
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map seatMap = objectMapper.convertValue(saemaulSeatDto, Map.class);
+                model.addAttribute("map", seatMap);
+                model.addAttribute("saemaulRooms", saemaulRooms);
+                model.addAttribute("roomName", targetRoomName.get());
+
+                Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                model.addAttribute("okList", checkMap.values());
+
+                return "trainseat/chooseSaemaulSeat";
+            }
+
+            else {
+                if(saemaulSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
+                    Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
+                    Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                    //query 몇 개 나가는지 보기
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                    Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                    saemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(foundRoom.get().getSaemaulSeat().getId());
+
+                    model.addAttribute("passengerNumberNotSame", true);
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    //updated
+                    model.addAttribute("beforeRoomName", beforeRoomName);
+                    model.addAttribute("beforeChosenSeats", beforeChosenSeats);
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map seatMap = objectMapper.convertValue(saemaulSeatDto, Map.class);
+                    model.addAttribute("map", seatMap);
+                    model.addAttribute("saemaulRooms", saemaulRooms);
+                    model.addAttribute("roomName", roomName);
+
+                    Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                    model.addAttribute("okList", checkMap.values());
+
+                    return "trainseat/chooseSaemaulSeat";
+                }
+                //success logic
+                Reservation reservation = new Reservation();
+                Reservation reservation2 = new Reservation();
+
+                //갈 때
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+                Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                //자리차지
+                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+
+                reservation.setRoomName(optionalSaemaulRoom.get().getRoomName());
+                reservation.setGrade(null);
+
+                SaemaulSeat foundSeat = optionalSaemaulRoom.get().getSaemaulSeat();
+                reservation.setSeats(beforeChosenSeats);
+                foundSeat.checkSeats(beforeChosenSeats);
+
+                //올 떄
+                Deploy deploy2 = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
+                Saemaul saemaul2 = (Saemaul) deploy2.getTrain();
+
+                //자리차지
+                List<SaemaulRoom> saemaulRooms2 = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul2.getId());
+                Optional<SaemaulRoom> optionalSaemaulRoom2 = saemaulRooms2.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                reservation.setRoomName(optionalSaemaulRoom2.get().getRoomName());
+                reservation.setGrade(null);
+
+                SaemaulSeat foundSeat2 = optionalSaemaulRoom2.get().getSaemaulSeat();
+                reservation.setSeats(saemaulSeatDto.returnSeats());
+                foundSeat2.saemaulDtoToEntity(saemaulSeatDto);
+
+                //deploy
+                reservation.setDeploy(deploy);
+                reservation2.setDeploy(deploy2);
+
+                //여기까지 멤버를 넘겨야 될 듯 => 세션에 로그인아이디를 담는 방법으로 해결
+                HttpSession session = request.getSession();
+                String loginId = (String) session.getAttribute(SessionConst.LOGIN_MEMBER_ID);
+                Member foundMember = memberService.findByLoginId(loginId).orElse(null);
+
+                if (foundMember != null) {
+                    reservation.setMember(foundMember);
+                    reservation2.setMember(foundMember);
+                }
+
+                //passenger entity가 꼭 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
+                Passenger passenger = passengerDto.dtotoPassenger();
+                Passenger passenger2 = passengerDto.dtotoPassenger();
+
+                passengerService.save(passenger);
+                passengerService.save(passenger2);
+
+                reservation.setPassenger(passenger);
+                reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+
+                reservation2.setPassenger(passenger2);
+                reservation2.setFee(passengerDto.getFee(reservation2.getGrade()));
+
+                //reservation을 db에 저장
+                reservationService.saveReservation(reservation);
+                reservationService.saveReservation(reservation2);
+
+                return "redirect:/my-page";
+            }
+        }
+//round vs one-way--------------------------------------------------------------------------------------------------------------------------------------
+        LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
+
+        Map map = objectMapper.convertValue(roomDto, Map.class);
+        Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
+
+        if(roomChange.isPresent()){
+            for (Object key : map.keySet()) {
+                if (map.get(key) != null) {
+                    targetRoomName.set((String) key);
+                    break;
+                }
+            }
+
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+            Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+            //query 몇 개 나가는지 보기
+            List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+            Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
+
+            //1차 캐시에서 찾아오겠지?? => dto projection이라 1차 캐시에서 못 긁어 오는 듯
+            saemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(foundRoom.get().getSaemaulSeat().getId());
+
+            model.addAttribute("going", true);
+            model.addAttribute("departurePlace", departurePlace);
+            model.addAttribute("arrivalPlace", arrivalPlace);
+            model.addAttribute("dateTimeOfGoing", beforeDateTime);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map seatMap = objectMapper.convertValue(saemaulSeatDto, Map.class);
+            model.addAttribute("map", seatMap);
+            model.addAttribute("saemaulRooms", saemaulRooms);
+            model.addAttribute("roomName", targetRoomName.get());
+
+            Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+            model.addAttribute("okList", checkMap.values());
+
+            return "trainseat/chooseSaemaulSeat";
+        }
+
+        else {
+            if(saemaulSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+                Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                //query 몇 개 나가는지 보기
+                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+                saemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(foundRoom.get().getSaemaulSeat().getId());
+
+                model.addAttribute("passengerNumberNotSame", true);
+                model.addAttribute("going", true);
+
+                model.addAttribute("departurePlace", departurePlace);
+                model.addAttribute("arrivalPlace", arrivalPlace);
+                model.addAttribute("dateTimeOfGoing", beforeDateTime);
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map seatMap = objectMapper.convertValue(saemaulSeatDto, Map.class);
+                model.addAttribute("map", seatMap);
+                model.addAttribute("saemaulRooms", saemaulRooms);
+                model.addAttribute("roomName", roomName);
+
+                Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                model.addAttribute("okList", checkMap.values());
+
+                return "trainseat/chooseSaemaulSeat";
+            }
+            //success logic
+            Reservation reservation = new Reservation();
+
+            Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
+            Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+            //seat까지 fetch 안 하면 KtxSeatNormal 다운 캐스팅 부분에서 에러터짐 => 프록시이기 때문에
+            //join 때문에 db에 부하가 가더라도 이 방법이 맞을 듯
+            List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+            Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
+
+            reservation.setRoomName(optionalSaemaulRoom.get().getRoomName());
+            reservation.setGrade(null);
+
+            //자리차지
+            SaemaulSeat foundSeat = optionalSaemaulRoom.get().getSaemaulSeat();
+            reservation.setSeats(saemaulSeatDto.returnSeats());
+            foundSeat.saemaulDtoToEntity(saemaulSeatDto);
 
             //deploy
             reservation.setDeploy(deploy);

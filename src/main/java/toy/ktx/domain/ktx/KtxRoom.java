@@ -43,19 +43,4 @@ public class KtxRoom {
         this.ktx = ktx;
         this.ktxSeat = ktxSeat;
     }
-
-    //    public Boolean howManyRemain(Integer passengers) {
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        Long remain = Long.valueOf(0);
-//        Map map = objectMapper.convertValue(this.getKtxSeat(), Map.class);
-//        for (Object o : map.keySet()) {
-//            if (map.get(o).equals(Boolean.FALSE)) {
-//                remain += 1;
-//            }
-//        }
-//        if (remain >= passengers) {
-//            return Boolean.TRUE;
-//        }
-//        return null;
-//    }
 }

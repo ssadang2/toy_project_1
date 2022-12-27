@@ -81,30 +81,68 @@
             </div><br>
 
             <div class="overflow-auto container list1" style="height: 500px;">
-            <th:block th:each="deploy, deployStat : ${deploysWhenGoing}">
-                <div class="row border border-secondary align-items-center">
-                    <div class="col-8 text-center">
-                        <p th:text="${deploy.train.trainName}"></p>
-                        <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
-                        <span th:text="${durationsWhenGoing[deployStat.index]}"></span><br><br>
+                <th:block th:each="deploy, deployStat : ${deploysWhenGoing}">
+                    <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'ktx')}" class="row border border-primary align-items-center">
+                        <div class="col-8 text-center">
+                            <p th:text="${deploy.train.trainName}"></p>
+                            <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                            <span th:text="${durationsWhenGoing[deployStat.index]}"></span><br><br>
 
-                        <p th:if="${fullCheck[deployStat.index][0] == true && fullCheck[deployStat.index][1] == true}" th:text="|일반 예매가능 특 예매가능|"></p>
+                            <p th:if="${fullCheck[deployStat.index][0] == true && fullCheck[deployStat.index][1] == true}" th:text="|일반 예매가능 특 예매가능|"></p>
 
-                        <p th:if="${fullCheck[deployStat.index][0] == true && fullCheck[deployStat.index][1] == false}" th:text="|일반 예매가능 특 불가|"></p>
+                            <p th:if="${fullCheck[deployStat.index][0] == true && fullCheck[deployStat.index][1] == false}" th:text="|일반 예매가능 특 불가|"></p>
 
-                        <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == true}" th:text="|일반 불가 특 예매가능|"></p>
+                            <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == true}" th:text="|일반 불가 특 예매가능|"></p>
 
-                        <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}" th:text="|일반 불가 특 불가|"></p>
+                            <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}" th:text="|일반 불가 특 불가|"></p>
 
-                        <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}" th:text="매진" class="text-danger"></p>
+                            <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}" th:text="매진" class="text-danger"></p>
+                        </div>
+
+                        <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}" th:disabled="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfGoing')}" th:text="예매하기"></label>
+                        </div>
                     </div>
 
-                    <div class="form-check col-4 text-center">
-                        <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}" th:disabled="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}">
-                        <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfGoing')}" th:text="예매하기"></label>
+                    <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'mugunghwa')}" class="row border border-warning align-items-center">
+                        <div class="col-8 text-center">
+                            <p th:text="${deploy.train.trainName}"></p>
+                            <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                            <span th:text="${durationsWhenGoing[deployStat.index]}"></span><br><br>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == true}" th:text="|예매가능|"></p>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == false}" th:text="|예매불가|"></p>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == false}" th:text="매진" class="text-danger"></p>
+                        </div>
+
+                        <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}" th:disabled="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfGoing')}" th:text="예매하기"></label>
+                        </div>
                     </div>
-                </div><br><br>
-            </th:block>
+
+                    <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'saemaul')}" class="row border border-success align-items-center">
+                        <div class="col-8 text-center">
+                            <p th:text="${deploy.train.trainName}"></p>
+                            <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                            <span th:text="${durationsWhenGoing[deployStat.index]}"></span><br><br>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == true}" th:text="|예매가능|"></p>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == false}" th:text="|예매불가|"></p>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == false}" th:text="매진" class="text-danger"></p>
+                        </div>
+
+                        <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}" th:disabled="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfGoing')}" th:text="예매하기"></label>
+                        </div>
+                    </div><br><br>
+                </th:block>
             </div>
 
             <div class="text-center more1">
@@ -155,30 +193,68 @@
             </div>
 
             <div class="overflow-auto container list2" style="height: 500px;">
-            <th:block th:each="deploy, deployStat : ${deploysWhenComing}">
-                <div class="row border border-secondary align-items-center">
-                    <div class="col-8 text-center">
-                        <p th:text="${deploy.train.trainName}"></p>
-                        <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
-                        <span th:text="${durationsWhenComing[deployStat.index]}"></span><br><br>
+                <th:block th:each="deploy, deployStat : ${deploysWhenComing}">
+                    <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'ktx')}" class="row border border-primary align-items-center">
+                        <div class="col-8 text-center">
+                            <p th:text="${deploy.train.trainName}"></p>
+                            <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                            <span th:text="${durationsWhenComing[deployStat.index]}"></span><br><br>
 
-                        <p th:if="${fullCheck2[deployStat.index][0] == true && fullCheck2[deployStat.index][1] == true}" th:text="|일반 예매가능 특 예매가능|"></p>
+                            <p th:if="${fullCheck2[deployStat.index][0] == true && fullCheck2[deployStat.index][1] == true}" th:text="|일반 예매가능 특 예매가능|"></p>
 
-                        <p th:if="${fullCheck2[deployStat.index][0] == true && fullCheck2[deployStat.index][1] == false}" th:text="|일반 예매가능 특 불가|"></p>
+                            <p th:if="${fullCheck2[deployStat.index][0] == true && fullCheck2[deployStat.index][1] == false}" th:text="|일반 예매가능 특 불가|"></p>
 
-                        <p th:if="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == true}" th:text="|일반 불가 특 예매가능|"></p>
+                            <p th:if="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == true}" th:text="|일반 불가 특 예매가능|"></p>
 
-                        <p th:if="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}" th:text="|일반 불가 특 불가|"></p>
+                            <p th:if="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}" th:text="|일반 불가 특 불가|"></p>
 
-                        <p th:if="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}" th:text="매진" class="text-danger"></p>
+                            <p th:if="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}" th:text="매진" class="text-danger"></p>
+                        </div>
+
+                        <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}" th:disabled="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfComing')}" th:text="예매하기"></label>
+                        </div>
                     </div>
 
-                    <div class="form-check col-4 text-center">
-                        <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}" th:disabled="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}">
-                        <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfComing')}" th:text="예매하기"></label>
+                    <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'mugunghwa')}" class="row border border-warning align-items-center">
+                        <div class="col-8 text-center">
+                            <p th:text="${deploy.train.trainName}"></p>
+                            <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                            <span th:text="${durationsWhenComing[deployStat.index]}"></span><br><br>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == true}" th:text="|예매가능|"></p>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == false}" th:text="|예매불가|"></p>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == false}" th:text="매진" class="text-danger"></p>
+                        </div>
+
+                        <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}" th:disabled="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfComing')}" th:text="예매하기"></label>
+                        </div>
                     </div>
-                </div><br><br>
-            </th:block>
+
+                    <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'saemaul')}" class="row border border-success align-items-center">
+                        <div class="col-8 text-center">
+                            <p th:text="${deploy.train.trainName}"></p>
+                            <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                            <span th:text="${durationsWhenComing[deployStat.index]}"></span><br><br>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == true}" th:text="|예매가능|"></p>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == false}" th:text="|예매불가|"></p>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == false}" th:text="매진" class="text-danger"></p>
+                        </div>
+
+                        <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}" th:disabled="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfComing')}" th:text="예매하기"></label>
+                        </div>
+                    </div><br><br>
+                </th:block>
             </div>
 
             <div class="text-center more2">

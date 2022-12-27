@@ -3,16 +3,12 @@ package toy.ktx.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import toy.ktx.domain.dto.projections.NormalSeatDto;
-import toy.ktx.domain.dto.projections.VipSeatDto;
-import toy.ktx.domain.ktx.KtxRoom;
 import toy.ktx.domain.ktx.KtxSeat;
 import toy.ktx.domain.ktx.KtxSeatNormal;
 import toy.ktx.repository.KtxSeatRepository;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -30,18 +26,6 @@ public class KtxSeatService {
     public Optional<KtxSeat> findKtxSeat(Long ktxSeatId) {
         return ktxSeatRepository.findById(ktxSeatId);
     }
-
-//    public Optional<KtxSeat> findByKtxRoom(KtxRoom ktxRoom) {
-//        return ktxSeatRepository.findByKtxRoom(ktxRoom);
-//    }
-
-//    public NormalSeatDto findNormalDtoByKtxRoom(KtxRoom ktxRoom) {
-//        return ktxSeatRepository.findNormalDtoByKtxRoom(ktxRoom);
-//    }
-
-//    public VipSeatDto findVipDtoByKtxRoom(KtxRoom ktxRoom) {
-//        return ktxSeatRepository.findVipDtoByKtxRoom(ktxRoom);
-//    }
 
     @Transactional
     public void updateSeatsWithReflection(KtxSeat ktxSeat, String seats) {
@@ -63,8 +47,4 @@ public class KtxSeatService {
             throw new RuntimeException(e);
         }
     }
-
-//    public List<KtxSeat> findKtxSeatWithKtxRoomWithTrainWithDeploy(Long id) {
-//        return ktxSeatRepository.findKtxSeatWithKtxRoomWithTrainWithDeploy(id);
-//    }
 }

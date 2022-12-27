@@ -13,6 +13,13 @@ import toy.ktx.domain.dto.ScheduleForm;
 import toy.ktx.domain.enums.Authorizations;
 import toy.ktx.domain.enums.Grade;
 import toy.ktx.domain.ktx.*;
+import toy.ktx.domain.mugunhwa.Mugunghwa;
+import toy.ktx.domain.mugunhwa.MugunghwaRoom;
+import toy.ktx.domain.mugunhwa.MugunghwaSeat;
+import toy.ktx.domain.saemaul.Saemaul;
+import toy.ktx.domain.saemaul.SaemaulRoom;
+import toy.ktx.domain.saemaul.SaemaulSeat;
+import toy.ktx.repository.MugunghwaRepository;
 import toy.ktx.service.*;
 
 import java.time.Duration;
@@ -29,7 +36,11 @@ public class HomeController {
 
     private final ReservationService reservationService;
     private final KtxRoomService ktxRoomService;
+    private final MugunghwaRoomService mugunghwaRoomService;
+    private final SaemaulRoomService saemaulRoomService;
     private final KtxSeatService ktxSeatService;
+    private final MugunghwaSeatService mugunghwaSeatService;
+    private final SaemaulSeatService saemaulSeatService;
 
     @GetMapping("/")
     public String getHome(Model model,
@@ -92,20 +103,39 @@ public class HomeController {
             Optional<Reservation> foundReservation = reservationService.getReservationToTrainByIdWithFetch(reservationId);
             if (foundReservation.isPresent()) {
                 Reservation reservation = foundReservation.get();
-                Ktx train = (Ktx) reservation.getDeploy().getTrain();
-                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
-                Optional<KtxRoom> roomOptional = ktxRooms.stream().filter(r -> r.getRoomName().equals(reservation.getRoomName())).findFirst();
-                KtxRoom ktxRoom = roomOptional.get();
-                KtxSeat ktxSeat = ktxRoom.getKtxSeat();
+                if (reservation.getDeploy().getTrain().getTrainName().contains("KTX")) {
+                    Ktx train = (Ktx) reservation.getDeploy().getTrain();
+                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
+                    Optional<KtxRoom> roomOptional = ktxRooms.stream().filter(r -> r.getRoomName().equals(reservation.getRoomName())).findFirst();
+                    KtxRoom ktxRoom = roomOptional.get();
+                    KtxSeat ktxSeat = ktxRoom.getKtxSeat();
 
-                //reservation 등의 entity 뿐만 아니라 seat entity 안의 자리까지 체크 해제해줘야 됨
-                if (ktxRoom.getGrade().equals(Grade.NORMAL)) {
-                    ktxSeat = (KtxSeatNormal) ktxSeat;
-                    System.out.println("ktxSeat = " + ktxSeat.getClass());
+                    //reservation 등의 entity 뿐만 아니라 seat entity 안의 자리까지 체크 해제해줘야 됨
+                    if (ktxRoom.getGrade().equals(Grade.NORMAL)) {
+                        ktxSeat = (KtxSeatNormal) ktxSeat;
+                        System.out.println("ktxSeat = " + ktxSeat.getClass());
+                    } else {
+                        ktxSeat = (KtxSeatVip) ktxSeat;
+                    }
+
+                    ktxSeatService.updateSeatsWithReflection(ktxSeat, reservation.getSeats());
+                } else if (reservation.getDeploy().getTrain().getTrainName().contains("MUGUNGHWA")) {
+                    Mugunghwa train = (Mugunghwa) reservation.getDeploy().getTrain();
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(train.getId());
+                    Optional<MugunghwaRoom> roomOptional = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(reservation.getRoomName())).findFirst();
+                    MugunghwaRoom mugunghwaRoom = roomOptional.get();
+                    MugunghwaSeat mugunghwaSeat = mugunghwaRoom.getMugunghwaSeat();
+
+                    mugunghwaSeatService.updateSeatsWithReflection(mugunghwaSeat, reservation.getSeats());
                 } else {
-                    ktxSeat = (KtxSeatVip) ktxSeat;
+                    Saemaul train = (Saemaul) reservation.getDeploy().getTrain();
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(train.getId());
+                    Optional<SaemaulRoom> roomOptional = saemaulRooms.stream().filter(r -> r.getRoomName().equals(reservation.getRoomName())).findFirst();
+                    SaemaulRoom saemaulRoom = roomOptional.get();
+                    SaemaulSeat saemaulSeat = saemaulRoom.getSaemaulSeat();
+
+                    saemaulSeatService.updateSeatsWithReflection(saemaulSeat, reservation.getSeats());
                 }
-                ktxSeatService.updateSeatsWithReflection(ktxSeat, reservation.getSeats());
             }
 
             //cascade option을 켰기 때문에 passenger를 굳이 수동으로 안 지워줘도 됨

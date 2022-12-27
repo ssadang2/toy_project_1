@@ -3,8 +3,7 @@ package toy.ktx.domain.ktx;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import toy.ktx.domain.dto.projections.NormalSeatDto;
-import toy.ktx.domain.dto.projections.VipSeatDto;
+import toy.ktx.domain.dto.projections.KtxNormalSeatDto;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -155,8 +154,8 @@ public class KtxSeatNormal extends KtxSeat{
         return Boolean.FALSE;
     }
 
-    public void normalDtoToEntity(NormalSeatDto normalSeatDto) {
-        Map seatMap = objectMapper.convertValue(normalSeatDto, Map.class);
+    public void normalDtoToEntity(KtxNormalSeatDto ktxNormalSeatDto) {
+        Map seatMap = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
         try {
             Class clazz = Class.forName("toy.ktx.domain.ktx.KtxSeatNormal");
             for (Object o : seatMap.keySet()) {
