@@ -54,8 +54,8 @@ public class ReservationController {
     private final ReservationService reservationService;
     private final PassengerService passengerService;
 
-    //공유변수 주의하자(동시성 문제)
     private final ObjectMapper objectMapper = new ObjectMapper();
+    //공유변수 주의하자(동시성 문제)
     // logic 상 굳이 remove할 필요없을 듯
     private ThreadLocal<String> targetRoomName = new ThreadLocal<>();
     // logic 상 굳이 remove할 필요없을 듯
@@ -77,11 +77,13 @@ public class ReservationController {
                           @RequestParam(required = false) String dateTimeOfLeaving,
                           @RequestParam(required = false) String beforeRoomName,
                           @RequestParam(required = false) Boolean beforeNormal,
+                          @RequestParam(required = false) Boolean beforeVip,
                           @RequestParam(required = false) String beforeChosenSeats,
                           HttpServletRequest request,
                           Model model) {
 
         model.addAttribute("passengers", passengerDto.howManyOccupied());
+        okList.set(new ArrayList<>());
 
         if(round == Boolean.TRUE && going == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
@@ -122,6 +124,7 @@ public class ReservationController {
                 model.addAttribute("roomName", targetRoomName.get());
 
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
+                log.info("fuck 123 = {}", checkMap.values());
                 model.addAttribute("okList", checkMap.values());
 
                 return "trainseat/chooseKtxNormalSeat";
@@ -159,49 +162,144 @@ public class ReservationController {
                 }
                 //올 때 고를 때 일반실/특실 좌석 체크 Logic
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
-                Ktx train = (Ktx) deploy.getTrain();
-                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
 
-                List<String> normalReserveOkList = new ArrayList<>();
-                List<String> vipReserveOkList = new ArrayList<>();
+                if (deploy.getTrain().getTrainName().contains("KTX")) {
+                    Ktx train = (Ktx) deploy.getTrain();
+                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
 
-                for (KtxRoom ktxRoom : ktxRooms) {
-                    if (ktxRoom.getGrade() == Grade.NORMAL) {
-                        KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
-                        if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
-                            normalReserveOkList.add(ktxRoom.getRoomName());
+                    List<String> normalReserveOkList = new ArrayList<>();
+                    List<String> vipReserveOkList = new ArrayList<>();
+
+                    for (KtxRoom ktxRoom : ktxRooms) {
+                        if (ktxRoom.getGrade() == Grade.NORMAL) {
+                            KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                            if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                                normalReserveOkList.add(ktxRoom.getRoomName());
+                            }
+                        }
+                        else {
+                            KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
+                            if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                                vipReserveOkList.add(ktxRoom.getRoomName());
+                            }
                         }
                     }
-                    else {
-                        KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
-                        if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
-                            vipReserveOkList.add(ktxRoom.getRoomName());
+
+                    if(normalReserveOkList.isEmpty()) {
+                        model.addAttribute("normalDisabled", true);
+                    }
+
+                    if(vipReserveOkList.isEmpty()) {
+                        model.addAttribute("vipDisabled", true);
+                    }
+
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    model.addAttribute("beforeRoomName", roomName);
+                    model.addAttribute("beforeVip", false);
+                    model.addAttribute("beforeNormal", true);
+                    model.addAttribute("beforeChosenSeats", ktxNormalSeatDto.returnSeats());
+
+                    return "normalVip";
+                } else if (deploy.getTrain().getTrainName().contains("MUGUNGHWA")) {
+                    Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                    MugunghwaRoom targetRoom = null;
+
+                    for (MugunghwaRoom mugunghwaRoom : mugunghwaRooms) {
+                        if (mugunghwaRoom.getMugunghwaSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                            okList.get().add(mugunghwaRoom.getRoomName());
                         }
                     }
+
+                    for (String rName : okList.get()) {
+                        Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(rName)).findAny();
+                        if (optionalMugunghwaRoom.isPresent()) {
+                            targetRoom = optionalMugunghwaRoom.get();
+                            break;
+                        }
+                    }
+                    log.info("fuck = {}", okList.get());
+
+                    MugunghwaSeatDto targetMugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(targetRoom.getMugunghwaSeat().getId());
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map seatMap = objectMapper.convertValue(targetMugunghwaSeatDto, Map.class);
+                    model.addAttribute("map", seatMap);
+
+                    model.addAttribute("mugunghwaRooms", mugunghwaRooms);
+                    model.addAttribute("roomName", targetRoom.getRoomName());
+
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+                    model.addAttribute("okList", okList.get());
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    model.addAttribute("beforeRoomName", roomName);
+                    model.addAttribute("beforeVip", false);
+                    model.addAttribute("beforeNormal", true);
+                    model.addAttribute("beforeChosenSeats", ktxNormalSeatDto.returnSeats());
+
+                    return "trainseat/chooseMugunghwaSeat";
+                } else {
+                    Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                    //query 몇 개 나가는지 보기
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                    SaemaulRoom targetRoom = null;
+
+                    for (SaemaulRoom saemaulRoom : saemaulRooms) {
+                        if (saemaulRoom.getSaemaulSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                            okList.get().add(saemaulRoom.getRoomName());
+                        }
+                    }
+
+                    for (String rName : okList.get()) {
+                        Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(rName)).findAny();
+                        if (optionalSaemaulRoom.isPresent()) {
+                            targetRoom = optionalSaemaulRoom.get();
+                            break;
+                        }
+                    }
+                    log.info("fuck = {}", okList.get());
+
+                    SaemaulSeatDto targetSaemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(targetRoom.getSaemaulSeat().getId());
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map seatMap = objectMapper.convertValue(targetSaemaulSeatDto, Map.class);
+                    model.addAttribute("map", seatMap);
+
+                    model.addAttribute("saemaulRooms", saemaulRooms);
+                    model.addAttribute("roomName", targetRoom.getRoomName());
+
+                    model.addAttribute("okList", okList.get());
+
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    model.addAttribute("beforeRoomName", roomName);
+                    model.addAttribute("beforeVip", false);
+                    model.addAttribute("beforeNormal", true);
+                    model.addAttribute("beforeChosenSeats", ktxNormalSeatDto.returnSeats());
+
+                    return "trainseat/chooseSaemaulSeat";
                 }
-
-                if(normalReserveOkList.isEmpty()) {
-                    model.addAttribute("normalDisabled", true);
-                }
-
-                if(vipReserveOkList.isEmpty()) {
-                    model.addAttribute("vipDisabled", true);
-                }
-
-                model.addAttribute("round", true);
-                model.addAttribute("coming", true);
-
-                model.addAttribute("departurePlace", departurePlace);
-                model.addAttribute("arrivalPlace", arrivalPlace);
-                model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
-
-                model.addAttribute("beforeRoomName", roomName);
-                model.addAttribute("beforeNormal", true);
-                model.addAttribute("beforeVip", false);
-                model.addAttribute("beforeChosenSeats", ktxNormalSeatDto.returnSeats());
-
-                return "normalVip";
             }
         }
 
@@ -237,6 +335,7 @@ public class ReservationController {
 
                 model.addAttribute("beforeRoomName", beforeRoomName);
                 model.addAttribute("beforeNormal", beforeNormal);
+                model.addAttribute("beforeVip", beforeVip);
                 model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
                 ObjectMapper objectMapper = new ObjectMapper();
@@ -273,6 +372,7 @@ public class ReservationController {
                     //updated
                     model.addAttribute("beforeRoomName", beforeRoomName);
                     model.addAttribute("beforeNormal", beforeNormal);
+                    model.addAttribute("beforeVip", beforeVip);
                     model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -292,27 +392,56 @@ public class ReservationController {
 
                 //갈 때
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
-                Ktx ktx = (Ktx) deploy.getTrain();
 
-                //자리차지
-                if (beforeNormal) {
-                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
-                    Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
-                    reservation.setRoomName(optionalKtxRoom.get().getRoomName());
-                    reservation.setGrade(optionalKtxRoom.get().getGrade());
+                if (deploy.getTrain().getTrainName().contains("KTX")) {
+                    Ktx ktx = (Ktx) deploy.getTrain();
+                    //자리차지
+                    if (beforeNormal) {
+                        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
+                        Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+                        reservation.setRoomName(optionalKtxRoom.get().getRoomName());
+                        reservation.setGrade(optionalKtxRoom.get().getGrade());
 
-                    KtxSeatNormal foundSeat = (KtxSeatNormal) optionalKtxRoom.get().getKtxSeat();
+                        KtxSeatNormal foundSeat = (KtxSeatNormal) optionalKtxRoom.get().getKtxSeat();
+                        reservation.setSeats(beforeChosenSeats);
+                        foundSeat.checkSeats(beforeChosenSeats);
+                    } else if(beforeVip) {
+                        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
+                        Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+                        reservation.setRoomName(optionalKtxRoom.get().getRoomName());
+                        reservation.setGrade(optionalKtxRoom.get().getGrade());
+
+                        //updated point
+                        KtxSeatVip foundSeat = (KtxSeatVip) optionalKtxRoom.get().getKtxSeat();
+                        reservation.setSeats(beforeChosenSeats);
+                        foundSeat.checkSeats(beforeChosenSeats);
+                    }
+
+                } else if (deploy.getTrain().getTrainName().contains("MUGUNGHWA")) {
+                    Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                    //자리차지
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                    Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+
+                    reservation.setRoomName(optionalMugunghwaRoom.get().getRoomName());
+                    reservation.setGrade(null);
+
+                    MugunghwaSeat foundSeat = optionalMugunghwaRoom.get().getMugunghwaSeat();
                     reservation.setSeats(beforeChosenSeats);
                     foundSeat.checkSeats(beforeChosenSeats);
-                }
-                else{
-                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
-                    Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
-                    reservation.setRoomName(optionalKtxRoom.get().getRoomName());
-                    reservation.setGrade(optionalKtxRoom.get().getGrade());
 
-                    //updated point
-                    KtxSeatVip foundSeat = (KtxSeatVip) optionalKtxRoom.get().getKtxSeat();
+                } else {
+                    Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                    //자리차지
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                    Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+
+                    reservation.setRoomName(optionalSaemaulRoom.get().getRoomName());
+                    reservation.setGrade(null);
+
+                    SaemaulSeat foundSeat = optionalSaemaulRoom.get().getSaemaulSeat();
                     reservation.setSeats(beforeChosenSeats);
                     foundSeat.checkSeats(beforeChosenSeats);
                 }
@@ -353,10 +482,10 @@ public class ReservationController {
                 passengerService.save(passenger2);
 
                 reservation.setPassenger(passenger);
-                reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+                reservation.setFee(passengerDto.getFee(reservation.getDeploy().getTrain(), reservation.getGrade()));
 
                 reservation2.setPassenger(passenger2);
-                reservation2.setFee(passengerDto.getFee(reservation2.getGrade()));
+                reservation2.setFee(passengerDto.getFee(reservation2.getDeploy().getTrain(), reservation2.getGrade()));
 
                 //reservation을 db에 저장
                 reservationService.saveReservation(reservation);
@@ -472,7 +601,7 @@ public class ReservationController {
             passengerService.save(passenger);
 
             reservation.setPassenger(passenger);
-            reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+            reservation.setFee(passengerDto.getFee(reservation.getDeploy().getTrain(), reservation.getGrade()));
 
             //reservation을 db에 저장
             reservationService.saveReservation(reservation);
@@ -496,12 +625,14 @@ public class ReservationController {
                           @RequestParam(required = false) String arrivalPlace,
                           @RequestParam(required = false) String dateTimeOfGoing,
                           @RequestParam(required = false) String dateTimeOfLeaving,
+                          @RequestParam(required = false) Boolean beforeNormal,
                           @RequestParam(required = false) Boolean beforeVip,
                           @RequestParam(required = false) String beforeChosenSeats,
                           HttpServletRequest request,
                           Model model) {
 
         model.addAttribute("passengers", passengerDto.howManyOccupied());
+        okList.set(new ArrayList<>());
 
         if(round == Boolean.TRUE && going == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
@@ -576,49 +707,145 @@ public class ReservationController {
                     return "trainseat/chooseKtxVipSeat";
                 }
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
-                Ktx train = (Ktx) deploy.getTrain();
-                List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
 
-                List<String> normalReserveOkList = new ArrayList<>();
-                List<String> vipReserveOkList = new ArrayList<>();
+                if (deploy.getTrain().getTrainName().contains("KTX")) {
+                    Ktx train = (Ktx) deploy.getTrain();
+                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
 
-                for (KtxRoom ktxRoom : ktxRooms) {
-                    if (ktxRoom.getGrade() == Grade.NORMAL) {
-                        KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
-                        if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
-                            normalReserveOkList.add(ktxRoom.getRoomName());
+                    List<String> normalReserveOkList = new ArrayList<>();
+                    List<String> vipReserveOkList = new ArrayList<>();
+
+                    for (KtxRoom ktxRoom : ktxRooms) {
+                        if (ktxRoom.getGrade() == Grade.NORMAL) {
+                            KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                            if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                                normalReserveOkList.add(ktxRoom.getRoomName());
+                            }
+                        }
+                        else {
+                            KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
+                            if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                                vipReserveOkList.add(ktxRoom.getRoomName());
+                            }
                         }
                     }
-                    else {
-                        KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
-                        if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
-                            vipReserveOkList.add(ktxRoom.getRoomName());
+
+                    if(normalReserveOkList.isEmpty()) {
+                        model.addAttribute("normalDisabled", true);
+                    }
+
+                    if(vipReserveOkList.isEmpty()) {
+                        model.addAttribute("vipDisabled", true);
+                    }
+
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    model.addAttribute("beforeRoomName", roomName);
+                    model.addAttribute("beforeVip", true);
+                    model.addAttribute("beforeNormal", false);
+                    model.addAttribute("beforeChosenSeats", ktxVipSeatDto.returnSeats());
+
+                    return "normalVip";
+                } else if (deploy.getTrain().getTrainName().contains("MUGUNGHWA")) {
+                    Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                    MugunghwaRoom targetRoom = null;
+
+                    for (MugunghwaRoom mugunghwaRoom : mugunghwaRooms) {
+                        if (mugunghwaRoom.getMugunghwaSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                            okList.get().add(mugunghwaRoom.getRoomName());
                         }
                     }
+
+                    for (String rName : okList.get()) {
+                        Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(rName)).findAny();
+                        if (optionalMugunghwaRoom.isPresent()) {
+                            targetRoom = optionalMugunghwaRoom.get();
+                            break;
+                        }
+                    }
+                    log.info("fuck = {}", okList.get());
+
+                    MugunghwaSeatDto targetMugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(targetRoom.getMugunghwaSeat().getId());
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map seatMap = objectMapper.convertValue(targetMugunghwaSeatDto, Map.class);
+                    model.addAttribute("map", seatMap);
+
+                    model.addAttribute("mugunghwaRooms", mugunghwaRooms);
+                    model.addAttribute("roomName", targetRoom.getRoomName());
+
+                    model.addAttribute("okList", okList.get());
+
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    model.addAttribute("beforeRoomName", roomName);
+                    model.addAttribute("beforeVip", true);
+                    model.addAttribute("beforeNormal", false);
+                    model.addAttribute("beforeChosenSeats", ktxVipSeatDto.returnSeats());
+
+                    return "trainseat/chooseMugunghwaSeat";
+                } else {
+                    Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                    //query 몇 개 나가는지 보기
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                    SaemaulRoom targetRoom = null;
+
+                    for (SaemaulRoom saemaulRoom : saemaulRooms) {
+                        if (saemaulRoom.getSaemaulSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                            okList.get().add(saemaulRoom.getRoomName());
+                        }
+                    }
+
+                    for (String rName : okList.get()) {
+                        Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(rName)).findAny();
+                        if (optionalSaemaulRoom.isPresent()) {
+                            targetRoom = optionalSaemaulRoom.get();
+                            break;
+                        }
+                    }
+                    log.info("fuck = {}", okList.get());
+
+                    SaemaulSeatDto targetSaemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(targetRoom.getSaemaulSeat().getId());
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map seatMap = objectMapper.convertValue(targetSaemaulSeatDto, Map.class);
+                    model.addAttribute("map", seatMap);
+
+                    model.addAttribute("saemaulRooms", saemaulRooms);
+                    model.addAttribute("roomName", targetRoom.getRoomName());
+
+                    model.addAttribute("okList", okList.get());
+
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    model.addAttribute("beforeRoomName", roomName);
+                    model.addAttribute("beforeVip", true);
+                    model.addAttribute("beforeNormal", false);
+                    model.addAttribute("beforeChosenSeats", ktxVipSeatDto.returnSeats());
+
+                    return "trainseat/chooseSaemaulSeat";
                 }
-
-                if(normalReserveOkList.isEmpty()) {
-                    model.addAttribute("normalDisabled", true);
-                }
-
-                if(vipReserveOkList.isEmpty()) {
-                    model.addAttribute("vipDisabled", true);
-                }
-
-                model.addAttribute("round", true);
-                model.addAttribute("coming", true);
-
-                model.addAttribute("departurePlace", departurePlace);
-                model.addAttribute("arrivalPlace", arrivalPlace);
-                model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
-
-                model.addAttribute("beforeRoomName", roomName);
-                model.addAttribute("beforeVip", true);
-                model.addAttribute("beforeNormal", false);
-                model.addAttribute("beforeChosenSeats", ktxVipSeatDto.returnSeats());
-
-                return "normalVip";
             }
         }
 
@@ -655,6 +882,7 @@ public class ReservationController {
 
                 //updated
                 model.addAttribute("beforeRoomName", beforeRoomName);
+                model.addAttribute("beforeNormal", beforeNormal);
                 model.addAttribute("beforeVip", beforeVip);
                 model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
@@ -691,6 +919,7 @@ public class ReservationController {
 
                     //updated
                     model.addAttribute("beforeRoomName", beforeRoomName);
+                    model.addAttribute("beforeNormal", beforeNormal);
                     model.addAttribute("beforeVip", beforeVip);
                     model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
@@ -709,26 +938,56 @@ public class ReservationController {
 
                 //갈 때
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
-                Ktx ktx = (Ktx) deploy.getTrain();
 
-                //자리차지
-                if (beforeVip == true) {
-                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
-                    Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
-                    reservation.setRoomName(optionalKtxRoom.get().getRoomName());
-                    reservation.setGrade(optionalKtxRoom.get().getGrade());
+                if (deploy.getTrain().getTrainName().contains("KTX")) {
+                    Ktx ktx = (Ktx) deploy.getTrain();
+                    //자리차지
+                    if (beforeNormal) {
+                        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
+                        Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+                        reservation.setRoomName(optionalKtxRoom.get().getRoomName());
+                        reservation.setGrade(optionalKtxRoom.get().getGrade());
 
-                    KtxSeatVip foundSeat = (KtxSeatVip) optionalKtxRoom.get().getKtxSeat();
+                        KtxSeatNormal foundSeat = (KtxSeatNormal) optionalKtxRoom.get().getKtxSeat();
+                        reservation.setSeats(beforeChosenSeats);
+                        foundSeat.checkSeats(beforeChosenSeats);
+                    } else if(beforeVip) {
+                        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
+                        Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+                        reservation.setRoomName(optionalKtxRoom.get().getRoomName());
+                        reservation.setGrade(optionalKtxRoom.get().getGrade());
+
+                        //updated point
+                        KtxSeatVip foundSeat = (KtxSeatVip) optionalKtxRoom.get().getKtxSeat();
+                        reservation.setSeats(beforeChosenSeats);
+                        foundSeat.checkSeats(beforeChosenSeats);
+                    }
+
+                } else if (deploy.getTrain().getTrainName().contains("MUGUNGHWA")) {
+                    Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                    //자리차지
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                    Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+
+                    reservation.setRoomName(optionalMugunghwaRoom.get().getRoomName());
+                    reservation.setGrade(null);
+
+                    MugunghwaSeat foundSeat = optionalMugunghwaRoom.get().getMugunghwaSeat();
                     reservation.setSeats(beforeChosenSeats);
                     foundSeat.checkSeats(beforeChosenSeats);
-                }
-                else {
-                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
-                    Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
-                    reservation.setRoomName(optionalKtxRoom.get().getRoomName());
-                    reservation.setGrade(optionalKtxRoom.get().getGrade());
 
-                    KtxSeatNormal foundSeat = (KtxSeatNormal) optionalKtxRoom.get().getKtxSeat();
+                } else {
+                    Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                    //자리차지
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                    Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+
+                    reservation.setRoomName(optionalSaemaulRoom.get().getRoomName());
+                    reservation.setGrade(null);
+
+                    SaemaulSeat foundSeat = optionalSaemaulRoom.get().getSaemaulSeat();
                     reservation.setSeats(beforeChosenSeats);
                     foundSeat.checkSeats(beforeChosenSeats);
                 }
@@ -770,10 +1029,10 @@ public class ReservationController {
                 passengerService.save(passenger2);
 
                 reservation.setPassenger(passenger);
-                reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+                reservation.setFee(passengerDto.getFee(reservation.getDeploy().getTrain(), reservation.getGrade()));
 
                 reservation2.setPassenger(passenger2);
-                reservation2.setFee(passengerDto.getFee(reservation2.getGrade()));
+                reservation2.setFee(passengerDto.getFee(reservation2.getDeploy().getTrain(), reservation2.getGrade()));
 
                 //reservation을 db에 저장
                 reservationService.saveReservation(reservation);
@@ -883,7 +1142,7 @@ public class ReservationController {
             passengerService.save(passenger);
 
             reservation.setPassenger(passenger);
-            reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+            reservation.setFee(passengerDto.getFee(reservation.getDeploy().getTrain(), reservation.getGrade()));
 
             //reservation을 db에 저장
             reservationService.saveReservation(reservation);
@@ -907,6 +1166,8 @@ public class ReservationController {
                                    @RequestParam(required = false) String dateTimeOfGoing,
                                    @RequestParam(required = false) String dateTimeOfLeaving,
                                    @RequestParam(required = false) String beforeRoomName,
+                                   @RequestParam(required = false) Boolean beforeNormal,
+                                   @RequestParam(required = false) Boolean beforeVip,
                                    @RequestParam(required = false) String beforeChosenSeats,
                                    HttpServletRequest request,
                                    Model model) {
@@ -989,50 +1250,145 @@ public class ReservationController {
                 }
                 //올 때 자리 체크하기로 보내는 logic
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
-                Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+                //updated
+                if (deploy.getTrain().getTrainName().contains("KTX")) {
+                    Ktx train = (Ktx) deploy.getTrain();
+                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
 
-                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
-                MugunghwaRoom targetRoom = null;
+                    List<String> normalReserveOkList = new ArrayList<>();
+                    List<String> vipReserveOkList = new ArrayList<>();
 
-                for (MugunghwaRoom mugunghwaRoom : mugunghwaRooms) {
-                    if (mugunghwaRoom.getMugunghwaSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
-                        okList.get().add(mugunghwaRoom.getRoomName());
+                    for (KtxRoom ktxRoom : ktxRooms) {
+                        if (ktxRoom.getGrade() == Grade.NORMAL) {
+                            KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                            if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                                normalReserveOkList.add(ktxRoom.getRoomName());
+                            }
+                        }
+                        else {
+                            KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
+                            if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                                vipReserveOkList.add(ktxRoom.getRoomName());
+                            }
+                        }
                     }
-                }
 
-                for (String rName : okList.get()) {
-                    Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(rName)).findAny();
-                    if (optionalMugunghwaRoom.isPresent()) {
-                        targetRoom = optionalMugunghwaRoom.get();
-                        break;
+                    if(normalReserveOkList.isEmpty()) {
+                        model.addAttribute("normalDisabled", true);
                     }
+
+                    if(vipReserveOkList.isEmpty()) {
+                        model.addAttribute("vipDisabled", true);
+                    }
+
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    model.addAttribute("beforeRoomName", roomName);
+                    model.addAttribute("beforeVip", false);
+                    model.addAttribute("beforeNormal", false);
+                    model.addAttribute("beforeChosenSeats", mugunghwaSeatDto.returnSeats());
+
+                    return "normalVip";
+                } else if (deploy.getTrain().getTrainName().contains("MUGUNGHWA")) {
+                    Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                    MugunghwaRoom targetRoom = null;
+
+                    for (MugunghwaRoom mugunghwaRoom : mugunghwaRooms) {
+                        if (mugunghwaRoom.getMugunghwaSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                            okList.get().add(mugunghwaRoom.getRoomName());
+                        }
+                    }
+
+                    for (String rName : okList.get()) {
+                        Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(rName)).findAny();
+                        if (optionalMugunghwaRoom.isPresent()) {
+                            targetRoom = optionalMugunghwaRoom.get();
+                            break;
+                        }
+                    }
+                    log.info("fuck = {}", okList.get());
+
+                    MugunghwaSeatDto targetMugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(targetRoom.getMugunghwaSeat().getId());
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map seatMap = objectMapper.convertValue(targetMugunghwaSeatDto, Map.class);
+                    model.addAttribute("map", seatMap);
+
+                    model.addAttribute("mugunghwaRooms", mugunghwaRooms);
+                    model.addAttribute("roomName", targetRoom.getRoomName());
+
+                    model.addAttribute("okList", okList.get());
+
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    model.addAttribute("beforeRoomName", roomName);
+                    model.addAttribute("beforeVip", false);
+                    model.addAttribute("beforeNormal", false);
+                    model.addAttribute("beforeChosenSeats", mugunghwaSeatDto.returnSeats());
+
+                    return "trainseat/chooseMugunghwaSeat";
+                } else {
+                    Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                    //query 몇 개 나가는지 보기
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                    SaemaulRoom targetRoom = null;
+
+                    for (SaemaulRoom saemaulRoom : saemaulRooms) {
+                        if (saemaulRoom.getSaemaulSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                            okList.get().add(saemaulRoom.getRoomName());
+                        }
+                    }
+
+                    for (String rName : okList.get()) {
+                        Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(rName)).findAny();
+                        if (optionalSaemaulRoom.isPresent()) {
+                            targetRoom = optionalSaemaulRoom.get();
+                            break;
+                        }
+                    }
+                    log.info("fuck = {}", okList.get());
+
+                    SaemaulSeatDto targetSaemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(targetRoom.getSaemaulSeat().getId());
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map seatMap = objectMapper.convertValue(targetSaemaulSeatDto, Map.class);
+                    model.addAttribute("map", seatMap);
+
+                    model.addAttribute("saemaulRooms", saemaulRooms);
+                    model.addAttribute("roomName", targetRoom.getRoomName());
+
+                    model.addAttribute("okList", okList.get());
+
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    model.addAttribute("beforeRoomName", roomName);
+                    model.addAttribute("beforeVip", false);
+                    model.addAttribute("beforeNormal", false);
+                    model.addAttribute("beforeChosenSeats", mugunghwaSeatDto.returnSeats());
+
+                    return "trainseat/chooseSaemaulSeat";
                 }
-                log.info("fuck = {}", okList.get());
-
-                MugunghwaSeatDto targetMugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(targetRoom.getMugunghwaSeat().getId());
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                Map seatMap = objectMapper.convertValue(targetMugunghwaSeatDto, Map.class);
-                model.addAttribute("map", seatMap);
-
-                model.addAttribute("mugunghwaRooms", mugunghwaRooms);
-                model.addAttribute("roomName", targetRoomName.get());
-
-                Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
-                model.addAttribute("okList", checkMap.values());
-
-                model.addAttribute("round", true);
-                model.addAttribute("coming", true);
-
-                model.addAttribute("departurePlace", departurePlace);
-                model.addAttribute("arrivalPlace", arrivalPlace);
-                model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
-
-                model.addAttribute("beforeRoomName", roomName);
-                model.addAttribute("beforeChosenSeats", mugunghwaSeatDto.returnSeats());
-
-                return "trainseat/chooseMugunghwaSeat";
             }
         }
 
@@ -1068,6 +1424,8 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
                 model.addAttribute("beforeRoomName", beforeRoomName);
+                model.addAttribute("beforeNormal", beforeNormal);
+                model.addAttribute("beforeVip", beforeVip);
                 model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
                 ObjectMapper objectMapper = new ObjectMapper();
@@ -1103,6 +1461,8 @@ public class ReservationController {
 
                     //updated
                     model.addAttribute("beforeRoomName", beforeRoomName);
+                    model.addAttribute("beforeNormal", beforeNormal);
+                    model.addAttribute("beforeVip", beforeVip);
                     model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -1122,18 +1482,59 @@ public class ReservationController {
 
                 //갈 때
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
-                Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-                //자리차지
-                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
-                Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+                if (deploy.getTrain().getTrainName().contains("KTX")) {
+                    Ktx ktx = (Ktx) deploy.getTrain();
+                    //자리차지
+                    if (beforeNormal) {
+                        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
+                        Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+                        reservation.setRoomName(optionalKtxRoom.get().getRoomName());
+                        reservation.setGrade(optionalKtxRoom.get().getGrade());
 
-                reservation.setRoomName(optionalMugunghwaRoom.get().getRoomName());
-                reservation.setGrade(null);
+                        KtxSeatNormal foundSeat = (KtxSeatNormal) optionalKtxRoom.get().getKtxSeat();
+                        reservation.setSeats(beforeChosenSeats);
+                        foundSeat.checkSeats(beforeChosenSeats);
+                    } else if(beforeVip){
+                        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
+                        Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+                        reservation.setRoomName(optionalKtxRoom.get().getRoomName());
+                        reservation.setGrade(optionalKtxRoom.get().getGrade());
 
-                MugunghwaSeat foundSeat = optionalMugunghwaRoom.get().getMugunghwaSeat();
-                reservation.setSeats(beforeChosenSeats);
-                foundSeat.checkSeats(beforeChosenSeats);
+                        //updated point
+                        KtxSeatVip foundSeat = (KtxSeatVip) optionalKtxRoom.get().getKtxSeat();
+                        reservation.setSeats(beforeChosenSeats);
+                        foundSeat.checkSeats(beforeChosenSeats);
+                    }
+
+                } else if (deploy.getTrain().getTrainName().contains("MUGUNGHWA")) {
+                    Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                    //자리차지
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                    Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+
+                    reservation.setRoomName(optionalMugunghwaRoom.get().getRoomName());
+                    reservation.setGrade(null);
+
+                    MugunghwaSeat foundSeat = optionalMugunghwaRoom.get().getMugunghwaSeat();
+                    reservation.setSeats(beforeChosenSeats);
+                    foundSeat.checkSeats(beforeChosenSeats);
+
+                } else {
+                    Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                    //자리차지
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                    Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+
+                    reservation.setRoomName(optionalSaemaulRoom.get().getRoomName());
+                    reservation.setGrade(null);
+
+                    SaemaulSeat foundSeat = optionalSaemaulRoom.get().getSaemaulSeat();
+                    reservation.setSeats(beforeChosenSeats);
+                    foundSeat.checkSeats(beforeChosenSeats);
+                }
 
                 //올 떄
                 Deploy deploy2 = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
@@ -1143,11 +1544,11 @@ public class ReservationController {
                 List<MugunghwaRoom> mugunghwaRooms2 = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa2.getId());
                 Optional<MugunghwaRoom> optionalMugunghwaRoom2 = mugunghwaRooms2.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
-                reservation.setRoomName(optionalMugunghwaRoom2.get().getRoomName());
-                reservation.setGrade(null);
+                reservation2.setRoomName(optionalMugunghwaRoom2.get().getRoomName());
+                reservation2.setGrade(null);
 
                 MugunghwaSeat foundSeat2 = optionalMugunghwaRoom2.get().getMugunghwaSeat();
-                reservation.setSeats(mugunghwaSeatDto.returnSeats());
+                reservation2.setSeats(mugunghwaSeatDto.returnSeats());
                 foundSeat2.mugunghwaDtoToEntity(mugunghwaSeatDto);
 
                 //deploy
@@ -1172,10 +1573,10 @@ public class ReservationController {
                 passengerService.save(passenger2);
 
                 reservation.setPassenger(passenger);
-                reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+                reservation.setFee(passengerDto.getFee(reservation.getDeploy().getTrain(), reservation.getGrade()));
 
                 reservation2.setPassenger(passenger2);
-                reservation2.setFee(passengerDto.getFee(reservation2.getGrade()));
+                reservation2.setFee(passengerDto.getFee(reservation2.getDeploy().getTrain(), reservation2.getGrade()));
 
                 //reservation을 db에 저장
                 reservationService.saveReservation(reservation);
@@ -1290,7 +1691,7 @@ public class ReservationController {
             passengerService.save(passenger);
 
             reservation.setPassenger(passenger);
-            reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+            reservation.setFee(passengerDto.getFee(reservation.getDeploy().getTrain(), reservation.getGrade()));
 
             //reservation을 db에 저장
             reservationService.saveReservation(reservation);
@@ -1314,6 +1715,8 @@ public class ReservationController {
                                    @RequestParam(required = false) String dateTimeOfGoing,
                                    @RequestParam(required = false) String dateTimeOfLeaving,
                                    @RequestParam(required = false) String beforeRoomName,
+                                   @RequestParam(required = false) Boolean beforeNormal,
+                                   @RequestParam(required = false) Boolean beforeVip,
                                    @RequestParam(required = false) String beforeChosenSeats,
                                    HttpServletRequest request,
                                    Model model) {
@@ -1397,52 +1800,146 @@ public class ReservationController {
                     return "trainseat/chooseSaemaulSeat";
                 }
                 //올 때 자리 체크하기로 보내는 logic
-                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
-                Saemaul saemaul = (Saemaul) deploy.getTrain();
+                Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
 
-                //query 몇 개 나가는지 보기
-                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
-                SaemaulRoom targetRoom = null;
+                if (deploy.getTrain().getTrainName().contains("KTX")) {
+                    Ktx train = (Ktx) deploy.getTrain();
+                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
 
-                for (SaemaulRoom saemaulRoom : saemaulRooms) {
-                    if (saemaulRoom.getSaemaulSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
-                        okList.get().add(saemaulRoom.getRoomName());
+                    List<String> normalReserveOkList = new ArrayList<>();
+                    List<String> vipReserveOkList = new ArrayList<>();
+
+                    for (KtxRoom ktxRoom : ktxRooms) {
+                        if (ktxRoom.getGrade() == Grade.NORMAL) {
+                            KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+                            if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                                normalReserveOkList.add(ktxRoom.getRoomName());
+                            }
+                        }
+                        else {
+                            KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
+                            if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                                vipReserveOkList.add(ktxRoom.getRoomName());
+                            }
+                        }
                     }
-                }
 
-                for (String rName : okList.get()) {
-                    Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(rName)).findAny();
-                    if (optionalSaemaulRoom.isPresent()) {
-                        targetRoom = optionalSaemaulRoom.get();
-                        break;
+                    if(normalReserveOkList.isEmpty()) {
+                        model.addAttribute("normalDisabled", true);
                     }
+
+                    if(vipReserveOkList.isEmpty()) {
+                        model.addAttribute("vipDisabled", true);
+                    }
+
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    model.addAttribute("beforeRoomName", roomName);
+                    model.addAttribute("beforeVip", false);
+                    model.addAttribute("beforeNormal", false);
+                    model.addAttribute("beforeChosenSeats", saemaulSeatDto.returnSeats());
+
+                    return "normalVip";
+                } else if (deploy.getTrain().getTrainName().contains("MUGUNGHWA")) {
+                    Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                    MugunghwaRoom targetRoom = null;
+
+                    for (MugunghwaRoom mugunghwaRoom : mugunghwaRooms) {
+                        if (mugunghwaRoom.getMugunghwaSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                            okList.get().add(mugunghwaRoom.getRoomName());
+                        }
+                    }
+
+                    for (String rName : okList.get()) {
+                        Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(rName)).findAny();
+                        if (optionalMugunghwaRoom.isPresent()) {
+                            targetRoom = optionalMugunghwaRoom.get();
+                            break;
+                        }
+                    }
+                    log.info("fuck = {}", okList.get());
+
+                    MugunghwaSeatDto targetMugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(targetRoom.getMugunghwaSeat().getId());
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map seatMap = objectMapper.convertValue(targetMugunghwaSeatDto, Map.class);
+                    model.addAttribute("map", seatMap);
+
+                    model.addAttribute("mugunghwaRooms", mugunghwaRooms);
+                    model.addAttribute("roomName", targetRoom.getRoomName());
+
+                    model.addAttribute("okList", okList.get());
+
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    model.addAttribute("beforeRoomName", roomName);
+                    model.addAttribute("beforeVip", false);
+                    model.addAttribute("beforeNormal", false);
+                    model.addAttribute("beforeChosenSeats", saemaulSeatDto.returnSeats());
+
+                    return "trainseat/chooseMugunghwaSeat";
+                } else {
+                    Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                    //query 몇 개 나가는지 보기
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                    SaemaulRoom targetRoom = null;
+
+                    for (SaemaulRoom saemaulRoom : saemaulRooms) {
+                        if (saemaulRoom.getSaemaulSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+                            okList.get().add(saemaulRoom.getRoomName());
+                        }
+                    }
+
+                    for (String rName : okList.get()) {
+                        Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(rName)).findAny();
+                        if (optionalSaemaulRoom.isPresent()) {
+                            targetRoom = optionalSaemaulRoom.get();
+                            break;
+                        }
+                    }
+                    log.info("fuck = {}", okList.get());
+
+                    SaemaulSeatDto targetSaemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(targetRoom.getSaemaulSeat().getId());
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    Map seatMap = objectMapper.convertValue(targetSaemaulSeatDto, Map.class);
+                    model.addAttribute("map", seatMap);
+
+                    model.addAttribute("saemaulRooms", saemaulRooms);
+                    model.addAttribute("roomName", targetRoom.getRoomName());
+
+                    model.addAttribute("okList", okList.get());
+
+                    model.addAttribute("round", true);
+                    model.addAttribute("coming", true);
+
+                    model.addAttribute("departurePlace", departurePlace);
+                    model.addAttribute("arrivalPlace", arrivalPlace);
+                    model.addAttribute("dateTimeOfGoing", beforeDateTime);
+                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+
+                    model.addAttribute("beforeRoomName", roomName);
+                    model.addAttribute("beforeVip", false);
+                    model.addAttribute("beforeNormal", false);
+                    model.addAttribute("beforeChosenSeats", saemaulSeatDto.returnSeats());
+
+                    return "trainseat/chooseSaemaulSeat";
                 }
-                log.info("fuck = {}", okList.get());
-
-                SaemaulSeatDto targetSaemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(targetRoom.getSaemaulSeat().getId());
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                Map seatMap = objectMapper.convertValue(targetSaemaulSeatDto, Map.class);
-                model.addAttribute("map", seatMap);
-
-                model.addAttribute("saemaulRooms", saemaulRooms);
-                model.addAttribute("roomName", targetRoomName.get());
-
-                Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
-                model.addAttribute("okList", checkMap.values());
-
-                model.addAttribute("round", true);
-                model.addAttribute("coming", true);
-
-                model.addAttribute("departurePlace", departurePlace);
-                model.addAttribute("arrivalPlace", arrivalPlace);
-                model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
-
-                model.addAttribute("beforeRoomName", roomName);
-                model.addAttribute("beforeChosenSeats", saemaulSeatDto.returnSeats());
-
-                return "trainseat/chooseSaemaulSeat";
             }
         }
 
@@ -1478,6 +1975,8 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
 
                 model.addAttribute("beforeRoomName", beforeRoomName);
+                model.addAttribute("beforeNormal", beforeNormal);
+                model.addAttribute("beforeVip", beforeVip);
                 model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
                 ObjectMapper objectMapper = new ObjectMapper();
@@ -1514,6 +2013,8 @@ public class ReservationController {
 
                     //updated
                     model.addAttribute("beforeRoomName", beforeRoomName);
+                    model.addAttribute("beforeNormal", beforeNormal);
+                    model.addAttribute("beforeVip", beforeVip);
                     model.addAttribute("beforeChosenSeats", beforeChosenSeats);
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -1533,18 +2034,59 @@ public class ReservationController {
 
                 //갈 때
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
-                Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-                //자리차지
-                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
-                Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+                if (deploy.getTrain().getTrainName().contains("KTX")) {
+                    Ktx ktx = (Ktx) deploy.getTrain();
+                    //자리차지
+                    if (beforeNormal) {
+                        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
+                        Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+                        reservation.setRoomName(optionalKtxRoom.get().getRoomName());
+                        reservation.setGrade(optionalKtxRoom.get().getGrade());
 
-                reservation.setRoomName(optionalSaemaulRoom.get().getRoomName());
-                reservation.setGrade(null);
+                        KtxSeatNormal foundSeat = (KtxSeatNormal) optionalKtxRoom.get().getKtxSeat();
+                        reservation.setSeats(beforeChosenSeats);
+                        foundSeat.checkSeats(beforeChosenSeats);
+                    } else if(beforeVip) {
+                        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.VIP);
+                        Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+                        reservation.setRoomName(optionalKtxRoom.get().getRoomName());
+                        reservation.setGrade(optionalKtxRoom.get().getGrade());
 
-                SaemaulSeat foundSeat = optionalSaemaulRoom.get().getSaemaulSeat();
-                reservation.setSeats(beforeChosenSeats);
-                foundSeat.checkSeats(beforeChosenSeats);
+                        //updated point
+                        KtxSeatVip foundSeat = (KtxSeatVip) optionalKtxRoom.get().getKtxSeat();
+                        reservation.setSeats(beforeChosenSeats);
+                        foundSeat.checkSeats(beforeChosenSeats);
+                    }
+
+                } else if (deploy.getTrain().getTrainName().contains("MUGUNGHWA")) {
+                    Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
+
+                    //자리차지
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                    Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+
+                    reservation.setRoomName(optionalMugunghwaRoom.get().getRoomName());
+                    reservation.setGrade(null);
+
+                    MugunghwaSeat foundSeat = optionalMugunghwaRoom.get().getMugunghwaSeat();
+                    reservation.setSeats(beforeChosenSeats);
+                    foundSeat.checkSeats(beforeChosenSeats);
+
+                } else {
+                    Saemaul saemaul = (Saemaul) deploy.getTrain();
+
+                    //자리차지
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                    Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
+
+                    reservation.setRoomName(optionalSaemaulRoom.get().getRoomName());
+                    reservation.setGrade(null);
+
+                    SaemaulSeat foundSeat = optionalSaemaulRoom.get().getSaemaulSeat();
+                    reservation.setSeats(beforeChosenSeats);
+                    foundSeat.checkSeats(beforeChosenSeats);
+                }
 
                 //올 떄
                 Deploy deploy2 = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
@@ -1554,11 +2096,11 @@ public class ReservationController {
                 List<SaemaulRoom> saemaulRooms2 = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul2.getId());
                 Optional<SaemaulRoom> optionalSaemaulRoom2 = saemaulRooms2.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
-                reservation.setRoomName(optionalSaemaulRoom2.get().getRoomName());
-                reservation.setGrade(null);
+                reservation2.setRoomName(optionalSaemaulRoom2.get().getRoomName());
+                reservation2.setGrade(null);
 
                 SaemaulSeat foundSeat2 = optionalSaemaulRoom2.get().getSaemaulSeat();
-                reservation.setSeats(saemaulSeatDto.returnSeats());
+                reservation2.setSeats(saemaulSeatDto.returnSeats());
                 foundSeat2.saemaulDtoToEntity(saemaulSeatDto);
 
                 //deploy
@@ -1583,10 +2125,10 @@ public class ReservationController {
                 passengerService.save(passenger2);
 
                 reservation.setPassenger(passenger);
-                reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+                reservation.setFee(passengerDto.getFee(reservation.getDeploy().getTrain(), reservation.getGrade()));
 
                 reservation2.setPassenger(passenger2);
-                reservation2.setFee(passengerDto.getFee(reservation2.getGrade()));
+                reservation2.setFee(passengerDto.getFee(reservation2.getDeploy().getTrain(), reservation2.getGrade()));
 
                 //reservation을 db에 저장
                 reservationService.saveReservation(reservation);
@@ -1701,7 +2243,7 @@ public class ReservationController {
             passengerService.save(passenger);
 
             reservation.setPassenger(passenger);
-            reservation.setFee(passengerDto.getFee(reservation.getGrade()));
+            reservation.setFee(passengerDto.getFee(reservation.getDeploy().getTrain(), reservation.getGrade()));
 
             //reservation을 db에 저장
             reservationService.saveReservation(reservation);

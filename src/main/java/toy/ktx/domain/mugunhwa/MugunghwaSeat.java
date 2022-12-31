@@ -214,7 +214,7 @@ public class MugunghwaSeat {
         try {
             Class clazz = Class.forName("toy.ktx.domain.mugunhwa.MugunghwaSeat");
             for (String s : split) {
-                String seat = "setK" + s.substring(1);
+                String seat = "setM" + s.substring(1);
                 Method declaredMethod = clazz.getDeclaredMethod(seat, Boolean.class);
                 declaredMethod.invoke(this, true);
             }

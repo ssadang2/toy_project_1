@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<link th:href = "@{../css/bootstrap.min.css}" rel = "stylesheet">
+<link th:href = "@{../../css/bootstrap.min.css}" rel = "stylesheet">
 <head>
     <meta charset="UTF-8">
     <title>좌석 선택</title>
@@ -85,6 +85,8 @@
             <input type="hidden" name="dateTimeOfGoing" th:value="${dateTimeOfGoing}">
             <input type="hidden" name="dateTimeOfLeaving" th:value="${dateTimeOfLeaving}">
 
+            <input type="hidden" name="beforeNormal" th:value="${beforeNormal}">
+            <input type="hidden" name="beforeVip" th:value="${beforeVip}">
             <input type="hidden" name="beforeChosenSeats" th:value="${beforeChosenSeats}">
             <input type="hidden" name="beforeRoomName" th:value="${beforeRoomName}">
 

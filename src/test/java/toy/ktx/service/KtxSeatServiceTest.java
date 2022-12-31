@@ -144,21 +144,4 @@ class KtxSeatServiceTest {
 //        ktxSeatService.saveKtxSeat(ktxSeat9);
 //        ktxSeatService.saveKtxSeat(ktxSeat10);
     }
-
-//    @Test
-//    public void findByKtxRoom() {
-//        Optional<KtxRoom> ktxRoom = ktxRoomService.findKtxRoom(Long.valueOf(1));
-//        KtxRoom ktxRoom1 = ktxRoom.get();
-//        KtxSeat ktxSeat1 = ktxRoom1.getKtxSeat();
-//        System.out.println("ktxSeat1 = " + ktxSeat1.getClass());
-//
-//        Optional<KtxSeat> byKtxRoom = ktxSeatService.findByKtxRoom(ktxRoom1);
-//        KtxSeat ktxSeat = byKtxRoom.get();
-//        System.out.println("ktxSeat = " + ktxSeat.toString());
-//
-//        System.out.println("(ktxSeat == ktxSeat1) = " + (ktxSeat == ktxSeat1));
-//
-//        Assertions.assertThat(ktxSeat1).isEqualTo(ktxSeat);
-//
-//    }
 }

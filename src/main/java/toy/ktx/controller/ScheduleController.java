@@ -40,6 +40,19 @@ public class ScheduleController {
     private final MugunghwaService mugunghwaService;
     private final SaemaulService saemaulService;
 
+    public final static class DeployComparator implements Comparator<Deploy> {
+        @Override
+        public int compare(Deploy deploy1, Deploy deploy2) {
+            if (deploy1.getDepartureTime().isBefore(deploy2.getDepartureTime())) {
+                return -1;
+            } else if (deploy1.getDepartureTime().isAfter(deploy2.getDepartureTime())) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+    }
+
     @PostMapping("/schedule")
     public String getSchedule(@Valid @ModelAttribute ScheduleForm scheduleForm,
                               BindingResult bindingResult,
@@ -120,6 +133,9 @@ public class ScheduleController {
             //오는 날에는 가는 날의 출발지가 도착지고 도착지가 출발지임 따라서 getArrivalPlace가 departurePlace(출발지)에 위치해야 됨
             List<Deploy> deploysWhenComing = deployService.searchDeployToTrain(scheduleForm.getArrivalPlace(), scheduleForm.getDeparturePlace(), after);
 
+            Collections.sort(deploysWhenGoing, new DeployComparator());
+            Collections.sort(deploysWhenComing, new DeployComparator());
+
             if(deploysWhenGoing.isEmpty() == true || deploysWhenComing.isEmpty() == true) {
                 if(deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
@@ -153,8 +169,8 @@ public class ScheduleController {
                         trainList.add(saemaul);
                     }
 
-//                    doCheck(ktxList, passengerDto, fullCheck);
-                    doCheck(trainList, passengerDto, fullCheck);
+//                    doCheck(trainList, passengerDto, fullCheck);
+                    doCheck(deploys, passengerDto, fullCheck);
 
                     int cntComing = 0;
 
@@ -198,7 +214,8 @@ public class ScheduleController {
                         trainList.add(saemaul);
                     }
 
-                    doCheck(trainList, passengerDto, fullCheck);
+//                    doCheck(trainList, passengerDto, fullCheck);
+                    doCheck(deploys, passengerDto, fullCheck);
 
                     int cntGoing = 0;
 
@@ -269,10 +286,12 @@ public class ScheduleController {
                 }
 
                 //going
-                doCheck(trainList, passengerDto, fullCheck);
+//                doCheck(trainList, passengerDto, fullCheck);
+                doCheck(deploys, passengerDto, fullCheck);
 
                 //coming
-                doCheck(trainList2, passengerDto, fullCheck2);
+//                doCheck(trainList2, passengerDto, fullCheck2);
+                doCheck(deploys2, passengerDto, fullCheck2);
 
                 Boolean noSeatGoing = Boolean.TRUE;
                 Boolean noSeatComing = Boolean.TRUE;
@@ -344,6 +363,8 @@ public class ScheduleController {
         //예상 1 + N = > 1 + N(라고 보기는 애매함 1:1 관계에서의 문제라서) => in 절로 해결하자 => 해결
         //fetch
         List<Deploy> deploysWhenGoing = deployService.searchDeployToTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
+        Collections.sort(deploysWhenGoing, new DeployComparator());
+        log.info("fuck123 = {}",deploysWhenGoing);
 
         if(deploysWhenGoing.isEmpty() == true) {
             model.addAttribute("emptyWhenGoing", true);
@@ -377,7 +398,8 @@ public class ScheduleController {
         for (Saemaul saemaul : saemaulList) {
             trainList.add(saemaul);
         }
-        doCheck(trainList, passengerDto, fullCheck);
+//        doCheck(trainList, passengerDto, fullCheck);
+        doCheck(deploys, passengerDto, fullCheck);
 
         int cntGoing = 0;
 
@@ -391,11 +413,14 @@ public class ScheduleController {
         }
         model.addAttribute("fullCheck", fullCheck);
         model.addAttribute("disableSeatButton", true);
+        log.info("fuck123 = {}",fullCheck);
         return "schedule";
     }
 
-    private void doCheck(List<Train> trainList, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
-        for (Train train : trainList) {
+    private void doCheck(List<Long> deploys, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
+        for (Long deployId : deploys) {
+            Deploy deploy = deployService.findDeploy(deployId).get();
+            Train train = deploy.getTrain();
             if (train.getTrainName().contains("KTX")) {
                 List<KtxRoom> ktxRooms = ((Ktx) train).getKtxRooms();
 
@@ -492,53 +517,101 @@ public class ScheduleController {
         }
     }
 
-//    private void doCheck(List<Ktx> ktxList, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
-//        for (Ktx ktx : ktxList) {
-//            List<KtxRoom> ktxRooms = ktx.getKtxRooms();
+//    private void doCheck(List<Train> trainList, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
+//        for (Train train : trainList) {
+//            if (train.getTrainName().contains("KTX")) {
+//                List<KtxRoom> ktxRooms = ((Ktx) train).getKtxRooms();
 //
-//            List<String> normalReserveOkList = new ArrayList<>();
-//            List<String> vipReserveOkList = new ArrayList<>();
+//                List<String> normalReserveOkList = new ArrayList<>();
+//                List<String> vipReserveOkList = new ArrayList<>();
 //
-//            for (KtxRoom ktxRoom : ktxRooms) {
-//                if (ktxRoom.getGrade() == Grade.NORMAL) {
-//                    KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
-//                    if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
-//                        normalReserveOkList.add(ktxRoom.getRoomName());
+//                for (KtxRoom ktxRoom : ktxRooms) {
+//                    if (ktxRoom.getGrade() == Grade.NORMAL) {
+//                        KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
+//                        if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+//                            normalReserveOkList.add(ktxRoom.getRoomName());
+//                        }
+//                    }
+//                    else {
+//                        KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
+//                        if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+//                            vipReserveOkList.add(ktxRoom.getRoomName());
+//                        }
 //                    }
 //                }
-//                else {
-//                    KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
-//                    if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
-//                        vipReserveOkList.add(ktxRoom.getRoomName());
+//
+//                log.info("doCheck = {}",normalReserveOkList);
+//                log.info("doCheck = {}",vipReserveOkList);
+//
+//                List<Boolean> check = new ArrayList<>();
+//
+//                if(!normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
+//                    check.add(true);
+//                    check.add(true);
+//                }
+//
+//                if(!normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
+//                    check.add(true);
+//                    check.add(false);
+//                }
+//
+//                if(normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
+//                    check.add(false);
+//                    check.add(true);
+//                }
+//
+//                if (normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
+//                    check.add(false);
+//                    check.add(false);
+//                }
+//                fullCheck.add(check);
+//            }
+//
+//            else if (train.getTrainName().contains("MUGUNGHWA")) {
+//                List<MugunghwaRoom> mugunghwaRooms = ((Mugunghwa) train).getMugunghwaRooms();
+//
+//                List<String> reserveOkList = new ArrayList<>();
+//
+//                for (MugunghwaRoom mugunghwaRoom : mugunghwaRooms) {
+//                    if (mugunghwaRoom.getMugunghwaSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+//                        reserveOkList.add(mugunghwaRoom.getRoomName());
 //                    }
 //                }
+//
+//                log.info("doCheck = {}",reserveOkList);
+//
+//                List<Boolean> check = new ArrayList<>();
+//
+//                if (reserveOkList.isEmpty()) {
+//                    check.add(false);
+//                } else {
+//                    check.add(true);
+//                }
+//                fullCheck.add(check);
 //            }
 //
-//            log.info("doCheck = {}",normalReserveOkList);
-//            log.info("doCheck = {}",vipReserveOkList);
+//            else {
+//                List<SaemaulRoom> saemaulRooms = ((Saemaul) train).getSaemaulRooms();
 //
-//            List<Boolean> check = new ArrayList<>();
+//                List<String> reserveOkList = new ArrayList<>();
 //
-//            if(!normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
-//                check.add(true);
-//                check.add(true);
+//                for (SaemaulRoom saemaulRoom : saemaulRooms) {
+//                    if (saemaulRoom.getSaemaulSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
+//                        reserveOkList.add(saemaulRoom.getRoomName());
+//                    }
+//                }
+//
+//                log.info("doCheck = {}",reserveOkList);
+//
+//                List<Boolean> check = new ArrayList<>();
+//
+//                if (reserveOkList.isEmpty()) {
+//                    check.add(false);
+//                } else {
+//                    check.add(true);
+//                }
+//                fullCheck.add(check);
 //            }
-//
-//            if(!normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
-//                check.add(true);
-//                check.add(false);
-//            }
-//
-//            if(normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
-//                check.add(false);
-//                check.add(true);
-//            }
-//
-//            if (normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
-//                check.add(false);
-//                check.add(false);
-//            }
-//            fullCheck.add(check);
 //        }
 //    }
 
@@ -564,3 +637,5 @@ public class ScheduleController {
         return durations;
     }
 }
+
+

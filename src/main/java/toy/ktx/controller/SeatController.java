@@ -83,10 +83,10 @@ public class SeatController {
                 LocalDateTime newTime = beforeDateTime.minusDays(1);
                 //updated point
                 List<Deploy> deploysWhenGoing = null;
-                List<Deploy> deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, afterDateTime);
+                List<Deploy> deploysWhenComing = deployService.searchDeployToTrain(arrivalPlace, departurePlace, afterDateTime);
 
                 if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() != LocalDateTime.now().getDayOfMonth()) {
-                    deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, beforeDateTime);
+                    deploysWhenGoing = deployService.searchDeployToTrain(arrivalPlace, departurePlace, beforeDateTime);
 
                     bindingResult.reject("noBefore", null);
                     model.addAttribute("before", beforeDateTime);
@@ -102,7 +102,7 @@ public class SeatController {
 
                     dateTime = LocalDateTime.now();
 
-                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                    deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, dateTime);
                 }
 
                 if(!newTime.isBefore(LocalDateTime.now())) {
@@ -114,8 +114,12 @@ public class SeatController {
                     int dayOfMonth = newTime.getDayOfMonth();
 
                     dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                    deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, dateTime);
                 }
+
+                //updated
+                Collections.sort(deploysWhenGoing, new ScheduleController.DeployComparator());
+                Collections.sort(deploysWhenComing, new ScheduleController.DeployComparator());
 
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
@@ -155,7 +159,8 @@ public class SeatController {
                         trainList.add(saemaul);
                     }
 
-                    doCheck(trainList, passengerDto, fullCheck);
+//                    doCheck(trainList, passengerDto, fullCheck);
+                    doCheck(deploys, passengerDto, fullCheck);
 
                     int cntComing = 0;
 
@@ -201,7 +206,8 @@ public class SeatController {
                         trainList.add(saemaul);
                     }
 
-                    doCheck(trainList, passengerDto, fullCheck);
+//                    doCheck(trainList, passengerDto, fullCheck);
+                    doCheck(deploys, passengerDto, fullCheck);
 
                     int cntGoing = 0;
 
@@ -258,23 +264,25 @@ public class SeatController {
 
                 List<Train> trainList2 = new ArrayList<>();
 
-                for (Ktx ktx : ktxList) {
+                for (Ktx ktx : ktxList2) {
                     trainList2.add(ktx);
                 }
 
-                for (Mugunghwa mugunghwa : mugunghwaList) {
+                for (Mugunghwa mugunghwa : mugunghwaList2) {
                     trainList2.add(mugunghwa);
                 }
 
-                for (Saemaul saemaul : saemaulList) {
+                for (Saemaul saemaul : saemaulList2) {
                     trainList2.add(saemaul);
                 }
 
                 //going
-                doCheck(trainList, passengerDto, fullCheck);
+//                doCheck(trainList, passengerDto, fullCheck);
+                doCheck(deploys, passengerDto, fullCheck);
 
                 //coming
-                doCheck(trainList2, passengerDto, fullCheck2);
+//                doCheck(trainList2, passengerDto, fullCheck2);
+                doCheck(deploys2, passengerDto, fullCheck2);
 
                 Boolean noSeatGoing = Boolean.TRUE;
                 Boolean noSeatComing = Boolean.TRUE;
@@ -340,10 +348,10 @@ public class SeatController {
                 LocalDateTime newTime = beforeDateTime.plusDays(1);
 
                 List<Deploy> deploysWhenGoing = null;
-                List<Deploy> deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, afterDateTime);
+                List<Deploy> deploysWhenComing = deployService.searchDeployToTrain(arrivalPlace, departurePlace, afterDateTime);
 
                 if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
-                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, beforeDateTime);
+                    deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, beforeDateTime);
 
                     bindingResult.reject("noAfter", null);
                     model.addAttribute("before", beforeDateTime);
@@ -362,9 +370,7 @@ public class SeatController {
                     int dayOfMonth = LocalDateTime.now().plusDays(30).getDayOfMonth();
 
                     dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    //이새끼 뭐야
-                    //deploysWhenGoing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
-                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                    deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, dateTime);
                 }
 
                 if(!newTime.isAfter(LocalDateTime.now().plusDays(30))) {
@@ -376,8 +382,11 @@ public class SeatController {
                     int dayOfMonth = newTime.getDayOfMonth();
 
                     dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                    deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, dateTime);
                 }
+
+                Collections.sort(deploysWhenGoing, new ScheduleController.DeployComparator());
+                Collections.sort(deploysWhenComing, new ScheduleController.DeployComparator());
 
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
@@ -397,6 +406,7 @@ public class SeatController {
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
+                    log.info("fuck 555 = {}", deploys);
 
                     List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
                     List<Mugunghwa> mugunghwaList = mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
@@ -416,7 +426,10 @@ public class SeatController {
                         trainList.add(saemaul);
                     }
 
-                    doCheck(trainList, passengerDto, fullCheck);
+                    log.info("Fuck 555 = {}", trainList);
+                    log.info("Fuck 555 = {}", deploys);
+//                    doCheck(trainList, passengerDto, fullCheck);
+                    doCheck(deploys, passengerDto, fullCheck);
 
                     int cntComing = 0;
 
@@ -462,7 +475,8 @@ public class SeatController {
                         trainList.add(saemaul);
                     }
 
-                    doCheck(trainList, passengerDto, fullCheck);
+//                    doCheck(trainList, passengerDto, fullCheck);
+                    doCheck(deploys, passengerDto, fullCheck);
 
                     int cntGoing = 0;
 
@@ -531,10 +545,12 @@ public class SeatController {
                 }
 
                 //going
-                doCheck(trainList, passengerDto, fullCheck);
+//                doCheck(trainList, passengerDto, fullCheck);
+                doCheck(deploys, passengerDto, fullCheck);
 
                 //coming
-                doCheck(trainList2, passengerDto, fullCheck2);
+//                doCheck(trainList2, passengerDto, fullCheck2);
+                doCheck(deploys2, passengerDto, fullCheck2);
 
                 Boolean noSeatGoing = Boolean.TRUE;
                 Boolean noSeatComing = Boolean.TRUE;
@@ -599,11 +615,11 @@ public class SeatController {
             if (prevComing != null) {
                 LocalDateTime newTime = afterDateTime.minusDays(1);
 
-                List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, beforeDateTime);
+                List<Deploy> deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, beforeDateTime);
                 List<Deploy> deploysWhenComing = null;
 
                 if (newTime.isBefore(LocalDateTime.now()) && newTime.getDayOfMonth() != LocalDateTime.now().getDayOfMonth()) {
-                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, afterDateTime);
+                    deploysWhenComing = deployService.searchDeployToTrain(arrivalPlace, departurePlace, afterDateTime);
 
                     bindingResult.reject("noBefore", null);
                     model.addAttribute("before", beforeDateTime);
@@ -619,7 +635,7 @@ public class SeatController {
 
                     dateTime = LocalDateTime.now();
 
-                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                    deploysWhenComing = deployService.searchDeployToTrain(arrivalPlace, departurePlace, dateTime);
                 }
 
                 if(!newTime.isBefore(LocalDateTime.now())) {
@@ -631,8 +647,11 @@ public class SeatController {
                     int dayOfMonth = newTime.getDayOfMonth();
 
                     dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                    deploysWhenComing = deployService.searchDeployToTrain(arrivalPlace, departurePlace, dateTime);
                 }
+
+                Collections.sort(deploysWhenGoing, new ScheduleController.DeployComparator());
+                Collections.sort(deploysWhenComing, new ScheduleController.DeployComparator());
 
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
@@ -671,7 +690,8 @@ public class SeatController {
                         trainList.add(saemaul);
                     }
 
-                    doCheck(trainList, passengerDto, fullCheck);
+//                    doCheck(trainList, passengerDto, fullCheck);
+                    doCheck(deploys, passengerDto, fullCheck);
 
                     int cntGoing = 0;
 
@@ -716,7 +736,8 @@ public class SeatController {
                         trainList.add(saemaul);
                     }
 
-                    doCheck(trainList, passengerDto, fullCheck);
+//                    doCheck(trainList, passengerDto, fullCheck);
+                    doCheck(deploys, passengerDto, fullCheck);
 
                     int cntComing = 0;
 
@@ -786,10 +807,12 @@ public class SeatController {
                 }
 
                 //going
-                doCheck(trainList, passengerDto, fullCheck);
+//                doCheck(trainList, passengerDto, fullCheck);
+                doCheck(deploys, passengerDto, fullCheck);
 
                 //coming
-                doCheck(trainList2, passengerDto, fullCheck2);
+//                doCheck(trainList2, passengerDto, fullCheck2);
+                doCheck(deploys2, passengerDto, fullCheck2);
 
                 Boolean noSeatGoing = Boolean.TRUE;
                 Boolean noSeatComing = Boolean.TRUE;
@@ -854,11 +877,11 @@ public class SeatController {
             if (nextComing != null) {
                 LocalDateTime newTime = afterDateTime.plusDays(1);
 
-                List<Deploy> deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, beforeDateTime);
+                List<Deploy> deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, beforeDateTime);
                 List<Deploy> deploysWhenComing = null;
 
                 if (newTime.isAfter(LocalDateTime.now().plusDays(30)) && newTime.getDayOfMonth() != LocalDateTime.now().plusDays(30).getDayOfMonth()) {
-                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, afterDateTime);
+                    deploysWhenComing = deployService.searchDeployToTrain(arrivalPlace, departurePlace, afterDateTime);
 
                     bindingResult.reject("noAfter", null);
                     model.addAttribute("before", beforeDateTime);
@@ -877,7 +900,7 @@ public class SeatController {
                     int dayOfMonth = LocalDateTime.now().plusDays(30).getDayOfMonth();
 
                     dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                    deploysWhenComing = deployService.searchDeployToTrain(arrivalPlace, departurePlace, dateTime);
                 }
 
                 if(!newTime.isAfter(LocalDateTime.now().plusDays(30))) {
@@ -889,8 +912,11 @@ public class SeatController {
                     int dayOfMonth = newTime.getDayOfMonth();
 
                     dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                    deploysWhenComing = deployService.searchDeploy(arrivalPlace, departurePlace, dateTime);
+                    deploysWhenComing = deployService.searchDeployToTrain(arrivalPlace, departurePlace, dateTime);
                 }
+
+                Collections.sort(deploysWhenGoing, new ScheduleController.DeployComparator());
+                Collections.sort(deploysWhenComing, new ScheduleController.DeployComparator());
 
 
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
@@ -930,7 +956,8 @@ public class SeatController {
                         trainList.add(saemaul);
                     }
 
-                    doCheck(trainList, passengerDto, fullCheck);
+//                    doCheck(trainList, passengerDto, fullCheck);
+                    doCheck(deploys, passengerDto, fullCheck);
 
                     int cntGoing = 0;
 
@@ -975,7 +1002,8 @@ public class SeatController {
                         trainList.add(saemaul);
                     }
 
-                    doCheck(trainList, passengerDto, fullCheck);
+//                    doCheck(trainList, passengerDto, fullCheck);
+                    doCheck(deploys, passengerDto, fullCheck);
 
                     int cntComing = 0;
 
@@ -1045,10 +1073,12 @@ public class SeatController {
                 }
 
                 //going
-                doCheck(trainList, passengerDto, fullCheck);
+//                doCheck(trainList, passengerDto, fullCheck);
+                doCheck(deploys, passengerDto, fullCheck);
 
                 //coming
-                doCheck(trainList2, passengerDto, fullCheck2);
+//                doCheck(trainList2, passengerDto, fullCheck2);
+                doCheck(deploys2, passengerDto, fullCheck2);
 
                 Boolean noSeatGoing = Boolean.TRUE;
                 Boolean noSeatComing = Boolean.TRUE;
@@ -1144,8 +1174,6 @@ public class SeatController {
                     model.addAttribute("vipDisabled", true);
                 }
 
-                //없어도 될 듯?
-//                model.addAttribute("round", true);
                 model.addAttribute("going", true);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
                 model.addAttribute("dateTimeOfLeaving", afterDateTime);
@@ -1251,7 +1279,7 @@ public class SeatController {
 
                 dateTime = LocalDateTime.now();
 
-                deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, dateTime);
             }
 
             if(!newTime.isBefore(LocalDateTime.now())) {
@@ -1262,8 +1290,10 @@ public class SeatController {
                 int dayOfMonth = newTime.getDayOfMonth();
 
                 dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, dateTime);
             }
+
+            Collections.sort(deploysWhenGoing, new ScheduleController.DeployComparator());
 
             if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
@@ -1298,7 +1328,8 @@ public class SeatController {
                 trainList.add(saemaul);
             }
 
-            doCheck(trainList, passengerDto, fullCheck);
+//            doCheck(trainList, passengerDto, fullCheck);
+            doCheck(deploys, passengerDto, fullCheck);
 
             int cntGoing = 0;
 
@@ -1337,7 +1368,7 @@ public class SeatController {
                 int dayOfMonth = LocalDateTime.now().plusDays(30).getDayOfMonth();
 
                 dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, dateTime);
             }
 
             if(!newTime.isAfter(LocalDateTime.now().plusDays(30))) {
@@ -1348,8 +1379,10 @@ public class SeatController {
                 int dayOfMonth = newTime.getDayOfMonth();
 
                 dateTime = LocalDateTime.of(year, monthValue, dayOfMonth, 0, 0);
-                deploysWhenGoing = deployService.searchDeploy(departurePlace, arrivalPlace, dateTime);
+                deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, dateTime);
             }
+
+            Collections.sort(deploysWhenGoing, new ScheduleController.DeployComparator());
 
             if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
@@ -1384,7 +1417,8 @@ public class SeatController {
                 trainList.add(saemaul);
             }
 
-            doCheck(trainList, passengerDto, fullCheck);
+//            doCheck(trainList, passengerDto, fullCheck);
+            doCheck(deploys, passengerDto, fullCheck);
 
             int cntGoing = 0;
 
@@ -1535,8 +1569,10 @@ public class SeatController {
         return LocalDateTime.parse(dateTime, formatter);
     }
 
-    private void doCheck(List<Train> trainList, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
-        for (Train train : trainList) {
+    private void doCheck(List<Long> deploys, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
+        for (Long deployId : deploys) {
+            Deploy deploy = deployService.findDeploy(deployId).get();
+            Train train = deploy.getTrain();
             if (train.getTrainName().contains("KTX")) {
                 List<KtxRoom> ktxRooms = ((Ktx) train).getKtxRooms();
 
