@@ -103,7 +103,7 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
-                //seat까지 fetch 안 하는 게 맞을까?
+                //seat까지 fetch 안 하는 게 맞을까? => 맞음 섣부른 Fetch join임
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
@@ -124,7 +124,6 @@ public class ReservationController {
                 model.addAttribute("roomName", targetRoomName.get());
 
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
-                log.info("fuck 123 = {}", checkMap.values());
                 model.addAttribute("okList", checkMap.values());
 
                 return "trainseat/chooseKtxNormalSeat";
@@ -160,7 +159,8 @@ public class ReservationController {
 
                     return "trainseat/chooseKtxNormalSeat";
                 }
-                //올 때 고를 때 일반실/특실 좌석 체크 Logic
+                //success logic
+                //올 때 좌석 유무 체크 및 해당 페이지 이동 Logic
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
 
                 if (deploy.getTrain().getTrainName().contains("KTX")) {
@@ -226,8 +226,6 @@ public class ReservationController {
                             break;
                         }
                     }
-                    log.info("fuck = {}", okList.get());
-
                     MugunghwaSeatDto targetMugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(targetRoom.getMugunghwaSeat().getId());
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -272,8 +270,6 @@ public class ReservationController {
                             break;
                         }
                     }
-                    log.info("fuck = {}", okList.get());
-
                     SaemaulSeatDto targetSaemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(targetRoom.getSaemaulSeat().getId());
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -706,6 +702,8 @@ public class ReservationController {
 
                     return "trainseat/chooseKtxVipSeat";
                 }
+                //success logic
+                //올 때 좌석 유무 체크 및 해당 페이지 이동 Logic
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
 
                 if (deploy.getTrain().getTrainName().contains("KTX")) {
@@ -771,8 +769,6 @@ public class ReservationController {
                             break;
                         }
                     }
-                    log.info("fuck = {}", okList.get());
-
                     MugunghwaSeatDto targetMugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(targetRoom.getMugunghwaSeat().getId());
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -801,7 +797,6 @@ public class ReservationController {
                 } else {
                     Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-                    //query 몇 개 나가는지 보기
                     List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
                     SaemaulRoom targetRoom = null;
 
@@ -818,8 +813,6 @@ public class ReservationController {
                             break;
                         }
                     }
-                    log.info("fuck = {}", okList.get());
-
                     SaemaulSeatDto targetSaemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(targetRoom.getSaemaulSeat().getId());
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -931,7 +924,6 @@ public class ReservationController {
 
                     return "trainseat/chooseKtxVipSeat";
                 }
-
                 //success logic
                 Reservation reservation = new Reservation();
                 Reservation reservation2 = new Reservation();
@@ -1192,8 +1184,9 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-                //query 몇 개 나가는지 보기
-                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                //query 몇 개 나가는지 보기 => 3개 나감 dto 조회는 1차 캐시 찾아오는 작업을 거치지 않는 듯 2개 x
+//                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
                 Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
                 mugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(foundRoom.get().getMugunghwaSeat().getId());
@@ -1223,7 +1216,8 @@ public class ReservationController {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+//                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
                     Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
                     mugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(foundRoom.get().getMugunghwaSeat().getId());
@@ -1248,9 +1242,10 @@ public class ReservationController {
 
                     return "trainseat/chooseMugunghwaSeat";
                 }
-                //올 때 자리 체크하기로 보내는 logic
+                //success logic
+                //올 때 좌석 유무 체크 및 해당 페이지 이동 Logic
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
-                //updated
+
                 if (deploy.getTrain().getTrainName().contains("KTX")) {
                     Ktx train = (Ktx) deploy.getTrain();
                     List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
@@ -1314,8 +1309,6 @@ public class ReservationController {
                             break;
                         }
                     }
-                    log.info("fuck = {}", okList.get());
-
                     MugunghwaSeatDto targetMugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(targetRoom.getMugunghwaSeat().getId());
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -1361,8 +1354,6 @@ public class ReservationController {
                             break;
                         }
                     }
-                    log.info("fuck = {}", okList.get());
-
                     SaemaulSeatDto targetSaemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(targetRoom.getSaemaulSeat().getId());
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -1409,8 +1400,8 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                 Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-                //query 몇 개 나가는지 보기
-                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+//                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
                 Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
                 mugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(foundRoom.get().getMugunghwaSeat().getId());
@@ -1445,7 +1436,8 @@ public class ReservationController {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                     Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+//                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
                     Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
                     mugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(foundRoom.get().getMugunghwaSeat().getId());
@@ -1602,8 +1594,8 @@ public class ReservationController {
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-            //query 몇 개 나가는지 보기
-            List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+//            List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+            List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
             Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
             //1차 캐시에서 찾아오겠지?? => dto projection이라 1차 캐시에서 못 긁어 오는 듯
@@ -1631,8 +1623,8 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-                //query 몇 개 나가는지 보기
-                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+//                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
                 Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
                 mugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(foundRoom.get().getMugunghwaSeat().getId());
@@ -1742,8 +1734,8 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-                //query 몇 개 나가는지 보기
-                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+//                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                List<SaemaulRoom> saemaulRooms = saemaulRoomService.findAllBySaemaul(saemaul);
                 Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
                 saemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(foundRoom.get().getSaemaulSeat().getId());
@@ -1773,8 +1765,8 @@ public class ReservationController {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-                    //query 몇 개 나가는지 보기
-                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+//                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.findAllBySaemaul(saemaul);
                     Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
                     saemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(foundRoom.get().getSaemaulSeat().getId());
@@ -1799,7 +1791,8 @@ public class ReservationController {
 
                     return "trainseat/chooseSaemaulSeat";
                 }
-                //올 때 자리 체크하기로 보내는 logic
+                //success logic
+                //올 때 좌석 유무 체크 및 해당 페이지 이동 Logic
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
 
                 if (deploy.getTrain().getTrainName().contains("KTX")) {
@@ -1865,8 +1858,6 @@ public class ReservationController {
                             break;
                         }
                     }
-                    log.info("fuck = {}", okList.get());
-
                     MugunghwaSeatDto targetMugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(targetRoom.getMugunghwaSeat().getId());
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -1912,8 +1903,6 @@ public class ReservationController {
                             break;
                         }
                     }
-                    log.info("fuck = {}", okList.get());
-
                     SaemaulSeatDto targetSaemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(targetRoom.getSaemaulSeat().getId());
 
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -1960,8 +1949,8 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                 Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-                //query 몇 개 나가는지 보기
-                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+//                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                List<SaemaulRoom> saemaulRooms = saemaulRoomService.findAllBySaemaul(saemaul);
                 Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
                 saemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(foundRoom.get().getSaemaulSeat().getId());
@@ -1996,8 +1985,8 @@ public class ReservationController {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                     Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-                    //query 몇 개 나가는지 보기
-                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+//                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.findAllBySaemaul(saemaul);
                     Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
                     saemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(foundRoom.get().getSaemaulSeat().getId());
@@ -2154,8 +2143,8 @@ public class ReservationController {
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-            //query 몇 개 나가는지 보기
-            List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+//            List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+            List<SaemaulRoom> saemaulRooms = saemaulRoomService.findAllBySaemaul(saemaul);
             Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
             //1차 캐시에서 찾아오겠지?? => dto projection이라 1차 캐시에서 못 긁어 오는 듯
@@ -2183,8 +2172,8 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-                //query 몇 개 나가는지 보기
-                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+//                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
+                List<SaemaulRoom> saemaulRooms = saemaulRoomService.findAllBySaemaul(saemaul);
                 Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
                 saemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(foundRoom.get().getSaemaulSeat().getId());

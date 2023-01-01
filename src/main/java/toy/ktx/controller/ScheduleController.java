@@ -40,6 +40,7 @@ public class ScheduleController {
     private final MugunghwaService mugunghwaService;
     private final SaemaulService saemaulService;
 
+    //deploy를 출발시간 순서로 정렬하여 뿌리기 위한 comparator
     public final static class DeployComparator implements Comparator<Deploy> {
         @Override
         public int compare(Deploy deploy1, Deploy deploy2) {
@@ -127,6 +128,7 @@ public class ScheduleController {
         model.addAttribute("before", before); //출발하는 날
         model.addAttribute("after", after); //오는 날
 
+        //query 8개 나감 O(8)
         if(scheduleForm.getRound() == true) {
             //fetch
             List<Deploy> deploysWhenGoing = deployService.searchDeployToTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
@@ -151,25 +153,10 @@ public class ScheduleController {
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
 
-                    List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
-                    List<Mugunghwa> mugunghwaList = mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
-                    List<Saemaul> saemaulList = saemaulService.getSaemaulToSeatWithFetchAndIn(deploys);
+                    ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                    mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
+                    saemaulService.getSaemaulToSeatWithFetchAndIn(deploys);
 
-                    List<Train> trainList = new ArrayList<>();
-
-                    for (Ktx ktx : ktxList) {
-                        trainList.add(ktx);
-                    }
-
-                    for (Mugunghwa mugunghwa : mugunghwaList) {
-                        trainList.add(mugunghwa);
-                    }
-
-                    for (Saemaul saemaul : saemaulList) {
-                        trainList.add(saemaul);
-                    }
-
-//                    doCheck(trainList, passengerDto, fullCheck);
                     doCheck(deploys, passengerDto, fullCheck);
 
                     int cntComing = 0;
@@ -195,26 +182,11 @@ public class ScheduleController {
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
-                    //updated
-                    List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
-                    List<Mugunghwa> mugunghwaList = mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
-                    List<Saemaul> saemaulList = saemaulService.getSaemaulToSeatWithFetchAndIn(deploys);
+                    //미리 당기기
+                    ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                    mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
+                    saemaulService.getSaemaulToSeatWithFetchAndIn(deploys);
 
-                    List<Train> trainList = new ArrayList<>();
-
-                    for (Ktx ktx : ktxList) {
-                        trainList.add(ktx);
-                    }
-
-                    for (Mugunghwa mugunghwa : mugunghwaList) {
-                        trainList.add(mugunghwa);
-                    }
-
-                    for (Saemaul saemaul : saemaulList) {
-                        trainList.add(saemaul);
-                    }
-
-//                    doCheck(trainList, passengerDto, fullCheck);
                     doCheck(deploys, passengerDto, fullCheck);
 
                     int cntGoing = 0;
@@ -248,49 +220,20 @@ public class ScheduleController {
                 //coming
                 List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
 
-                //updated
-                List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
-                List<Mugunghwa> mugunghwaList = mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
-                List<Saemaul> saemaulList = saemaulService.getSaemaulToSeatWithFetchAndIn(deploys);
+                //미리 당기기
+                ktxService.getKtxToSeatWithFetchAndIn(deploys);
+                mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
+                saemaulService.getSaemaulToSeatWithFetchAndIn(deploys);
 
-                List<Train> trainList = new ArrayList<>();
-
-                for (Ktx ktx : ktxList) {
-                    trainList.add(ktx);
-                }
-
-                for (Mugunghwa mugunghwa : mugunghwaList) {
-                    trainList.add(mugunghwa);
-                }
-
-                for (Saemaul saemaul : saemaulList) {
-                    trainList.add(saemaul);
-                }
-
-                List<Ktx> ktxList2 = ktxService.getKtxToSeatWithFetchAndIn(deploys2);
-                List<Mugunghwa> mugunghwaList2 = mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys2);
-                List<Saemaul> saemaulList2 = saemaulService.getSaemaulToSeatWithFetchAndIn(deploys2);
-
-                List<Train> trainList2 = new ArrayList<>();
-
-                for (Ktx ktx : ktxList2) {
-                    trainList2.add(ktx);
-                }
-
-                for (Mugunghwa mugunghwa : mugunghwaList2) {
-                    trainList2.add(mugunghwa);
-                }
-
-                for (Saemaul saemaul : saemaulList2) {
-                    trainList2.add(saemaul);
-                }
+                //미리 당기기
+                ktxService.getKtxToSeatWithFetchAndIn(deploys2);
+                mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys2);
+                saemaulService.getSaemaulToSeatWithFetchAndIn(deploys2);
 
                 //going
-//                doCheck(trainList, passengerDto, fullCheck);
                 doCheck(deploys, passengerDto, fullCheck);
 
                 //coming
-//                doCheck(trainList2, passengerDto, fullCheck2);
                 doCheck(deploys2, passengerDto, fullCheck2);
 
                 Boolean noSeatGoing = Boolean.TRUE;
@@ -350,21 +293,18 @@ public class ScheduleController {
                 deployForm.setDeployIdOfGoing(deploysWhenGoing.get(cntGoing).getId());
                 deployForm.setDeployIdOfComing(deploysWhenComing.get(cntComing).getId());
 
-                log.info("fuck = {}", cntGoing);
-                log.info("fuck = {}", cntComing);
-
                 return "schedule";
             }
         }
 // Round vs one-way--------------------------------------------------------------------------------------------------------------
 //success logic
+        //select query 데이터 개수 상관없이 4개 나감 O(4)
         //seat을 기준으로 객체 탐색을 하는 건 deploy, reservation 등의 주 테이블에서 탐색해야 된다는 원칙에서 위배됨 -> 자연스럽지 못한 듯
         //왜 deploys를 긁어 올 때 seat까지 같이 긁지 않는 것인가? => 연관관계를 가지는 train이 부모 클래스라서 자식 클래스인 ktx로 객체 탐색이 불가함(내가 하는 방법을 모르는 걸 수도)
         //예상 1 + N = > 1 + N(라고 보기는 애매함 1:1 관계에서의 문제라서) => in 절로 해결하자 => 해결
         //fetch
         List<Deploy> deploysWhenGoing = deployService.searchDeployToTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
         Collections.sort(deploysWhenGoing, new DeployComparator());
-        log.info("fuck123 = {}",deploysWhenGoing);
 
         if(deploysWhenGoing.isEmpty() == true) {
             model.addAttribute("emptyWhenGoing", true);
@@ -377,28 +317,15 @@ public class ScheduleController {
         List<List<Boolean>> fullCheck = new ArrayList<>();
         List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
 
-        // select query가 50번 나가던 걸 5번으로 줄임 => 1/10 (oneToOne + batch fetch 때문에 일어난 문제인 듯)
-        // 필기에는 트랜잭션 하나에 영속성 컨텍스트 하나가 대응되는 그렇다면 multiple services가 같은 Tx를 쓰는 건가?
-        // oneToOne query 많이 나가는 거 막으려고 미리 당기는 작업
+        //select query를 1/10로 줄임 (oneToOne + batch fetch 때문에 일어난 문제인 듯)
+        //필기에는 트랜잭션 하나에 영속성 컨텍스트 하나가 대응되는 그렇다면 multiple services가 같은 Tx를 쓰는 건가?
+        //oneToOne query 많이 나가는 거 막으려고 미리 당기는 작업
         //얘는 반복되는 대로 1차 캐시에서 안 찾고 쿼리를 날림 => Pk 조회가 아니어서 그런 듯
-        List<Ktx> ktxList = ktxService.getKtxToSeatWithFetchAndIn(deploys);
-        List<Mugunghwa> mugunghwaList = mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
-        List<Saemaul> saemaulList = saemaulService.getSaemaulToSeatWithFetchAndIn(deploys);
+        //미리 당기기 => 미리 안 당기면 Deploys 개수만큼 쿼리가 나가야 됨
+        ktxService.getKtxToSeatWithFetchAndIn(deploys);
+        mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
+        saemaulService.getSaemaulToSeatWithFetchAndIn(deploys);
 
-        List<Train> trainList = new ArrayList<>();
-
-        for (Ktx ktx : ktxList) {
-            trainList.add(ktx);
-        }
-
-        for (Mugunghwa mugunghwa : mugunghwaList) {
-            trainList.add(mugunghwa);
-        }
-
-        for (Saemaul saemaul : saemaulList) {
-            trainList.add(saemaul);
-        }
-//        doCheck(trainList, passengerDto, fullCheck);
         doCheck(deploys, passengerDto, fullCheck);
 
         int cntGoing = 0;
@@ -411,9 +338,9 @@ public class ScheduleController {
             }
             cntGoing += 1;
         }
+
         model.addAttribute("fullCheck", fullCheck);
         model.addAttribute("disableSeatButton", true);
-        log.info("fuck123 = {}",fullCheck);
         return "schedule";
     }
 
@@ -516,104 +443,6 @@ public class ScheduleController {
             }
         }
     }
-
-//    private void doCheck(List<Train> trainList, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
-//        for (Train train : trainList) {
-//            if (train.getTrainName().contains("KTX")) {
-//                List<KtxRoom> ktxRooms = ((Ktx) train).getKtxRooms();
-//
-//                List<String> normalReserveOkList = new ArrayList<>();
-//                List<String> vipReserveOkList = new ArrayList<>();
-//
-//                for (KtxRoom ktxRoom : ktxRooms) {
-//                    if (ktxRoom.getGrade() == Grade.NORMAL) {
-//                        KtxSeatNormal ktxSeatNormal = (KtxSeatNormal) ktxRoom.getKtxSeat();
-//                        if (ktxSeatNormal.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
-//                            normalReserveOkList.add(ktxRoom.getRoomName());
-//                        }
-//                    }
-//                    else {
-//                        KtxSeatVip ktxSeatVip = (KtxSeatVip) ktxRoom.getKtxSeat();
-//                        if (ktxSeatVip.remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
-//                            vipReserveOkList.add(ktxRoom.getRoomName());
-//                        }
-//                    }
-//                }
-//
-//                log.info("doCheck = {}",normalReserveOkList);
-//                log.info("doCheck = {}",vipReserveOkList);
-//
-//                List<Boolean> check = new ArrayList<>();
-//
-//                if(!normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
-//                    check.add(true);
-//                    check.add(true);
-//                }
-//
-//                if(!normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
-//                    check.add(true);
-//                    check.add(false);
-//                }
-//
-//                if(normalReserveOkList.isEmpty() && !vipReserveOkList.isEmpty()) {
-//                    check.add(false);
-//                    check.add(true);
-//                }
-//
-//                if (normalReserveOkList.isEmpty() && vipReserveOkList.isEmpty()) {
-//                    check.add(false);
-//                    check.add(false);
-//                }
-//                fullCheck.add(check);
-//            }
-//
-//            else if (train.getTrainName().contains("MUGUNGHWA")) {
-//                List<MugunghwaRoom> mugunghwaRooms = ((Mugunghwa) train).getMugunghwaRooms();
-//
-//                List<String> reserveOkList = new ArrayList<>();
-//
-//                for (MugunghwaRoom mugunghwaRoom : mugunghwaRooms) {
-//                    if (mugunghwaRoom.getMugunghwaSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
-//                        reserveOkList.add(mugunghwaRoom.getRoomName());
-//                    }
-//                }
-//
-//                log.info("doCheck = {}",reserveOkList);
-//
-//                List<Boolean> check = new ArrayList<>();
-//
-//                if (reserveOkList.isEmpty()) {
-//                    check.add(false);
-//                } else {
-//                    check.add(true);
-//                }
-//                fullCheck.add(check);
-//            }
-//
-//            else {
-//                List<SaemaulRoom> saemaulRooms = ((Saemaul) train).getSaemaulRooms();
-//
-//                List<String> reserveOkList = new ArrayList<>();
-//
-//                for (SaemaulRoom saemaulRoom : saemaulRooms) {
-//                    if (saemaulRoom.getSaemaulSeat().remain(passengerDto.howManyOccupied()) == Boolean.TRUE) {
-//                        reserveOkList.add(saemaulRoom.getRoomName());
-//                    }
-//                }
-//
-//                log.info("doCheck = {}",reserveOkList);
-//
-//                List<Boolean> check = new ArrayList<>();
-//
-//                if (reserveOkList.isEmpty()) {
-//                    check.add(false);
-//                } else {
-//                    check.add(true);
-//                }
-//                fullCheck.add(check);
-//            }
-//        }
-//    }
 
     private LocalDateTime getLocalDateTime(String dateTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;

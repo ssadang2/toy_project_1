@@ -9,6 +9,7 @@ import toy.ktx.controller.ScheduleController;
 import toy.ktx.domain.Deploy;
 import toy.ktx.domain.Member;
 import toy.ktx.repository.DeployRepository;
+import toy.ktx.repository.KtxRepository;
 import toy.ktx.repository.MugunghwaRepository;
 import toy.ktx.repository.SaemaulRepository;
 
@@ -34,13 +35,19 @@ class DeployServiceTest {
     KtxService ktxService;
 
     @Autowired
+    KtxRoomService ktxRoomService;
+
+    @Autowired
+    KtxRepository ktxRepository;
+
+    @Autowired
     MugunghwaRepository mugunghwaRepository;
 
     @Autowired
     SaemaulRepository saemaulRepository;
 
     @Test
-//    @Rollback(value = false)
+    @Rollback(value = false)
     public void saveDeploy() {
 //        Deploy deploy = new Deploy(LocalDateTime.of(2023, 1, 20, 14, 0, 0),
 //                LocalDateTime.of(2023, 1, 20, 14, 0, 0).plusHours(2).plusMinutes(40)
@@ -85,43 +92,5 @@ class DeployServiceTest {
 //        deployService.saveDeploy(deploy3);
 //        deployService.saveDeploy(deploy4);
 //        deployService.saveDeploy(deploy5);
-
-        Member member = new Member("1", "1");
-        Member member2 = new Member("2", "2");
-        Member member3 = new Member("1", "5");
-        Member member4 = new Member("2", "4");
-        Member member5 = new Member("5", "3");
-
-        List<Member> test = new ArrayList<>();
-        test.add(member);
-        test.add(member2);
-        test.add(member3);
-        test.add(member4);
-        test.add(member5);
-
-        System.out.println("test = " + test);
-
-        Collections.sort(test, new DeployComparator());
-
-        System.out.println("test = " + test);
-    }
-
-    public final static class DeployComparator implements Comparator<Member> {
-        @Override
-        public int compare(Member member1, Member member2) {
-            if (Long.valueOf(member1.getLoginId()) < Long.valueOf(member2.getLoginId())) {
-                return 1;
-            }
-            else if (Long.valueOf(member1.getLoginId()) > Long.valueOf(member2.getLoginId())) {
-                return -1;
-            }
-            else {
-                if (Long.valueOf(member1.getPassword()) < Long.valueOf(member2.getPassword())) {
-                    return 1;
-                } else {
-                    return -1;
-                }
-            }
-        }
     }
 }
