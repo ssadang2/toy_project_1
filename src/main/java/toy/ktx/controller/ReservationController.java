@@ -74,7 +74,7 @@ public class ReservationController {
                           @RequestParam(required = false) String departurePlace,
                           @RequestParam(required = false) String arrivalPlace,
                           @RequestParam(required = false) String dateTimeOfGoing,
-                          @RequestParam(required = false) String dateTimeOfLeaving,
+                          @RequestParam(required = false) String dateTimeOfComing,
                           @RequestParam(required = false) String beforeRoomName,
                           @RequestParam(required = false) Boolean beforeNormal,
                           @RequestParam(required = false) Boolean beforeVip,
@@ -87,7 +87,7 @@ public class ReservationController {
 
         if(round == Boolean.TRUE && going == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
@@ -115,7 +115,7 @@ public class ReservationController {
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                model.addAttribute("dateTimeOfComing", afterDateTime);
 
                 ObjectMapper objectMapper = new ObjectMapper();
                 Map seatMap = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
@@ -146,7 +146,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     ObjectMapper objectMapper = new ObjectMapper();
                     Map seatMap = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
@@ -199,7 +199,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     model.addAttribute("beforeRoomName", roomName);
                     model.addAttribute("beforeVip", false);
@@ -242,7 +242,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     model.addAttribute("beforeRoomName", roomName);
                     model.addAttribute("beforeVip", false);
@@ -287,7 +287,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     model.addAttribute("beforeRoomName", roomName);
                     model.addAttribute("beforeVip", false);
@@ -301,7 +301,7 @@ public class ReservationController {
 
         if(round == Boolean.TRUE && coming == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
@@ -327,7 +327,7 @@ public class ReservationController {
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                model.addAttribute("dateTimeOfComing", afterDateTime);
 
                 model.addAttribute("beforeRoomName", beforeRoomName);
                 model.addAttribute("beforeNormal", beforeNormal);
@@ -363,7 +363,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     //updated
                     model.addAttribute("beforeRoomName", beforeRoomName);
@@ -620,7 +620,7 @@ public class ReservationController {
                           @RequestParam(required = false) String departurePlace,
                           @RequestParam(required = false) String arrivalPlace,
                           @RequestParam(required = false) String dateTimeOfGoing,
-                          @RequestParam(required = false) String dateTimeOfLeaving,
+                          @RequestParam(required = false) String dateTimeOfComing,
                           @RequestParam(required = false) Boolean beforeNormal,
                           @RequestParam(required = false) Boolean beforeVip,
                           @RequestParam(required = false) String beforeChosenSeats,
@@ -632,7 +632,7 @@ public class ReservationController {
 
         if(round == Boolean.TRUE && going == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
@@ -658,7 +658,7 @@ public class ReservationController {
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                model.addAttribute("dateTimeOfComing", afterDateTime);
 
                 ObjectMapper objectMapper = new ObjectMapper();
                 Map seatMap = objectMapper.convertValue(ktxVipSeatDto, Map.class);
@@ -689,7 +689,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     ObjectMapper objectMapper = new ObjectMapper();
                     Map seatMap = objectMapper.convertValue(ktxVipSeatDto, Map.class);
@@ -742,7 +742,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     model.addAttribute("beforeRoomName", roomName);
                     model.addAttribute("beforeVip", true);
@@ -786,7 +786,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     model.addAttribute("beforeRoomName", roomName);
                     model.addAttribute("beforeVip", true);
@@ -830,7 +830,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     model.addAttribute("beforeRoomName", roomName);
                     model.addAttribute("beforeVip", true);
@@ -844,7 +844,7 @@ public class ReservationController {
 
         if(round == Boolean.TRUE && coming == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
@@ -871,7 +871,7 @@ public class ReservationController {
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                model.addAttribute("dateTimeOfComing", afterDateTime);
 
                 //updated
                 model.addAttribute("beforeRoomName", beforeRoomName);
@@ -908,7 +908,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     //updated
                     model.addAttribute("beforeRoomName", beforeRoomName);
@@ -1156,7 +1156,7 @@ public class ReservationController {
                                    @RequestParam(required = false) String departurePlace,
                                    @RequestParam(required = false) String arrivalPlace,
                                    @RequestParam(required = false) String dateTimeOfGoing,
-                                   @RequestParam(required = false) String dateTimeOfLeaving,
+                                   @RequestParam(required = false) String dateTimeOfComing,
                                    @RequestParam(required = false) String beforeRoomName,
                                    @RequestParam(required = false) Boolean beforeNormal,
                                    @RequestParam(required = false) Boolean beforeVip,
@@ -1169,7 +1169,7 @@ public class ReservationController {
 
         if(round == Boolean.TRUE && going == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
@@ -1197,7 +1197,7 @@ public class ReservationController {
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                model.addAttribute("dateTimeOfComing", afterDateTime);
 
                 ObjectMapper objectMapper = new ObjectMapper();
                 Map seatMap = objectMapper.convertValue(mugunghwaSeatDto, Map.class);
@@ -1229,7 +1229,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     ObjectMapper objectMapper = new ObjectMapper();
                     Map seatMap = objectMapper.convertValue(mugunghwaSeatDto, Map.class);
@@ -1282,7 +1282,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     model.addAttribute("beforeRoomName", roomName);
                     model.addAttribute("beforeVip", false);
@@ -1326,7 +1326,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     model.addAttribute("beforeRoomName", roomName);
                     model.addAttribute("beforeVip", false);
@@ -1371,7 +1371,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     model.addAttribute("beforeRoomName", roomName);
                     model.addAttribute("beforeVip", false);
@@ -1385,7 +1385,7 @@ public class ReservationController {
 
         if(round == Boolean.TRUE && coming == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
@@ -1412,7 +1412,7 @@ public class ReservationController {
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                model.addAttribute("dateTimeOfComing", afterDateTime);
 
                 model.addAttribute("beforeRoomName", beforeRoomName);
                 model.addAttribute("beforeNormal", beforeNormal);
@@ -1449,7 +1449,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     //updated
                     model.addAttribute("beforeRoomName", beforeRoomName);
@@ -1705,7 +1705,7 @@ public class ReservationController {
                                    @RequestParam(required = false) String departurePlace,
                                    @RequestParam(required = false) String arrivalPlace,
                                    @RequestParam(required = false) String dateTimeOfGoing,
-                                   @RequestParam(required = false) String dateTimeOfLeaving,
+                                   @RequestParam(required = false) String dateTimeOfComing,
                                    @RequestParam(required = false) String beforeRoomName,
                                    @RequestParam(required = false) Boolean beforeNormal,
                                    @RequestParam(required = false) Boolean beforeVip,
@@ -1718,7 +1718,7 @@ public class ReservationController {
 
         if(round == Boolean.TRUE && going == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
@@ -1746,7 +1746,7 @@ public class ReservationController {
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                model.addAttribute("dateTimeOfComing", afterDateTime);
 
                 ObjectMapper objectMapper = new ObjectMapper();
                 Map seatMap = objectMapper.convertValue(saemaulSeatDto, Map.class);
@@ -1778,7 +1778,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     ObjectMapper objectMapper = new ObjectMapper();
                     Map seatMap = objectMapper.convertValue(saemaulSeatDto, Map.class);
@@ -1831,7 +1831,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     model.addAttribute("beforeRoomName", roomName);
                     model.addAttribute("beforeVip", false);
@@ -1875,7 +1875,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     model.addAttribute("beforeRoomName", roomName);
                     model.addAttribute("beforeVip", false);
@@ -1920,7 +1920,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     model.addAttribute("beforeRoomName", roomName);
                     model.addAttribute("beforeVip", false);
@@ -1934,7 +1934,7 @@ public class ReservationController {
 
         if(round == Boolean.TRUE && coming == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
@@ -1949,7 +1949,6 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                 Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-//                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
                 List<SaemaulRoom> saemaulRooms = saemaulRoomService.findAllBySaemaul(saemaul);
                 Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
@@ -1961,7 +1960,7 @@ public class ReservationController {
                 model.addAttribute("departurePlace", departurePlace);
                 model.addAttribute("arrivalPlace", arrivalPlace);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                model.addAttribute("dateTimeOfComing", afterDateTime);
 
                 model.addAttribute("beforeRoomName", beforeRoomName);
                 model.addAttribute("beforeNormal", beforeNormal);
@@ -1998,7 +1997,7 @@ public class ReservationController {
                     model.addAttribute("departurePlace", departurePlace);
                     model.addAttribute("arrivalPlace", arrivalPlace);
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                    model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                    model.addAttribute("dateTimeOfComing", afterDateTime);
 
                     //updated
                     model.addAttribute("beforeRoomName", beforeRoomName);

@@ -19,9 +19,9 @@ public class ScheduleForm {
 
     private String timeOfGoing;
 
-    private String dateOfLeaving;
+    private String dateOfComing;
 
-    private String timeOfLeaving;
+    private String timeOfComing;
 
     private Integer toddler;
 
@@ -50,5 +50,16 @@ public class ScheduleForm {
             sum += senior;
         }
         return sum;
+    }
+
+    public PassengerDto getDto() {
+        PassengerDto passengerDto = new PassengerDto();
+
+        passengerDto.setToddler(toddler);
+        passengerDto.setKids(kids);
+        passengerDto.setAdult(adult);
+        passengerDto.setSenior(senior);
+
+        return passengerDto;
     }
 }

@@ -58,7 +58,7 @@ public class SeatController {
                              @RequestParam(required = false) String prevComing,
                              @RequestParam(required = false) String nextComing,
                              @RequestParam(required = false) String dateTimeOfGoing,
-                             @RequestParam(required = false) String dateTimeOfLeaving,
+                             @RequestParam(required = false) String dateTimeOfComing,
                              @RequestParam(required = false) String departurePlace,
                              @RequestParam(required = false) String arrivalPlace,
                              @RequestParam(required = false) Boolean round,
@@ -74,7 +74,7 @@ public class SeatController {
         //이동시 going, coming 둘 다 deploys가 존재하면 8개 한 개만 존재하면 4개 아무것도 없으면 2개만 나가는 구조
         if (round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             LocalDateTime dateTime = null;
             Boolean noBefore = false;
@@ -126,7 +126,7 @@ public class SeatController {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+                    model.addAttribute("dateTimeOfComing", dateTimeOfComing);
 
                     return "schedule";
                 }
@@ -136,7 +136,7 @@ public class SeatController {
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
                     model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
                     model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+                    model.addAttribute("dateTimeOfComing", dateTimeOfComing);
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
@@ -169,7 +169,7 @@ public class SeatController {
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                     model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                     model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+                    model.addAttribute("dateTimeOfComing", dateTimeOfComing);
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
@@ -200,7 +200,7 @@ public class SeatController {
                 model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                 model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
                 model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+                model.addAttribute("dateTimeOfComing", dateTimeOfComing);
 
                 List<List<Boolean>> fullCheck = new ArrayList<>();
                 List<List<Boolean>> fullCheck2 = new ArrayList<>();
@@ -334,7 +334,7 @@ public class SeatController {
                     model.addAttribute("emptyWhenComing", true);
 
                     model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+                    model.addAttribute("dateTimeOfComing", dateTimeOfComing);
                     return "schedule";
                 }
 
@@ -343,7 +343,7 @@ public class SeatController {
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
                     model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
                     model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+                    model.addAttribute("dateTimeOfComing", dateTimeOfComing);
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
@@ -376,7 +376,7 @@ public class SeatController {
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                     model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                     model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                    model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+                    model.addAttribute("dateTimeOfComing", dateTimeOfComing);
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
@@ -407,7 +407,7 @@ public class SeatController {
                 model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                 model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
                 model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+                model.addAttribute("dateTimeOfComing", dateTimeOfComing);
 
                 List<List<Boolean>> fullCheck = new ArrayList<>();
                 List<List<Boolean>> fullCheck2 = new ArrayList<>();
@@ -537,7 +537,7 @@ public class SeatController {
                     model.addAttribute("emptyWhenGoing", true);
 
                     model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
-                    model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+                    model.addAttribute("dateTimeOfComing", dateTime.toString());
                     return "schedule";
                 }
 
@@ -546,7 +546,7 @@ public class SeatController {
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                     model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                     model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
-                    model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+                    model.addAttribute("dateTimeOfComing", dateTime.toString());
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
@@ -577,7 +577,7 @@ public class SeatController {
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
                     model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
                     model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
-                    model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+                    model.addAttribute("dateTimeOfComing", dateTime.toString());
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
@@ -609,7 +609,7 @@ public class SeatController {
                 model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                 model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
                 model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
-                model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+                model.addAttribute("dateTimeOfComing", dateTime.toString());
 
                 List<List<Boolean>> fullCheck = new ArrayList<>();
                 List<List<Boolean>> fullCheck2 = new ArrayList<>();
@@ -743,7 +743,7 @@ public class SeatController {
                     model.addAttribute("emptyWhenGoing", true);
 
                     model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
-                    model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+                    model.addAttribute("dateTimeOfComing", dateTime.toString());
                     return "schedule";
                 }
 
@@ -752,7 +752,7 @@ public class SeatController {
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                     model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                     model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
-                    model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+                    model.addAttribute("dateTimeOfComing", dateTime.toString());
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
@@ -783,7 +783,7 @@ public class SeatController {
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
                     model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
                     model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
-                    model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+                    model.addAttribute("dateTimeOfComing", dateTime.toString());
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
@@ -815,7 +815,7 @@ public class SeatController {
                 model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
                 model.addAttribute("durationsWhenComing", getDuration(deploysWhenComing));
                 model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
-                model.addAttribute("dateTimeOfLeaving", dateTime.toString());
+                model.addAttribute("dateTimeOfComing", dateTime.toString());
 
                 List<List<Boolean>> fullCheck = new ArrayList<>();
                 List<List<Boolean>> fullCheck2 = new ArrayList<>();
@@ -932,7 +932,7 @@ public class SeatController {
 
                 model.addAttribute("going", true);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                model.addAttribute("dateTimeOfComing", afterDateTime);
 
                 return "normalVip";
             }
@@ -962,7 +962,7 @@ public class SeatController {
 
                 model.addAttribute("going", true);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                model.addAttribute("dateTimeOfComing", afterDateTime);
 
                 model.addAttribute("mugunghwaRooms", mugunghwaRooms);
                 model.addAttribute("roomName", targetRoom.getRoomName());
@@ -996,7 +996,7 @@ public class SeatController {
 
                 model.addAttribute("going", true);
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
-                model.addAttribute("dateTimeOfLeaving", afterDateTime);
+                model.addAttribute("dateTimeOfComing", afterDateTime);
 
                 model.addAttribute("saemaulRooms", saemaulRooms);
                 model.addAttribute("roomName", targetRoom.getRoomName());
@@ -1051,14 +1051,14 @@ public class SeatController {
             if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
                 model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+                model.addAttribute("dateTimeOfComing", dateTimeOfComing);
                 return "schedule";
             }
 
             model.addAttribute("deploysWhenGoing", deploysWhenGoing);
             model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
             model.addAttribute("dateTimeOfGoing", dateTime.toString());
-            model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+            model.addAttribute("dateTimeOfComing", dateTimeOfComing);
 
             List<List<Boolean>> fullCheck = new ArrayList<>();
             List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
@@ -1125,14 +1125,14 @@ public class SeatController {
             if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
                 model.addAttribute("dateTimeOfGoing", dateTime.toString());
-                model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+                model.addAttribute("dateTimeOfComing", dateTimeOfComing);
                 return "schedule";
             }
 
             model.addAttribute("deploysWhenGoing", deploysWhenGoing);
             model.addAttribute("durationsWhenGoing", getDuration(deploysWhenGoing));
             model.addAttribute("dateTimeOfGoing", dateTime.toString());
-            model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
+            model.addAttribute("dateTimeOfComing", dateTimeOfComing);
 
             List<List<Boolean>> fullCheck = new ArrayList<>();
             List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());

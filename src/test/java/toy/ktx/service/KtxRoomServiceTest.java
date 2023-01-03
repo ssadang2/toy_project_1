@@ -36,7 +36,6 @@ class KtxRoomServiceTest {
     public void save() {
         Optional<Ktx> ktx001 = ktxService.findKtx(Long.valueOf(17));
 
-
         KtxRoom room1 = new KtxRoom("room1", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(51)).get());
         KtxRoom room2 = new KtxRoom("room2", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(52)).get());
         KtxRoom room3 = new KtxRoom("room3", ktx001.get(), Grade.VIP, ktxSeatVipService.findById(Long.valueOf(58)).get());

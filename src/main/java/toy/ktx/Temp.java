@@ -8,11 +8,10 @@ import java.util.*;
 
 @Slf4j
 public class Temp {
-    private static final Member temp = new Member();
-
     public static void main(String[] args){
 
-
+        String temp = "12345";
+        System.out.println("temp = " + temp.substring(3,4));
     }
 }
 

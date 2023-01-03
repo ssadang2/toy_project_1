@@ -23,4 +23,9 @@ public class SaemaulRoomService {
     public List<SaemaulRoom> findAllBySaemaul(Saemaul saemaul) {
         return saemaulRoomRepository.findAllBySaemaul(saemaul);
     }
+
+    @Transactional
+    public void save(SaemaulRoom saemaulRoom) {
+        saemaulRoomRepository.save(saemaulRoom);
+    }
 }

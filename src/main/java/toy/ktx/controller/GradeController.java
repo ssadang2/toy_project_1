@@ -46,7 +46,7 @@ public class GradeController {
                               @RequestParam(required = false) String departurePlace,
                               @RequestParam(required = false) String arrivalPlace,
                               @RequestParam(required = false) String dateTimeOfGoing,
-                              @RequestParam(required = false) String dateTimeOfLeaving,
+                              @RequestParam(required = false) String dateTimeOfComing,
                               @RequestParam(required = false) String normal,
                               @RequestParam(required = false) String vip,
                               @RequestParam(required = false) Boolean beforeNormal,
@@ -68,7 +68,7 @@ public class GradeController {
             model.addAttribute("beforeRoomName", beforeRoomName);
 
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
             Ktx ktx = (Ktx) deploy.getTrain();
@@ -102,7 +102,7 @@ public class GradeController {
             model.addAttribute("coming", true);
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
-            model.addAttribute("dateTimeOfLeaving", afterDateTime);
+            model.addAttribute("dateTimeOfComing", afterDateTime);
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
 
@@ -111,7 +111,7 @@ public class GradeController {
 
         else if (normal != null && round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Ktx ktx = (Ktx) deploy.getTrain();
@@ -146,7 +146,7 @@ public class GradeController {
             model.addAttribute("going", going);
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
-            model.addAttribute("dateTimeOfLeaving", afterDateTime);
+            model.addAttribute("dateTimeOfComing", afterDateTime);
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
 
@@ -202,7 +202,7 @@ public class GradeController {
             model.addAttribute("beforeRoomName", beforeRoomName);
 
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
             Ktx ktx = (Ktx) deploy.getTrain();
@@ -237,7 +237,7 @@ public class GradeController {
             model.addAttribute("coming", true);
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
-            model.addAttribute("dateTimeOfLeaving", afterDateTime);
+            model.addAttribute("dateTimeOfComing", afterDateTime);
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
 
@@ -246,7 +246,7 @@ public class GradeController {
 
         else if (vip != null && round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
-            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfLeaving);
+            LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
 
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Ktx ktx = (Ktx) deploy.getTrain();
@@ -281,7 +281,7 @@ public class GradeController {
             model.addAttribute("going", going);
 
             model.addAttribute("dateTimeOfGoing", beforeDateTime);
-            model.addAttribute("dateTimeOfLeaving", afterDateTime);
+            model.addAttribute("dateTimeOfComing", afterDateTime);
             model.addAttribute("roomName", targetRoom.getRoomName());
             model.addAttribute("okList", okList.get());
 

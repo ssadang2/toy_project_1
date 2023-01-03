@@ -11,7 +11,7 @@
 
     <h4 th:if="${reservations == null}" class="text-warning text-center">예약이 없습니다</h4>
 
-    <form th:action method="post">
+    <form th:action="@{/my-page/delete-reservation}" method="post">
         <div class="container" th:if="${reservations != null}">
             <th:block th:each="reservation, reservationStat : ${reservations}" >
                 <div class="row border border-secondary align-items-center">

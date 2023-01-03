@@ -1,6 +1,8 @@
 package toy.ktx.service;
 
+import com.fasterxml.jackson.core.PrettyPrinter;
 import lombok.RequiredArgsConstructor;
+import org.attoparser.prettyhtml.PrettyHtmlMarkupHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toy.ktx.domain.mugunhwa.Mugunghwa;
@@ -24,5 +26,10 @@ public class MugunghwaRoomService {
 
     public List<MugunghwaRoom> findAllByMugunghwa(Mugunghwa mugunghwa) {
         return mugunghwaRoomRepository.findAllByMugunghwa(mugunghwa);
+    }
+
+    @Transactional
+    public void save(MugunghwaRoom mugunghwaRoom) {
+        mugunghwaRoomRepository.save(mugunghwaRoom);
     }
 }

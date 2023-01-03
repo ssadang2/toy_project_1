@@ -19,7 +19,7 @@
         <h4>오는날 기차</h4><br><br>
         <!--arrivalPlace의 값이 오는 날일 때는 출발하는 장소-->
         <h4 th:text="|${arrivalPlace} --> ${departurePlace}|" class="text-secondary"></h4>
-        <h4 th:text="|${#temporals.monthName(dateTimeOfLeaving)} ${#temporals.day(dateTimeOfLeaving)}일 (${#temporals.dayOfWeekNameShort(dateTimeOfLeaving)}), ${passengers}명|" class="text-secondary"></h4>
+        <h4 th:text="|${#temporals.monthName(dateTimeOfComing)} ${#temporals.day(dateTimeOfComing)}일 (${#temporals.dayOfWeekNameShort(dateTimeOfComing)}), ${passengers}명|" class="text-secondary"></h4>
         <br>
     </div>
 
@@ -78,7 +78,7 @@
                 <input type="hidden" name="departurePlace" th:value="${departurePlace}">
                 <input type="hidden" name="arrivalPlace" th:value="${arrivalPlace}">
                 <input type="hidden" name="dateTimeOfGoing" th:value="${dateTimeOfGoing}">
-                <input type="hidden" name="dateTimeOfLeaving" th:value="${dateTimeOfLeaving}">
+                <input type="hidden" name="dateTimeOfComing" th:value="${dateTimeOfComing}">
 
                 <input type="hidden" name="beforeNormal" th:value="${beforeNormal}">
                 <input type="hidden" name="beforeVip" th:value="${beforeVip}">

@@ -57,15 +57,30 @@ public class ScheduleController {
     @PostMapping("/schedule")
     public String getSchedule(@Valid @ModelAttribute ScheduleForm scheduleForm,
                               BindingResult bindingResult,
-                              @ModelAttribute PassengerDto passengerDto,
                               @ModelAttribute DeployForm deployForm,
-                              Model model,
-                              @SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member member) {
+                              @SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member member,
+                              Model model) {
 
         LocalDateTime after = null;
         LocalDateTime before = null;
 
-        //passengers number control
+        //passengerDto를 modelAttribute로 받으면 중복으로 검증 logic이 발생하는데 scheduleForm에만 bindingResult가 있기 때문에 에러가 발생
+        //=> 해결방법은 model attribute를 쓰지 않고 똑같은 기능을 구현하면 됨
+        PassengerDto passengerDto = scheduleForm.getDto();
+
+        if(scheduleForm.getDateOfGoing() != "") {
+            String dateTimeOfGoing = scheduleForm.getDateOfGoing() + "T" + scheduleForm.getTimeOfGoing();
+            log.info("fuck = {}", scheduleForm.getTimeOfGoing());
+            model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
+            before = getLocalDateTime(dateTimeOfGoing);
+        }
+
+        if(scheduleForm.getRound() == true && scheduleForm.getDateOfComing() != "") {
+            String dateTimeOfComing = scheduleForm.getDateOfComing() + "T" + scheduleForm.getTimeOfComing();
+            model.addAttribute("dateTimeOfComing", dateTimeOfComing);
+            after = getLocalDateTime(dateTimeOfComing);
+        }
+
         if(passengerDto.howManyOccupied() > Long.valueOf(9)) {
             bindingResult.reject("tooManyPassengers", null);
         }
@@ -74,24 +89,12 @@ public class ScheduleController {
             bindingResult.reject("noDepartureDate", null);
         }
 
-        if(scheduleForm.getRound() == true && !StringUtils.hasText(scheduleForm.getDateOfLeaving())) {
+        if(scheduleForm.getRound() == true && !StringUtils.hasText(scheduleForm.getDateOfComing())) {
             bindingResult.reject("noArrivalDate", null);
-        }
-
-        if(scheduleForm.getDateOfGoing() != "") {
-            String dateTimeOfGoing = scheduleForm.getDateOfGoing() + "T" + scheduleForm.getTimeOfGoing();
-            model.addAttribute("dateTimeOfGoing", dateTimeOfGoing);
-            before = getLocalDateTime(dateTimeOfGoing);
         }
 
         if(before.isBefore(LocalDateTime.now()) == true && before.getHour() != LocalDateTime.now().getHour()) {
             bindingResult.reject("late", null);
-        }
-
-        if(scheduleForm.getRound() == true && scheduleForm.getDateOfLeaving() != "") {
-            String dateTimeOfLeaving = scheduleForm.getDateOfLeaving() + "T" + scheduleForm.getTimeOfLeaving();
-            model.addAttribute("dateTimeOfLeaving", dateTimeOfLeaving);
-            after = getLocalDateTime(dateTimeOfLeaving);
         }
 
         if(scheduleForm.getRound() == true && after != null && before.isAfter(after)) {
@@ -122,6 +125,7 @@ public class ScheduleController {
             return "index";
         }
 
+        model.addAttribute("passengerDto", passengerDto);
         model.addAttribute("departurePlace", scheduleForm.getDeparturePlace());
         model.addAttribute("arrivalPlace", scheduleForm.getArrivalPlace());
         model.addAttribute("round", scheduleForm.getRound());

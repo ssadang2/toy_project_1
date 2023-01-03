@@ -65,4 +65,7 @@ public class DeployService {
         return deployRepository.getDeployToTrainById(id);
     }
 
+    public List<Deploy> findAll() {
+        return deployRepository.findAll();
+    }
 }

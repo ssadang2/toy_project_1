@@ -1,12 +1,225 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<link th:href = "@{../../css/bootstrap.min.css}" rel = "stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+
+<!--for autocomplete-->
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<!--for timepicker-->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
+
 <head>
     <meta charset="UTF-8">
     <title>adminMyPage</title>
 </head>
 <body>
-    <h2 class="text-center" th:text="|${member.name}님, 환영합니다!!!|"></h2>
-    <h2 class="text-center" th:text="|${member.authorizations}님, 환영합니다!!!|"></h2>
+    <h2 class="text-center" th:text="|ADMIN(${member.name})님, 환영합니다|"></h2>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+                <h4 class="text-center">시간표 추가하기</h4>
+
+                <form th:action="@{/my-page/save-deploy}" th:object="${createDeployForm}" method="post">
+                    <div th:if="${#fields.hasGlobalErrors()}">
+                        <h4 th:each="err : ${#fields.globalErrors()}" th:text = "${err}" class="text-danger text-center"></h4>
+                    </div><br>
+
+                    <div class="mb-3">
+                        <label for="departurePlace" class="form-label">출발 장소</label>
+                        <input type="text" class="form-control" id="departurePlace" th:field="*{departurePlace}" th:errorclass="border-danger">
+                        <div th:errors="*{departurePlace}" class="text-danger"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="arrivalPlace" class="form-label">도착 장소</label>
+                        <input type="text" class="form-control" id="arrivalPlace" th:field="*{arrivalPlace}" th:errorclass="border-danger">
+                        <div th:errors="*{arrivalPlace}" class="text-danger"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dateOfGoing" class="form-label">출발 날짜</label>
+                        <input type="date" id="dateOfGoing" class="form-control" th:field="*{dateOfGoing}">
+                        <div th:errors="*{dateOfGoing}" class="text-danger"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="timeOfGoing" class="form-label">출발 시간</label>
+                        <input type="text" id="timeOfGoing" th:field="*{timeOfGoing}" class="form-control" style="width:200px">
+                        <div th:errors="*{timeOfGoing}" class="text-danger"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dateOfComing" class="form-label">도착 날짜</label>
+                        <input type="date" id="dateOfComing" class="form-control" th:field="*{dateOfComing}">
+                        <div th:errors="*{dateOfComing}" class="text-danger"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="timeOfComing" class="form-label">도착 시간</label>
+                        <input type="text" id="timeOfComing" class="form-control" th:field="*{timeOfComing}" style="width:200px">
+                        <div th:errors="*{timeOfComing}" class="text-danger"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="trainName" class="form-label">열차 이름</label>
+                        <input type="text" class="form-control" id="trainName" th:field="*{trainName}" th:errorclass="border-danger">
+                        <div th:errors="*{trainName}" class="text-danger"></div>
+                    </div><br><br>
+
+                    <button type="submit" class="btn btn-secondary">시간표 입력</button>
+                </form>
+            </div>
+
+            <div class="col-6">
+                <h4 class="text-center">시간표 현황</h4><br>
+
+
+                <div class="overflow-auto" style="height: 750px;">
+                    <th:block th:each="deploy, deployStat : ${deployList}">
+                        <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'ktx')}" class="border border-primary align-items-center">
+                            <div class="text-center">
+                                <p th:text="|${deploy.departurePlace}  -->  ${deploy.arrivalPlace}|" class="text-center"></p>
+                                <p th:text="|${#temporals.monthName(deploy.departureTime)} ${#temporals.day(deploy.departureTime)}일 (${#temporals.dayOfWeekNameShort(deploy.departureTime)})|" class="text-center"></p>
+                                <p th:text="${deploy.train.trainName}"></p>
+
+                                <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                                <span th:text="${durations[deployStat.index]}"></span><br><br>
+                            </div>
+                        </div>
+
+                        <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'mugunghwa')}" class="border border-warning align-items-center">
+                            <div class="text-center">
+                                <p th:text="|${deploy.departurePlace}  -->  ${deploy.arrivalPlace}|" class="text-center"></p>
+                                <p th:text="|${#temporals.monthName(deploy.departureTime)} ${#temporals.day(deploy.departureTime)}일 (${#temporals.dayOfWeekNameShort(deploy.departureTime)})|" class="text-center"></p>
+                                <p th:text="${deploy.train.trainName}"></p>
+
+                                <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                                <span th:text="${durations[deployStat.index]}"></span><br><br>
+                            </div>
+                        </div>
+
+                        <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'saemaul')}" class="border border-success align-items-center">
+                            <div class="text-center">
+                                <p th:text="|${deploy.departurePlace}  -->  ${deploy.arrivalPlace}|" class="text-center"></p>
+                                <p th:text="|${#temporals.monthName(deploy.departureTime)} ${#temporals.day(deploy.departureTime)}일 (${#temporals.dayOfWeekNameShort(deploy.departureTime)})|" class="text-center"></p>
+                                <p th:text="${deploy.train.trainName}"></p>
+
+                                <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                                <span th:text="${durations[deployStat.index]}"></span><br><br>
+                            </div>
+                        </div><br><br>
+                    </th:block>
+                </div>
+<!--                <form th:action="@{/my-page}" method="post">-->
+<!--                    <input name="fuck" value="1">-->
+<!--                    <button type="submit" class="btn btn-secondary">실험 중</button>-->
+<!--                </form>-->
+            </div>
+        </div>
+    </div>
+
+    <script>
+    //for departure autocomplete
+    $(function() {
+        var stations = ["가남역", "가평역", "각계역", "감곡장호원역", "강경역", "강구역", "강릉역", "강촌역", "개포역", "경산역", "계룡역",
+        "고한역", "곡성역", "공주역", "광명역", "광양역", "광주역", "광주송정역", "광천역", "구례구역", "구미역", "구포역", "군북역",
+        "군산역", "극락강역", "기장역", "김유정역", "김제역", "김천역", "김천구미역", '나전역', '나주역', '남성현역', '남원역', '남춘천역',
+        '논산역', '능주역', '다시역', '단양역', '대광리역', '대구역', '대성리역', '대야역', '대전역', '대천역', '덕소역', '도계역',
+        '도고온천역', '도라산역', '동대구역', '동두천역', '동백산역', '동탄역', '동해역', '둔내역', '득량역', '마산역', '마석역', '만종역',
+        '망상해변역', '매곡역', '명봉역', '목포역', '몽탄역', '무안역', '묵호역', '문산역', '물금역', '민둥산역', '밀양역', '반성역',
+        '백마고지역', '백양리역', '백양사역', '벌교역', '별어곡역', '보성역', '봉성역', '봉양역', '봉화역', '부강역', '부발역',
+        '부산역', '부전역', '사곡역', '사릉역', '사북역', '사상역', '삼랑진역', '삼례역', '삼산역', '삼탄역', '삽교역', '상동역',
+        '상봉역', '상주역', '서경주역', '서광주역', '서대구역', '서대전역', '서울역', '서원주역', '서정리역', '서천역', '석불역',
+        '석포역', '선평역', '성환역', '센텀역', '소요산역', '수서역', '수원역', '순천역', '승부역', '신경주역', '신기역', '신녕역',
+        '신동역', '신례원역', '신망리역', '신창역', '신탄리역', '신탄진역', '신태인역', '신해운대역', '심천역', '쌍룡역', '아산역',
+        '아우라지역', '아화역', '안강역', '안동역', '안양역', '안인역', '앙성온천역', '약목역', '양동역', '양원역', '양평역',
+        '여수EXPO역', '여천역', '연산역', '연천역', '영덕역', '영동역', '영등포역', '영월역', '영주역', '영천역', '예당역',
+        '예미역', '예산역', '예천역', '오근장역', '오산역', '오송역', '오수역', '옥산역', '옥수역', '옥천역', '온양온천역',
+        '완사역', '왕십리역', '왜관역', '용궁역', '용문역', '용산역', '운천역', '울산(통도사)역', '웅천역', '원동역',
+        '원주역', '월포역', '음성역', '의성역', '의정부역', '이양역', '이원역', '익산역', '인천공항T1역', '인천공항T2역',
+        '일로역', '일신역', '임기역', '임성리역', '임실역', '임진강역', '입석리역', '장사역', '장성역', '장항역',
+        '전곡역', '전의역', '전주역', '점촌역', '정동진역', '정선역', '정읍역', '제천역', '조성역',
+        '조치원역', '주덕역', '중리역', '증평역', '지탄역', '지평역', '진례역', '진부(오대산)역', '진상역', '진영역', '진주역',
+        '창원역', '창원중앙역', '천안역', '천안아산역', '철암역', '청도역', '청량리역', '청리역', '청소역', '청주역', '청주공항역',
+        '청평역', '초성리역', '추풍령역', '춘양역', '춘천역', '충주역', '탑리역', '태백역', '태화강역', '퇴계원역',
+        '판교역', '평내호평역', '평창역', '평택역', '평택지제역', '포항역', '풍기역', '하동역', '하양역', '한림정역',
+        '한탄강역', '함안역', '함열역', '함창역'];
+
+        $('#departurePlace').autocomplete({
+            source : stations,
+            select : function(event, ui) {
+                console.log(ui.item);
+            },
+            focus : function(event, ui) {
+                return false;
+            },
+            minLength : 1,
+            autoFocus : true,
+            classes : {
+                'ui-autocomplete' : 'highlight'
+            },
+            delay : 100,
+            disable : false,
+            position : { my : 'right top', at : 'right bottom'},
+            close : function(event) {
+                console.log(event);
+            }
+        });
+    });
+
+    //for arrival autocomplete
+    $(function() {
+        var stations = ["가남역", "가평역", "각계역", "감곡장호원역", "강경역", "강구역", "강릉역", "강촌역", "개포역", "경산역", "계룡역",
+        "고한역", "곡성역", "공주역", "광명역", "광양역", "광주역", "광주송정역", "광천역", "구례구역", "구미역", "구포역", "군북역",
+        "군산역", "극락강역", "기장역", "김유정역", "김제역", "김천역", "김천구미역", '나전역', '나주역', '남성현역', '남원역', '남춘천역',
+        '논산역', '능주역', '다시역', '단양역', '대광리역', '대구역', '대성리역', '대야역', '대전역', '대천역', '덕소역', '도계역',
+        '도고온천역', '도라산역', '동대구역', '동두천역', '동백산역', '동탄역', '동해역', '둔내역', '득량역', '마산역', '마석역', '만종역',
+        '망상해변역', '매곡역', '명봉역', '목포역', '몽탄역', '무안역', '묵호역', '문산역', '물금역', '민둥산역', '밀양역', '반성역',
+        '백마고지역', '백양리역', '백양사역', '벌교역', '별어곡역', '보성역', '봉성역', '봉양역', '봉화역', '부강역', '부발역',
+        '부산역', '부전역', '사곡역', '사릉역', '사북역', '사상역', '삼랑진역', '삼례역', '삼산역', '삼탄역', '삽교역', '상동역',
+        '상봉역', '상주역', '서경주역', '서광주역', '서대구역', '서대전역', '서울역', '서원주역', '서정리역', '서천역', '석불역',
+        '석포역', '선평역', '성환역', '센텀역', '소요산역', '수서역', '수원역', '순천역', '승부역', '신경주역', '신기역', '신녕역',
+        '신동역', '신례원역', '신망리역', '신창역', '신탄리역', '신탄진역', '신태인역', '신해운대역', '심천역', '쌍룡역', '아산역',
+        '아우라지역', '아화역', '안강역', '안동역', '안양역', '안인역', '앙성온천역', '약목역', '양동역', '양원역', '양평역',
+        '여수EXPO역', '여천역', '연산역', '연천역', '영덕역', '영동역', '영등포역', '영월역', '영주역', '영천역', '예당역',
+        '예미역', '예산역', '예천역', '오근장역', '오산역', '오송역', '오수역', '옥산역', '옥수역', '옥천역', '온양온천역',
+        '완사역', '왕십리역', '왜관역', '용궁역', '용문역', '용산역', '운천역', '울산(통도사)역', '웅천역', '원동역',
+        '원주역', '월포역', '음성역', '의성역', '의정부역', '이양역', '이원역', '익산역', '인천공항T1역', '인천공항T2역',
+        '일로역', '일신역', '임기역', '임성리역', '임실역', '임진강역', '입석리역', '장사역', '장성역', '장항역',
+        '전곡역', '전의역', '전주역', '점촌역', '정동진역', '정선역', '정읍역', '제천역', '조성역',
+        '조치원역', '주덕역', '중리역', '증평역', '지탄역', '지평역', '진례역', '진부(오대산)역', '진상역', '진영역', '진주역',
+        '창원역', '창원중앙역', '천안역', '천안아산역', '철암역', '청도역', '청량리역', '청리역', '청소역', '청주역', '청주공항역',
+        '청평역', '초성리역', '추풍령역', '춘양역', '춘천역', '충주역', '탑리역', '태백역', '태화강역', '퇴계원역',
+        '판교역', '평내호평역', '평창역', '평택역', '평택지제역', '포항역', '풍기역', '하동역', '하양역', '한림정역',
+        '한탄강역', '함안역', '함열역', '함창역'];
+
+        $('#arrivalPlace').autocomplete({
+            source : stations,
+            select : function(event, ui) {
+                console.log(ui.item);
+            },
+            focus : function(event, ui) {
+                return false;
+            },
+            minLength : 1,
+            autoFocus : true,
+            classes : {
+                'ui-autocomplete' : 'highlight'
+            },
+            delay : 100,
+            disable : false,
+            position : { my : 'right top', at : 'right bottom'},
+            close : function(event) {
+                console.log(event);
+            }
+        });
+    });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
 </body>
 </html>
