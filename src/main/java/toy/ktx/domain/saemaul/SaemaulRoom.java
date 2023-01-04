@@ -20,7 +20,7 @@ public class SaemaulRoom {
     @JoinColumn(name = "saemaul_id")
     private Saemaul saemaul;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "seat_id")
     private SaemaulSeat saemaulSeat;
 

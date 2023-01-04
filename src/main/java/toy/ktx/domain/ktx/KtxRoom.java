@@ -30,7 +30,7 @@ public class KtxRoom {
     @JoinColumn(name = "ktx_id")
     private Ktx ktx;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "seat_id")
     private KtxSeat ktxSeat;
 

@@ -70,18 +70,17 @@
                         <div th:errors="*{trainName}" class="text-danger"></div>
                     </div><br><br>
 
-                    <button type="submit" class="btn btn-secondary">시간표 입력</button>
+                    <button type="submit" class="btn btn-outline-secondary">시간표 입력</button>
                 </form>
             </div>
 
             <div class="col-6">
                 <h4 class="text-center">시간표 현황</h4><br>
 
-
-                <div class="overflow-auto" style="height: 750px;">
+                <div class="overflow-auto" style="height: 650px;">
                     <th:block th:each="deploy, deployStat : ${deployList}">
-                        <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'ktx')}" class="border border-primary align-items-center">
-                            <div class="text-center">
+                        <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'ktx')}" class="row border border-primary align-items-center">
+                            <div class="text-center col -8">
                                 <p th:text="|${deploy.departurePlace}  -->  ${deploy.arrivalPlace}|" class="text-center"></p>
                                 <p th:text="|${#temporals.monthName(deploy.departureTime)} ${#temporals.day(deploy.departureTime)}일 (${#temporals.dayOfWeekNameShort(deploy.departureTime)})|" class="text-center"></p>
                                 <p th:text="${deploy.train.trainName}"></p>
@@ -89,10 +88,23 @@
                                 <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
                                 <span th:text="${durations[deployStat.index]}"></span><br><br>
                             </div>
+                            <div class="col-2 text-center">
+                                <form th:action="@{/my-page/admin/reservations}" method="post">
+                                    <input type="hidden" name="deployId" th:value="${deploy.id}">
+<!--                                    <button type="submit" class="btn btn-outline-secondary">에약 현황 보기</button>-->
+                                    <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/my-page/admin/reservations/{deployId}(deployId = ${deploy.id})}'|">에약 현황 보기</button>
+                                </form>
+                            </div>
+                            <div class="col-2 text-center">
+                                <form th:action="@{/my-page/admin/deploys}" method="post">
+                                    <input type="hidden" name="deployId" th:value="${deploy.id}">
+                                    <button type="submit" class="btn-close" th:disabled="!${deploy.reservations.isEmpty()}"></button>
+                                </form>
+                            </div>
                         </div>
 
-                        <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'mugunghwa')}" class="border border-warning align-items-center">
-                            <div class="text-center">
+                        <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'mugunghwa')}" class="row border border-warning align-items-center">
+                            <div class="text-center col-8">
                                 <p th:text="|${deploy.departurePlace}  -->  ${deploy.arrivalPlace}|" class="text-center"></p>
                                 <p th:text="|${#temporals.monthName(deploy.departureTime)} ${#temporals.day(deploy.departureTime)}일 (${#temporals.dayOfWeekNameShort(deploy.departureTime)})|" class="text-center"></p>
                                 <p th:text="${deploy.train.trainName}"></p>
@@ -100,24 +112,53 @@
                                 <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
                                 <span th:text="${durations[deployStat.index]}"></span><br><br>
                             </div>
+                            <div class="col-2 text-center">
+                                <form th:action="@{/my-page/admin/reservations}" method="post">
+                                    <input type="hidden" name="deployId" th:value="${deploy.id}">
+<!--                                    <button type="submit" class="btn btn-outline-secondary">에약 현황 보기</button>-->
+                                    <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/my-page/admin/reservations/{deployId}(deployId = ${deploy.id})}'|">에약 현황 보기</button>
+
+                                </form>
+                            </div>
+                            <div class="col-2 text-center">
+                                <form th:action="@{/my-page/admin/deploys}" method="post">
+                                    <input type="hidden" name="deployId" th:value="${deploy.id}">
+                                    <button type="submit" class="btn-close" th:disabled="!${deploy.reservations.isEmpty()}"></button>
+                                </form>
+                            </div>
                         </div>
 
-                        <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'saemaul')}" class="border border-success align-items-center">
-                            <div class="text-center">
+                        <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'saemaul')}" class="row border border-success align-items-center">
+                            <div class="text-center col-8">
                                 <p th:text="|${deploy.departurePlace}  -->  ${deploy.arrivalPlace}|" class="text-center"></p>
                                 <p th:text="|${#temporals.monthName(deploy.departureTime)} ${#temporals.day(deploy.departureTime)}일 (${#temporals.dayOfWeekNameShort(deploy.departureTime)})|" class="text-center"></p>
                                 <p th:text="${deploy.train.trainName}"></p>
 
                                 <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
                                 <span th:text="${durations[deployStat.index]}"></span><br><br>
+                            </div>
+                            <div class="col-2 text-center">
+                                <form th:action="@{/my-page/admin/reservations}" method="post">
+                                    <input type="hidden" name="deployId" th:value="${deploy.id}">
+<!--                                    <button type="submit" class="btn btn-outline-secondary">에약 현황 보기</button>-->
+                                    <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/my-page/admin/reservations/{deployId}(deployId = ${deploy.id})}'|">에약 현황 보기</button>
+                                </form>
+                            </div>
+                            <div class="col-2 text-center">
+                                <form th:action="@{/my-page/admin/deploys}" method="post">
+                                    <input type="hidden" name="deployId" th:value="${deploy.id}">
+                                    <button type="submit" class="btn-close" th:disabled="!${deploy.reservations.isEmpty()}"></button>
+                                </form>
                             </div>
                         </div><br><br>
                     </th:block>
                 </div>
-<!--                <form th:action="@{/my-page}" method="post">-->
-<!--                    <input name="fuck" value="1">-->
-<!--                    <button type="submit" class="btn btn-secondary">실험 중</button>-->
-<!--                </form>-->
+            </div>
+        </div>
+
+        <div class="d-flex flex-row-reverse">
+            <div class="p-2">
+                <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/}'|">홈으로 이동</button>
             </div>
         </div>
     </div>

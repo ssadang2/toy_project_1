@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 public class Saemaul extends Train {
 
-    @OneToMany(mappedBy = "saemaul")
+    @OneToMany(mappedBy = "saemaul", orphanRemoval = true)
     private List<SaemaulRoom> saemaulRooms = new ArrayList<>();
 
     public Saemaul() {

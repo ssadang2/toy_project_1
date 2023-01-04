@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import toy.ktx.domain.Deploy;
 import toy.ktx.domain.Train;
+import toy.ktx.domain.comparator.DeployComparator;
 import toy.ktx.domain.dto.DeployForm;
 import toy.ktx.domain.dto.PassengerDto;
 import toy.ktx.domain.dto.projections.MugunghwaSeatDto;
@@ -119,8 +120,8 @@ public class SeatController {
                 }
 
                 //updated
-                Collections.sort(deploysWhenGoing, new ScheduleController.DeployComparator());
-                Collections.sort(deploysWhenComing, new ScheduleController.DeployComparator());
+                Collections.sort(deploysWhenGoing, new DeployComparator());
+                Collections.sort(deploysWhenComing, new DeployComparator());
 
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
@@ -326,8 +327,8 @@ public class SeatController {
                     deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, dateTime);
                 }
 
-                Collections.sort(deploysWhenGoing, new ScheduleController.DeployComparator());
-                Collections.sort(deploysWhenComing, new ScheduleController.DeployComparator());
+                Collections.sort(deploysWhenGoing, new DeployComparator());
+                Collections.sort(deploysWhenComing, new DeployComparator());
 
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
@@ -529,8 +530,8 @@ public class SeatController {
                     deploysWhenComing = deployService.searchDeployToTrain(arrivalPlace, departurePlace, dateTime);
                 }
 
-                Collections.sort(deploysWhenGoing, new ScheduleController.DeployComparator());
-                Collections.sort(deploysWhenComing, new ScheduleController.DeployComparator());
+                Collections.sort(deploysWhenGoing, new DeployComparator());
+                Collections.sort(deploysWhenComing, new DeployComparator());
 
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
@@ -734,8 +735,8 @@ public class SeatController {
                     deploysWhenComing = deployService.searchDeployToTrain(arrivalPlace, departurePlace, dateTime);
                 }
 
-                Collections.sort(deploysWhenGoing, new ScheduleController.DeployComparator());
-                Collections.sort(deploysWhenComing, new ScheduleController.DeployComparator());
+                Collections.sort(deploysWhenGoing, new DeployComparator());
+                Collections.sort(deploysWhenComing, new DeployComparator());
 
 
                 if (deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
@@ -1046,7 +1047,7 @@ public class SeatController {
                 deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, dateTime);
             }
 
-            Collections.sort(deploysWhenGoing, new ScheduleController.DeployComparator());
+            Collections.sort(deploysWhenGoing, new DeployComparator());
 
             if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);
@@ -1120,7 +1121,7 @@ public class SeatController {
                 deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, dateTime);
             }
 
-            Collections.sort(deploysWhenGoing, new ScheduleController.DeployComparator());
+            Collections.sort(deploysWhenGoing, new DeployComparator());
 
             if (deploysWhenGoing.isEmpty() == true) {
                 model.addAttribute("emptyWhenGoing", true);

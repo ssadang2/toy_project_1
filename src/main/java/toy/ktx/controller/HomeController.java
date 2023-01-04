@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import toy.ktx.domain.Deploy;
 import toy.ktx.domain.Member;
 import toy.ktx.domain.Reservation;
+import toy.ktx.domain.comparator.DeployComparator;
 import toy.ktx.domain.constant.SessionConst;
 import toy.ktx.domain.constant.StationsConst;
 import toy.ktx.domain.constant.TrainNameConst;
@@ -23,18 +24,17 @@ import toy.ktx.domain.mugunhwa.MugunghwaSeat;
 import toy.ktx.domain.saemaul.Saemaul;
 import toy.ktx.domain.saemaul.SaemaulRoom;
 import toy.ktx.domain.saemaul.SaemaulSeat;
-import toy.ktx.repository.MugunghwaRepository;
+import toy.ktx.repository.DeployRepository;
 import toy.ktx.service.*;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 @Slf4j
@@ -104,12 +104,14 @@ public class HomeController {
         model.addAttribute("member", member);
         model.addAttribute("createDeployForm", new CreateDeployForm());
 
-        List<Deploy> deployList = deployService.findAll();
+        //여기
+        List<Deploy> deployList = deployService.getDeploysToTrain();
+        Collections.sort(deployList, new DeployComparator());
         List<String> durations = getDuration(deployList);
+
         model.addAttribute("deployList", deployList);
         model.addAttribute("durations", durations);
         return "mypage/adminMyPage";
-
     }
 
     //컨트롤 api
@@ -164,6 +166,7 @@ public class HomeController {
         return "redirect:/my-page";
     }
 
+    //컨트롤 api
     @PostMapping("/my-page/save-deploy")
     public String saveDeploy(@Valid @ModelAttribute CreateDeployForm createDeployForm, BindingResult bindingResult,
                              @SessionAttribute(name = SessionConst.LOGIN_MEMBER) Member member, Model model) {
@@ -193,7 +196,6 @@ public class HomeController {
                 bindingResult.reject("noCorrectTimeFormatGoing", null);
             }
         } catch (Exception e) {
-            log.info("fuck = {}", e);
             bindingResult.reject("noCorrectTimeFormatGoing", null);
         }
 
@@ -206,7 +208,6 @@ public class HomeController {
                 bindingResult.reject("noCorrectTimeFormatComing", null);
             }
         } catch (Exception e) {
-            log.info("fuck = {}", e);
             bindingResult.reject("noCorrectTimeFormatComing", null);
         }
 
@@ -221,11 +222,11 @@ public class HomeController {
 
         if(bindingResult.hasErrors()) {
             //logic상 member가 존재하지 않을 수 없다고 판단하여 따로 null check logic 넣지 않았음
-            model.addAttribute("member", member);
-            model.addAttribute("createDeployForm", new CreateDeployForm());
-
-            List<Deploy> deployList = deployService.findAll();
+            List<Deploy> deployList = deployService.getDeploysToTrain();
+            Collections.sort(deployList, new DeployComparator());
             List<String> durations = getDuration(deployList);
+
+            model.addAttribute("member", member);
             model.addAttribute("deployList", deployList);
             model.addAttribute("durations", durations);
             return "mypage/adminMYPage";
@@ -506,6 +507,92 @@ public class HomeController {
             deployService.saveDeploy(deploy);
             return "redirect:/my-page";
         }
+    }
+
+    @PostMapping("/my-page/admin/deploys")
+    public String eraseDeployByAdmin(@RequestParam Long deployId) {
+        log.info("fuck = {}", deployId);
+        deployService.deleteById(deployId);
+        return "redirect:/my-page";
+    }
+
+    @GetMapping("/my-page/admin/reservations/{deployId}")
+    public String getReservationsByAdmin(@PathVariable Long deployId,
+                                         @SessionAttribute(name = SessionConst.LOGIN_MEMBER) Member member,
+                                         HttpServletResponse response,
+                                         Model model) throws IOException {
+        if (!member.getAuthorizations().equals(Authorizations.ADMIN)) {
+            response.sendError(403, "허가 받지 않은 사용자의 접근");
+            return null;
+        }
+        Deploy deploy = deployService.getDeployToReservationById(deployId);
+        List<Reservation> reservations = deploy.getReservations();
+        List<Deploy> deploys = new ArrayList<>();
+
+        if (!reservations.isEmpty()) {
+            for (Reservation reservation : reservations) {
+                deploys.add(deploy);
+            }
+            List<String> durations = getDuration(deploys);
+            model.addAttribute("reservations", reservations);
+            model.addAttribute("durations", durations);
+        }
+        model.addAttribute("member", member);
+        model.addAttribute("deploy", deploy);
+
+        return "mypage/adminReservationsPage";
+    }
+
+    @PostMapping("/my-page/admin/reservations/{deployId}")
+    public String cancelReservationByAdmin(@RequestParam Long reservationId,
+                                           @PathVariable Long deployId,
+                                           @SessionAttribute(name = SessionConst.LOGIN_MEMBER) Member member) {
+        //예약 삭제 로직
+        //예상 select 쿼리 2개 -> 실제 3개 select passenger 나가는 이유 => 프록시 초기화해야 pk 값을 가져올 수 있기 때문에
+        if (reservationId != null) {
+            Optional<Reservation> foundReservation = reservationService.getReservationToTrainByIdWithFetch(reservationId);
+            if (foundReservation.isPresent()) {
+                Reservation reservation = foundReservation.get();
+                if (reservation.getDeploy().getTrain().getTrainName().contains("KTX")) {
+                    Ktx train = (Ktx) reservation.getDeploy().getTrain();
+                    List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
+                    Optional<KtxRoom> roomOptional = ktxRooms.stream().filter(r -> r.getRoomName().equals(reservation.getRoomName())).findFirst();
+                    KtxRoom ktxRoom = roomOptional.get();
+                    KtxSeat ktxSeat = ktxRoom.getKtxSeat();
+
+                    //reservation 등의 entity 뿐만 아니라 seat entity 안의 자리까지 체크 해제해줘야 됨
+                    if (ktxRoom.getGrade().equals(Grade.NORMAL)) {
+                        ktxSeat = (KtxSeatNormal) ktxSeat;
+                        System.out.println("ktxSeat = " + ktxSeat.getClass());
+                    } else {
+                        ktxSeat = (KtxSeatVip) ktxSeat;
+                    }
+
+                    ktxSeatService.updateSeatsWithReflection(ktxSeat, reservation.getSeats());
+                } else if (reservation.getDeploy().getTrain().getTrainName().contains("MUGUNGHWA")) {
+                    Mugunghwa train = (Mugunghwa) reservation.getDeploy().getTrain();
+                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(train.getId());
+                    Optional<MugunghwaRoom> roomOptional = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(reservation.getRoomName())).findFirst();
+                    MugunghwaRoom mugunghwaRoom = roomOptional.get();
+                    MugunghwaSeat mugunghwaSeat = mugunghwaRoom.getMugunghwaSeat();
+
+                    mugunghwaSeatService.updateSeatsWithReflection(mugunghwaSeat, reservation.getSeats());
+                } else {
+                    Saemaul train = (Saemaul) reservation.getDeploy().getTrain();
+                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(train.getId());
+                    Optional<SaemaulRoom> roomOptional = saemaulRooms.stream().filter(r -> r.getRoomName().equals(reservation.getRoomName())).findFirst();
+                    SaemaulRoom saemaulRoom = roomOptional.get();
+                    SaemaulSeat saemaulSeat = saemaulRoom.getSaemaulSeat();
+
+                    saemaulSeatService.updateSeatsWithReflection(saemaulSeat, reservation.getSeats());
+                }
+            }
+
+            //cascade option을 켰기 때문에 passenger를 굳이 수동으로 안 지워줘도 됨
+            reservationService.deleteById(reservationId);
+        }
+        //prg
+        return "redirect:/my-page/admin/reservations/" + deployId;
     }
 
     private LocalDateTime getLocalDateTime(String dateTime) {

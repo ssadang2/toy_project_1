@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 public class Mugunghwa extends Train {
 
-    @OneToMany(mappedBy = "mugunghwa")
+    @OneToMany(mappedBy = "mugunghwa", orphanRemoval = true)
     private List<MugunghwaRoom> mugunghwaRooms = new ArrayList<>();
 
     public Mugunghwa() {

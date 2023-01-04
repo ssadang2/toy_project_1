@@ -21,7 +21,7 @@ public class MugunghwaRoom {
     @JoinColumn(name = "mugunghwa_id")
     private Mugunghwa mugunghwa;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "seat_id")
     private MugunghwaSeat mugunghwaSeat;
 

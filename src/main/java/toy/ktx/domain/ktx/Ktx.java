@@ -14,7 +14,7 @@ import java.util.List;
 @Getter
 public class Ktx extends Train {
 
-    @OneToMany(mappedBy = "ktx", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "ktx", orphanRemoval = true)
     private List<KtxRoom> ktxRooms = new ArrayList<>();
 
     public Ktx() {

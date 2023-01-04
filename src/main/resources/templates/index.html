@@ -25,21 +25,21 @@
     <div class="container">
         <div th:if="${notLogin}" class="d-flex flex-row-reverse bd-highlight">
             <div class="p-2 bd-highlight">
-                <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/sign-up}'|">회원가입</button>
+                <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/sign-up}'|">회원가입</button>
             </div>
 
             <div class="p-2 bd-highlight">
-                <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/sign-in}'|">로그인</button>
+                <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/sign-in}'|">로그인</button>
             </div>
         </div>
 
         <div th:if="${login}" class="d-flex flex-row-reverse bd-highlight">
             <div class="p-2 bd-highlight">
-                <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/logout}'|">로그아웃</button>
+                <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/logout}'|">로그아웃</button>
             </div>
 
             <div class="p-2 bd-highlight">
-                <button type="button" class="btn btn-secondary" th:onclick="|location.href='@{/my-page}'|">마이페이지</button>
+                <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/my-page}'|">마이페이지</button>
             </div>
         </div>
     </div><br><br>
@@ -179,7 +179,7 @@
 
             <div class="row">
                 <div class="text-end">
-                    <button type="submit" class="btn btn-secondary">시간표 조회</button>
+                    <button type="submit" class="btn btn-outline-secondary">시간표 조회</button>
                 </div>
             </div>
         </div>

@@ -68,4 +68,17 @@ public class DeployService {
     public List<Deploy> findAll() {
         return deployRepository.findAll();
     }
+
+    public List<Deploy> getDeploysToTrain() {
+        return deployRepository.getDeploysToTrain();
+    }
+
+    public Deploy getDeployToReservationById(Long id) {
+        return deployRepository.getDeployToReservationById(id);
+    }
+
+    @Transactional
+    public void deleteById(Long id) {
+        deployRepository.deleteById(id);
+    }
 }

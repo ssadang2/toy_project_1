@@ -23,4 +23,10 @@ public interface DeployRepository extends JpaRepository<Deploy, Long> {
 
     @Query("select d from Deploy d join fetch d.train where d.id = :id")
     Deploy getDeployToTrainById(@Param("id") Long id);
+
+    @Query("select d from Deploy d join fetch d.train")
+    List<Deploy> getDeploysToTrain();
+
+    @Query("select distinct d from Deploy d left join fetch d.reservations where d.id = :id")
+    Deploy getDeployToReservationById(@Param("id") Long id);
 }

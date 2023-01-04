@@ -89,11 +89,11 @@
             <input type="hidden" name="beforeRoomName" th:value="${beforeRoomName}">
 
             <div th:if="${(round == true && coming == true) || (round != true && going == true)}">
-                <button type="submit" class="btn btn-secondary" name="reserve" value="true">예매하기</button>
+                <button type="submit" class="btn btn-outline-secondary" name="reserve" value="true">예매하기</button>
             </div>
 
             <div th:if="${round == true && going == true}">
-                <button type="submit" class="btn btn-secondary" name="coming" value="true">오는날 기차 좌석 선택하기</button>
+                <button type="submit" class="btn btn-outline-secondary" name="coming" value="true">오는날 기차 좌석 선택하기</button>
             </div>
         </div>
     </div>
