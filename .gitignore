@@ -36,15 +36,11 @@ out/
 ### VS Code ###
 .vscode/
 
-### 코테용 Main 클래스 ###
+# 코테용 Main 클래스
 src/main/java/toy/ktx/Main.java
 
-
-### 필요 없는 Test ###
-src/test/java/toy/ktx/TempTest.java
-
-### enum test용 객체 ###
-src/main/java/toy/ktx/domain/enums/Temp.java
-
-### 실험용 ###
+# test용 class ignore
 src/main/java/toy/ktx/Temp.java
+
+# queryDsl
+/src/main/generated

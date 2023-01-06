@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import toy.ktx.domain.Deploy;
@@ -14,6 +15,7 @@ import toy.ktx.domain.constant.SessionConst;
 import toy.ktx.domain.constant.StationsConst;
 import toy.ktx.domain.constant.TrainNameConst;
 import toy.ktx.domain.dto.CreateDeployForm;
+import toy.ktx.domain.dto.DeploySearchDto;
 import toy.ktx.domain.dto.ScheduleForm;
 import toy.ktx.domain.enums.Authorizations;
 import toy.ktx.domain.enums.Grade;
@@ -103,8 +105,8 @@ public class HomeController {
         //adminPage 진입
         model.addAttribute("member", member);
         model.addAttribute("createDeployForm", new CreateDeployForm());
+        model.addAttribute("deploySearchDto", new DeploySearchDto());
 
-        //여기
         List<Deploy> deployList = deployService.getDeploysToTrain();
         Collections.sort(deployList, new DeployComparator());
         List<String> durations = getDuration(deployList);
@@ -229,6 +231,8 @@ public class HomeController {
             model.addAttribute("member", member);
             model.addAttribute("deployList", deployList);
             model.addAttribute("durations", durations);
+            //updated
+            model.addAttribute("deploySearchDto", new DeploySearchDto());
             return "mypage/adminMYPage";
         }
         //실제 db에 입력된 정보에 기반해 deploy를 입력하는 logic(success logic)
@@ -516,13 +520,124 @@ public class HomeController {
         return "redirect:/my-page";
     }
 
+    @PostMapping("/my-page/admin/search-deploys")
+    public String searchDeploys(@Valid @ModelAttribute DeploySearchDto deploySearchDto,
+                                BindingResult bindingResult,
+                                @SessionAttribute(name = SessionConst.LOGIN_MEMBER) Member member,
+                                Model model) {
+
+        if (!StringUtils.hasText(deploySearchDto.getDateOfGoing()) && StringUtils.hasText(deploySearchDto.getTimeOfGoing())) {
+            bindingResult.reject("noDateButTime", null);
+        }
+
+        if (!StringUtils.hasText(deploySearchDto.getDateOfComing()) && StringUtils.hasText(deploySearchDto.getTimeOfComing())) {
+            bindingResult.reject("noDateButTime", null);
+        }
+
+        if(StringUtils.hasText(deploySearchDto.getTimeOfGoing()) && deploySearchDto.getTimeOfGoing().length() != 5) {
+            bindingResult.reject("noCorrectTimeFormatGoing", null);
+        }
+
+        if(StringUtils.hasText(deploySearchDto.getTimeOfComing()) && deploySearchDto.getTimeOfComing().length() != 5) {
+            bindingResult.reject("noCorrectTimeFormatComing", null);
+        }
+
+        if(deploySearchDto.getTimeOfGoing().length() == 5 && !deploySearchDto.getTimeOfGoing().substring(2,3).equals(":")) {
+            bindingResult.reject("noColonGoing", null);
+        }
+
+        if(deploySearchDto.getTimeOfComing().length() == 5 && !deploySearchDto.getTimeOfComing().substring(2,3).equals(":")) {
+            bindingResult.reject("noColonComing", null);
+        }
+
+        try {
+            if(deploySearchDto.getTimeOfGoing().length() == 5 &&
+                    ((Integer.parseInt(deploySearchDto.getTimeOfGoing().substring(0 ,2)) > 24 ||
+                            Integer.parseInt(deploySearchDto.getTimeOfGoing().substring(0 ,2)) < 0) ||
+                            (Integer.parseInt(deploySearchDto.getTimeOfGoing().substring(3)) >60 ||
+                                    Integer.parseInt(deploySearchDto.getTimeOfGoing().substring(3)) < 0))) {
+                bindingResult.reject("noCorrectTimeFormatGoing", null);
+            }
+        } catch (Exception e) {
+            bindingResult.reject("noCorrectTimeFormatGoing", null);
+        }
+
+        try {
+            if(deploySearchDto.getTimeOfComing().length() == 5 &&
+                    ((Integer.parseInt(deploySearchDto.getTimeOfComing().substring(0 ,2)) > 24 ||
+                            Integer.parseInt(deploySearchDto.getTimeOfComing().substring(0 ,2)) < 0) ||
+                            (Integer.parseInt(deploySearchDto.getTimeOfComing().substring(3)) >60 ||
+                                    Integer.parseInt(deploySearchDto.getTimeOfComing().substring(3)) < 0))) {
+                bindingResult.reject("noCorrectTimeFormatComing", null);
+            }
+        } catch (Exception e) {
+            bindingResult.reject("noCorrectTimeFormatComing", null);
+        }
+
+        if (bindingResult.hasErrors()) {
+            List<Deploy> deployList = deployService.getDeploysToTrain();
+            Collections.sort(deployList, new DeployComparator());
+            List<String> durations = getDuration(deployList);
+
+            model.addAttribute("member", member);
+            model.addAttribute("deployList", deployList);
+            model.addAttribute("durations", durations);
+            model.addAttribute("createDeployForm", new CreateDeployForm());
+            return "mypage/adminMYPage";
+        }
+        //success logic
+        LocalDateTime goingTimeCond = null;
+        LocalDateTime comingTimeCond = null;
+
+        if (StringUtils.hasText(deploySearchDto.getDateOfGoing())) {
+            if (StringUtils.hasText(deploySearchDto.getTimeOfGoing())) {
+                String dateTimeOfGoing = deploySearchDto.getDateOfGoing() + "T" + deploySearchDto.getTimeOfGoing();
+                goingTimeCond = getLocalDateTime(dateTimeOfGoing);
+            } else {
+                String dateTimeOfGoing = deploySearchDto.getDateOfGoing() + "T" + "00:00";
+                goingTimeCond = getLocalDateTime(dateTimeOfGoing);
+            }
+        }
+
+        if (StringUtils.hasText(deploySearchDto.getDateOfComing())) {
+            if (StringUtils.hasText(deploySearchDto.getTimeOfComing())) {
+                String dateTimeOfComing = deploySearchDto.getDateOfComing() + "T" + deploySearchDto.getTimeOfComing();
+                comingTimeCond = getLocalDateTime(dateTimeOfComing);
+            } else {
+                String dateTimeOfComing = deploySearchDto.getDateOfComing() + "T" + "00:00";
+                comingTimeCond = getLocalDateTime(dateTimeOfComing);
+            }
+        }
+
+        log.info("fuck = {}" , goingTimeCond);
+        log.info("fuck = {}" , comingTimeCond);
+
+        List<Deploy> deployList = deployService.searchDeploys(goingTimeCond, comingTimeCond);
+        log.info("fuck = {}" , deployList);
+        Collections.sort(deployList, new DeployComparator());
+        log.info("fuck = {}" , deployList);
+        List<String> durations = getDuration(deployList);
+
+        model.addAttribute("member", member);
+        model.addAttribute("deployList", deployList);
+        model.addAttribute("durations", durations);
+        model.addAttribute("createDeployForm", new CreateDeployForm());
+        return "mypage/adminMyPage";
+    }
+
     @GetMapping("/my-page/admin/reservations/{deployId}")
     public String getReservationsByAdmin(@PathVariable Long deployId,
                                          @SessionAttribute(name = SessionConst.LOGIN_MEMBER) Member member,
                                          HttpServletResponse response,
                                          Model model) throws IOException {
+        //입터셉터에서 걸려서 딱히 잡을 필요없을 ㅍ듯?
+        if (member == null) {
+            response.sendError(401, "인증되지 않은 사용자의 접근");
+            return null;
+        }
+
         if (!member.getAuthorizations().equals(Authorizations.ADMIN)) {
-            response.sendError(403, "허가 받지 않은 사용자의 접근");
+            response.sendError(403, "인가 받지 않은 사용자의 접근");
             return null;
         }
         Deploy deploy = deployService.getDeployToReservationById(deployId);

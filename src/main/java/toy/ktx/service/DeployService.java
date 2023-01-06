@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toy.ktx.domain.Deploy;
 import toy.ktx.repository.DeployRepository;
+import toy.ktx.repository.DeploySearchRepository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,6 +18,7 @@ import java.util.Optional;
 public class DeployService {
 
     private final DeployRepository deployRepository;
+    private final DeploySearchRepository deploySearchRepository;
 
     @Transactional
     public void saveDeploy(Deploy deploy) {
@@ -80,5 +82,9 @@ public class DeployService {
     @Transactional
     public void deleteById(Long id) {
         deployRepository.deleteById(id);
+    }
+
+    public List<Deploy> searchDeploys(LocalDateTime goingTimeCond, LocalDateTime comingTimeCond) {
+        return deploySearchRepository.searchDeploys(goingTimeCond, comingTimeCond);
     }
 }

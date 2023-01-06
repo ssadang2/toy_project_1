@@ -95,7 +95,7 @@
                                th:min="${#temporals.format(minDateTime, 'yyyy-MM-dd')}"
                                th:max="${#temporals.format(maxDateTime, 'yyyy-MM-dd')}" >
                         &nbsp;&nbsp;
-                        <input type="text" th:field="*{timeOfGoing}" class="form-control" style="width:200px">
+                        <input type="text" th:field="*{timeOfGoing}" class="form-control">
                         <div class="input-group-append">
                             <span class="input-group-text">이후 출발</span>
                         </div>
@@ -112,7 +112,7 @@
                                th:min="${#temporals.format(minDateTime, 'yyyy-MM-dd')}"
                                th:max="${#temporals.format(maxDateTime, 'yyyy-MM-dd')}" >
                         &nbsp;&nbsp;
-                        <input type="text" th:field="*{timeOfComing}" class="form-control" style="width:200px">
+                        <input type="text" th:field="*{timeOfComing}" class="form-control">
                         <div class="input-group-append">
                             <span class="input-group-text">이후 출발</span>
                         </div>

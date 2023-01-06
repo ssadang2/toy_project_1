@@ -16,9 +16,41 @@
     <title>adminMyPage</title>
 </head>
 <body>
-    <h2 class="text-center" th:text="|ADMIN(${member.name})님, 환영합니다|"></h2>
+    <h2 class="text-center" th:text="|ADMIN(${member.name})님, 환영합니다|"></h2><br><br>
 
     <div class="container">
+        <div class="row">
+            <h4 class="text-center">출발, 도착 시간으로 시간표 검색하기</h4>
+
+            <form th:action="@{/my-page/admin/search-deploys}" th:object="${deploySearchDto}" method="post">
+                <div th:if="${#fields.hasGlobalErrors()}">
+                    <h4 th:each="err : ${#fields.globalErrors()}" th:text = "${err}" class="text-danger text-center"></h4>
+                </div><br>
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text">출발 날짜</span>
+                    <input type="date" th:field="*{dateOfGoing}" class="form-control">
+                    <span class="input-group-text">출발 시간</span>
+                    <input type="text" th:field="*{timeOfGoing}" class="form-control">
+                </div>
+                <span th:errors="*{dateOfGoing}" class="text-danger"></span> &nbsp;&nbsp;
+                <span th:errors="*{timeOfGoing}" class="text-danger"></span>
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text">도착 날짜</span>
+                    <input type="date" class="form-control" th:field="*{dateOfComing}">
+                    <span class="input-group-text">도착 시간</span>
+                    <input type="text" class="form-control" th:field="*{timeOfComing}">
+                </div>
+                <span th:errors="*{dateOfComing}" class="text-danger"></span> &nbsp;&nbsp;
+                <span th:errors="*{timeOfComing}" class="text-danger"></span>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-outline-primary">검색</button>
+                </div><br>
+            </form><hr>
+        </div>
+
         <div class="row">
             <div class="col-6">
                 <h4 class="text-center">시간표 추가하기</h4>
@@ -48,7 +80,7 @@
 
                     <div class="mb-3">
                         <label for="timeOfGoing" class="form-label">출발 시간</label>
-                        <input type="text" id="timeOfGoing" th:field="*{timeOfGoing}" class="form-control" style="width:200px">
+                        <input type="text" id="timeOfGoing" th:field="*{timeOfGoing}" class="form-control">
                         <div th:errors="*{timeOfGoing}" class="text-danger"></div>
                     </div>
 
@@ -70,14 +102,22 @@
                         <div th:errors="*{trainName}" class="text-danger"></div>
                     </div><br><br>
 
-                    <button type="submit" class="btn btn-outline-secondary">시간표 입력</button>
+                    <div class="d-flex flex-row-reverse">
+                        <div class="p-2">
+                            <button type="submit" class="btn btn-outline-secondary">시간표 입력</button>
+                        </div>
+                    </div>
                 </form>
             </div>
 
             <div class="col-6">
-                <h4 class="text-center">시간표 현황</h4><br>
+                <h4 class="text-center">시간표 현황</h4><br><br>
 
-                <div class="overflow-auto" style="height: 650px;">
+                <div th:if="${deployList.isEmpty()}">
+                    <h4 class="text-warning text-center">검색 결과가 없습니다</h4><br><br>
+                </div>
+
+                <div th:if="!${deployList.isEmpty()}" class="overflow-auto" style="height: 570px;">
                     <th:block th:each="deploy, deployStat : ${deployList}">
                         <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'ktx')}" class="row border border-primary align-items-center">
                             <div class="text-center col -8">
@@ -91,7 +131,6 @@
                             <div class="col-2 text-center">
                                 <form th:action="@{/my-page/admin/reservations}" method="post">
                                     <input type="hidden" name="deployId" th:value="${deploy.id}">
-<!--                                    <button type="submit" class="btn btn-outline-secondary">에약 현황 보기</button>-->
                                     <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/my-page/admin/reservations/{deployId}(deployId = ${deploy.id})}'|">에약 현황 보기</button>
                                 </form>
                             </div>
@@ -115,7 +154,6 @@
                             <div class="col-2 text-center">
                                 <form th:action="@{/my-page/admin/reservations}" method="post">
                                     <input type="hidden" name="deployId" th:value="${deploy.id}">
-<!--                                    <button type="submit" class="btn btn-outline-secondary">에약 현황 보기</button>-->
                                     <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/my-page/admin/reservations/{deployId}(deployId = ${deploy.id})}'|">에약 현황 보기</button>
 
                                 </form>
@@ -140,7 +178,6 @@
                             <div class="col-2 text-center">
                                 <form th:action="@{/my-page/admin/reservations}" method="post">
                                     <input type="hidden" name="deployId" th:value="${deploy.id}">
-<!--                                    <button type="submit" class="btn btn-outline-secondary">에약 현황 보기</button>-->
                                     <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/my-page/admin/reservations/{deployId}(deployId = ${deploy.id})}'|">에약 현황 보기</button>
                                 </form>
                             </div>
@@ -152,13 +189,12 @@
                             </div>
                         </div><br><br>
                     </th:block>
+                </div><br><br>
+                <div class="d-flex flex-row-reverse">
+                    <div class="p-2">
+                        <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/}'|">홈으로 이동</button>
+                    </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="d-flex flex-row-reverse">
-            <div class="p-2">
-                <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/}'|">홈으로 이동</button>
             </div>
         </div>
     </div>
