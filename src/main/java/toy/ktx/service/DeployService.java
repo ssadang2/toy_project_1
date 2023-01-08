@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toy.ktx.domain.Deploy;
 import toy.ktx.repository.DeployRepository;
-import toy.ktx.repository.DeploySearchRepository;
+import toy.ktx.repository.query.DeploySearchRepository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

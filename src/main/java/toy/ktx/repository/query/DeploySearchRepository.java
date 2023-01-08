@@ -1,4 +1,4 @@
-package toy.ktx.repository;
+package toy.ktx.repository.query;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;

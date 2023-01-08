@@ -41,20 +41,6 @@ public class ScheduleController {
     private final MugunghwaService mugunghwaService;
     private final SaemaulService saemaulService;
 
-    //deploy를 출발시간 순서로 정렬하여 뿌리기 위한 comparator
-//    public final static class DeployComparator implements Comparator<Deploy> {
-//        @Override
-//        public int compare(Deploy deploy1, Deploy deploy2) {
-//            if (deploy1.getDepartureTime().isBefore(deploy2.getDepartureTime())) {
-//                return -1;
-//            } else if (deploy1.getDepartureTime().isAfter(deploy2.getDepartureTime())) {
-//                return 1;
-//            } else {
-//                return 0;
-//            }
-//        }
-//    }
-
     @PostMapping("/schedule")
     public String getSchedule(@Valid @ModelAttribute ScheduleForm scheduleForm,
                               BindingResult bindingResult,

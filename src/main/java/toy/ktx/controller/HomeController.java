@@ -26,7 +26,6 @@ import toy.ktx.domain.mugunhwa.MugunghwaSeat;
 import toy.ktx.domain.saemaul.Saemaul;
 import toy.ktx.domain.saemaul.SaemaulRoom;
 import toy.ktx.domain.saemaul.SaemaulSeat;
-import toy.ktx.repository.DeployRepository;
 import toy.ktx.service.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -89,7 +88,6 @@ public class HomeController {
                 Deploy deploy = reservation.getDeploy();
                 deploys.add(deploy);
             }
-
             List<String> durations = getDuration(deploys);
 
             if (reservations.isEmpty() != true) {
@@ -608,14 +606,8 @@ public class HomeController {
                 comingTimeCond = getLocalDateTime(dateTimeOfComing);
             }
         }
-
-        log.info("fuck = {}" , goingTimeCond);
-        log.info("fuck = {}" , comingTimeCond);
-
         List<Deploy> deployList = deployService.searchDeploys(goingTimeCond, comingTimeCond);
-        log.info("fuck = {}" , deployList);
         Collections.sort(deployList, new DeployComparator());
-        log.info("fuck = {}" , deployList);
         List<String> durations = getDuration(deployList);
 
         model.addAttribute("member", member);
@@ -640,6 +632,7 @@ public class HomeController {
             response.sendError(403, "인가 받지 않은 사용자의 접근");
             return null;
         }
+
         Deploy deploy = deployService.getDeployToReservationById(deployId);
         List<Reservation> reservations = deploy.getReservations();
         List<Deploy> deploys = new ArrayList<>();

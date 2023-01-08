@@ -35,7 +35,7 @@ public class Deploy {
     @NotBlank
     private String arrivalPlace;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "deploy")
+    @OneToMany(mappedBy = "deploy")
     private List<Reservation> reservations = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true)

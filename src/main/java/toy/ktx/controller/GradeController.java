@@ -74,6 +74,7 @@ public class GradeController {
             Ktx ktx = (Ktx) deploy.getTrain();
 
             List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
+            log.info("fuck = {}",ktxRooms);
             KtxRoom targetRoom = null;
 
             for (KtxRoom ktxRoom : ktxRooms) {
@@ -97,6 +98,7 @@ public class GradeController {
             Map map = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
             model.addAttribute("map", map);
 
+            log.info("fuck = {}",ktxRooms);
             model.addAttribute("ktxRooms", ktxRooms);
             model.addAttribute("round", true);
             model.addAttribute("coming", true);
@@ -133,8 +135,6 @@ public class GradeController {
                     break;
                 }
             }
-            log.info("fuck = {}", okList.get());
-
             KtxNormalSeatDto ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -176,8 +176,6 @@ public class GradeController {
                     break;
                 }
             }
-            log.info("fuck1234 = {}", okList.get());
-
             KtxNormalSeatDto ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -224,8 +222,6 @@ public class GradeController {
                     break;
                 }
             }
-            log.info("fuck = {}", okList.get());
-
             KtxVipSeatDto ktxVipSeatDto = ktxSeatVipService.findVipDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -268,8 +264,6 @@ public class GradeController {
                     break;
                 }
             }
-            log.info("fuck = {}", okList.get());
-
             KtxVipSeatDto ktxVipSeatDto = ktxSeatVipService.findVipDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -311,8 +305,6 @@ public class GradeController {
                     break;
                 }
             }
-            log.info("fuck = {}", okList.get());
-
             KtxVipSeatDto ktxVipSeatDto = ktxSeatVipService.findVipDtoById(targetRoom.getKtxSeat().getId());
 
             ObjectMapper objectMapper = new ObjectMapper();

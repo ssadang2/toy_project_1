@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Controller
 @Slf4j
 @RequiredArgsConstructor
-public class SeatController {
+public class    SeatController {
 
     private final KtxRoomService ktxRoomService;
     private final MugunghwaRoomService mugunghwaRoomService;
@@ -247,7 +247,7 @@ public class SeatController {
                     cntComing += 1;
                 }
 
-                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.TRUE) {
+                if (noSeatGoing == Boolean.TRUE && noSeatComing == Boolean.TRUE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
                     model.addAttribute("disableSeatButton", true);
@@ -255,7 +255,7 @@ public class SeatController {
                     return "schedule";
                 }
 
-                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.FALSE) {
+                if (noSeatGoing == Boolean.TRUE && noSeatComing == Boolean.FALSE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
 
@@ -266,7 +266,7 @@ public class SeatController {
                     return "schedule";
                 }
 
-                if (noSeatGoing == Boolean.FALSE || noSeatComing == Boolean.TRUE) {
+                if (noSeatGoing == Boolean.FALSE && noSeatComing == Boolean.TRUE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
 
@@ -453,7 +453,7 @@ public class SeatController {
                     cntComing += 1;
                 }
 
-                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.TRUE) {
+                if (noSeatGoing == Boolean.TRUE && noSeatComing == Boolean.TRUE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
                     model.addAttribute("disableSeatButton", true);
@@ -461,7 +461,7 @@ public class SeatController {
                     return "schedule";
                 }
 
-                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.FALSE) {
+                if (noSeatGoing == Boolean.TRUE && noSeatComing == Boolean.FALSE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
 
@@ -472,7 +472,7 @@ public class SeatController {
                     return "schedule";
                 }
 
-                if (noSeatGoing == Boolean.FALSE || noSeatComing == Boolean.TRUE) {
+                if (noSeatGoing == Boolean.FALSE && noSeatComing == Boolean.TRUE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
 
@@ -655,7 +655,7 @@ public class SeatController {
                     cntComing += 1;
                 }
 
-                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.TRUE) {
+                if (noSeatGoing == Boolean.TRUE && noSeatComing == Boolean.TRUE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
                     model.addAttribute("disableSeatButton", true);
@@ -663,7 +663,7 @@ public class SeatController {
                     return "schedule";
                 }
 
-                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.FALSE) {
+                if (noSeatGoing == Boolean.TRUE && noSeatComing == Boolean.FALSE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
 
@@ -674,7 +674,7 @@ public class SeatController {
                     return "schedule";
                 }
 
-                if (noSeatGoing == Boolean.FALSE || noSeatComing == Boolean.TRUE) {
+                if (noSeatGoing == Boolean.FALSE && noSeatComing == Boolean.TRUE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
 
@@ -861,7 +861,7 @@ public class SeatController {
                     cntComing += 1;
                 }
 
-                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.TRUE) {
+                if (noSeatGoing == Boolean.TRUE && noSeatComing == Boolean.TRUE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
                     model.addAttribute("disableSeatButton", true);
@@ -869,7 +869,7 @@ public class SeatController {
                     return "schedule";
                 }
 
-                if (noSeatGoing == Boolean.TRUE || noSeatComing == Boolean.FALSE) {
+                if (noSeatGoing == Boolean.TRUE && noSeatComing == Boolean.FALSE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
 
@@ -880,7 +880,7 @@ public class SeatController {
                     return "schedule";
                 }
 
-                if (noSeatGoing == Boolean.FALSE || noSeatComing == Boolean.TRUE) {
+                if (noSeatGoing == Boolean.FALSE && noSeatComing == Boolean.TRUE) {
                     model.addAttribute("fullCheck", fullCheck);
                     model.addAttribute("fullCheck2", fullCheck2);
 

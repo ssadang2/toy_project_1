@@ -1184,8 +1184,7 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-                //query 몇 개 나가는지 보기 => 3개 나감 dto 조회는 1차 캐시 찾아오는 작업을 거치지 않는 듯 2개 x
-//                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
+                //query 몇 개 나가는지 보기 => 3개 나감 dto 조회는 1차 캐시에서 찾아오는 작업을 거치지 않는 듯 2개 x
                 List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
                 Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
@@ -1216,7 +1215,6 @@ public class ReservationController {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-//                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
                     List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
                     Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
