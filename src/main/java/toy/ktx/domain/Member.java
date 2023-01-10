@@ -43,10 +43,4 @@ public class Member {
         this.name = name;
         this.age = age;
     }
-
-    //test
-    public Member(String loginId, String password) {
-        this.loginId = loginId;
-        this.password = password;
-    }
 }

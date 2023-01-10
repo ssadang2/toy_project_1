@@ -26,12 +26,6 @@ public class KtxSeat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    //objectmapper 사용시 무분별한 객체 탐색 cut
-//    @JsonIgnore
-//    //양반향 OneToOne은 query시 문제가 많기 때문에 안 쓰는 게 좋을 듯
-//    @OneToOne(mappedBy = "ktxSeat", fetch = FetchType.LAZY)
-//    private KtxRoom ktxRoom;
-
     public KtxSeat() {
     }
 }

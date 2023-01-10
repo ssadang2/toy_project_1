@@ -29,6 +29,10 @@ public class MemberService {
         return memberRepository.findAllByAuthorizations(authorizations, pageable);
     }
 
+    public Page<MemberWithReservationDto> findAllMemberDtosByAuthorizations(Authorizations authorizations, Pageable pageable) {
+        return memberRepository.findAllMemberDtosByAuthorizations(authorizations, pageable);
+    }
+
     public Optional<Member> findByLoginId(String loginId){
         return memberRepository.findByLoginId(loginId);
     }

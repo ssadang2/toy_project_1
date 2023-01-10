@@ -3,7 +3,6 @@ package toy.ktx.domain.dto.api;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import toy.ktx.domain.Reservation;
-import toy.ktx.domain.enums.Grade;
 
 @Data
 public class ReservationDto2 {

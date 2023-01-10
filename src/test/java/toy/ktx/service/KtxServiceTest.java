@@ -25,28 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Transactional
 class KtxServiceTest {
 
-    @Autowired
-    KtxService ktxService;
-
-    @Autowired
-    KtxRepository ktxRepository;
-
-    @Autowired
-    MugunghwaService mugunghwaService;
-
-    @Autowired
-    SaemaulService saemaulService;
-
-    @Autowired
-    DeployService deployService;
-
     @Test
-    @Rollback(value = false)
     public void save() {
-        Optional<Deploy> deploy = deployService.findDeploy(Long.valueOf(9));
-        Deploy deploy1 = deploy.get();
-        List<Reservation> reservations = deploy1.getReservations();
-        System.out.println("reservations = " + reservations.getClass());
-//        System.out.println("reservations = " + reservations);
     }
 }

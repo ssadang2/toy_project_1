@@ -24,36 +24,6 @@ class KtxSeatVipServiceTest {
     KtxRoomService ktxRoomService;
 
     @Test
-    @Rollback(value = false)
     void save() {
-
-//        Optional<KtxRoom> ktxRoom3 = ktxRoomService.findKtxRoom(Long.valueOf(3));
-//        Optional<KtxRoom> ktxRoom4 = ktxRoomService.findKtxRoom(Long.valueOf(4));
-//        Optional<KtxRoom> ktxRoom5 = ktxRoomService.findKtxRoom(Long.valueOf(5));
-
-        KtxSeatVip ktxSeat3 = new KtxSeatVip(false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false);
-
-        KtxSeatVip ktxSeat4 = new KtxSeatVip(false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false);
-
-        KtxSeatVip ktxSeat5 = new KtxSeatVip( false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false);
-
-        ktxSeatVipService.save(ktxSeat3);
-        ktxSeatVipService.save(ktxSeat4);
-        ktxSeatVipService.save(ktxSeat5);
     }
 }

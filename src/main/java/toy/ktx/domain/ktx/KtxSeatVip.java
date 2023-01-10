@@ -17,61 +17,61 @@ import java.util.Map;
 @Table(name = "ktx_seat_vip")
 public class KtxSeatVip extends KtxSeat{
 
-    private  Boolean k1A;
-    private  Boolean k1B;
-    private  Boolean k1C;
+    private Boolean k1A;
+    private Boolean k1B;
+    private Boolean k1C;
 
-    private  Boolean k2A;
-    private  Boolean k2B;
-    private  Boolean k2C;
+    private Boolean k2A;
+    private Boolean k2B;
+    private Boolean k2C;
 
-    private  Boolean k3A;
-    private  Boolean k3B;
-    private  Boolean k3C;
+    private Boolean k3A;
+    private Boolean k3B;
+    private Boolean k3C;
 
-    private  Boolean k4A;
-    private  Boolean k4B;
-    private  Boolean k4C;
+    private Boolean k4A;
+    private Boolean k4B;
+    private Boolean k4C;
 
-    private  Boolean k5A;
-    private  Boolean k5B;
-    private  Boolean k5C;
+    private Boolean k5A;
+    private Boolean k5B;
+    private Boolean k5C;
 
-    private  Boolean k6A;
-    private  Boolean k6B;
-    private  Boolean k6C;
+    private Boolean k6A;
+    private Boolean k6B;
+    private Boolean k6C;
 
-    private  Boolean k7A;
-    private  Boolean k7B;
-    private  Boolean k7C;
+    private Boolean k7A;
+    private Boolean k7B;
+    private Boolean k7C;
 
-    private  Boolean k8A;
-    private  Boolean k8B;
-    private  Boolean k8C;
+    private Boolean k8A;
+    private Boolean k8B;
+    private Boolean k8C;
 
-    private  Boolean k9A;
-    private  Boolean k9B;
-    private  Boolean k9C;
+    private Boolean k9A;
+    private Boolean k9B;
+    private Boolean k9C;
 
-    private  Boolean k10A;
-    private  Boolean k10B;
-    private  Boolean k10C;
+    private Boolean k10A;
+    private Boolean k10B;
+    private Boolean k10C;
 
-    private  Boolean k11A;
-    private  Boolean k11B;
-    private  Boolean k11C;
+    private Boolean k11A;
+    private Boolean k11B;
+    private Boolean k11C;
 
-    private  Boolean k12A;
-    private  Boolean k12B;
-    private  Boolean k12C;
+    private Boolean k12A;
+    private Boolean k12B;
+    private Boolean k12C;
 
-    private  Boolean k13A;
-    private  Boolean k13B;
-    private  Boolean k13C;
-
-    private  Boolean k14A;
-    private  Boolean k14B;
-    private  Boolean k14C;
+    private Boolean k13A;
+    private Boolean k13B;
+    private Boolean k13C;
+    
+    private Boolean k14A;
+    private Boolean k14B;
+    private Boolean k14C;
 
     public KtxSeatVip() {
     }

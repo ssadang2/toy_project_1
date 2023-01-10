@@ -2,6 +2,7 @@ package toy.ktx.domain.ktx;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import toy.ktx.domain.dto.projections.KtxNormalSeatDto;
 
@@ -13,6 +14,7 @@ import java.util.Map;
 
 @Entity
 @Data
+@Getter
 @Slf4j
 @Table(name = "ktx_seat_normal")
 public class KtxSeatNormal extends KtxSeat{

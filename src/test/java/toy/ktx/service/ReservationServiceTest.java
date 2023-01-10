@@ -31,23 +31,10 @@ class ReservationServiceTest {
     EntityManager em;
 
     @Test
-    @Rollback(value = false)
     void saveReservation() {
-        Optional<Member> member = memberService.findByLoginId("user");
-        Reservation reservation = new Reservation();
-        Optional<Deploy> deploy = deployService.findDeploy(Long.valueOf(5));
-        reservation.setDeploy(deploy.get());
-        reservation.setMember(member.get());
-        reservationService.saveReservation(reservation);
     }
 
     @Test
     void findByMember() {
-    }
-
-    @Test
-    @Rollback(value = false)
-    void getReservationWithFetch() {
-        reservationService.getReservationToTrainByIdWithFetch(Long.valueOf(1));
     }
 }

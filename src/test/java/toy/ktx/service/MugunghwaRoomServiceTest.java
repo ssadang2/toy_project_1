@@ -23,21 +23,6 @@ class MugunghwaRoomServiceTest {
     MugunghwaSeatRepository mugunghwaSeatRepository;
 
     @Test
-    @Rollback(value = false)
     public void save() {
-        Mugunghwa mugunghwa = mugunghwaRepository.findById(Long.valueOf(9)).get();
-
-        MugunghwaRoom room1 = new MugunghwaRoom("room1", mugunghwa, mugunghwaSeatRepository.findById(Long.valueOf(16)).get());
-        MugunghwaRoom room2 = new MugunghwaRoom("room2", mugunghwa, mugunghwaSeatRepository.findById(Long.valueOf(17)).get());
-        MugunghwaRoom room3 = new MugunghwaRoom("room3", mugunghwa, mugunghwaSeatRepository.findById(Long.valueOf(18)).get());
-        MugunghwaRoom room4 = new MugunghwaRoom("room4", mugunghwa, mugunghwaSeatRepository.findById(Long.valueOf(19)).get());
-        MugunghwaRoom room5 = new MugunghwaRoom("room5", mugunghwa, mugunghwaSeatRepository.findById(Long.valueOf(20)).get());
-
-        mugunghwaRoomRepository.save(room1);
-        mugunghwaRoomRepository.save(room2);
-        mugunghwaRoomRepository.save(room3);
-        mugunghwaRoomRepository.save(room4);
-        mugunghwaRoomRepository.save(room5);
-
     }
 }

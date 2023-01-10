@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
+import toy.ktx.domain.dto.api.KtxRoomWithNormalSeatDto;
 import toy.ktx.domain.enums.Grade;
 import toy.ktx.domain.ktx.Ktx;
 import toy.ktx.domain.ktx.KtxRoom;
@@ -31,31 +32,16 @@ class KtxRoomServiceTest {
     @Autowired
     KtxService ktxService;
 
+    @Autowired
+    KtxRepository ktxRepository;
+
     @Test
-    @Rollback(value = false)
     public void save() {
-        Optional<Ktx> ktx001 = ktxService.findKtx(Long.valueOf(17));
-
-        KtxRoom room1 = new KtxRoom("room1", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(51)).get());
-        KtxRoom room2 = new KtxRoom("room2", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(52)).get());
-        KtxRoom room3 = new KtxRoom("room3", ktx001.get(), Grade.VIP, ktxSeatVipService.findById(Long.valueOf(58)).get());
-        KtxRoom room4 = new KtxRoom("room4", ktx001.get(), Grade.VIP, ktxSeatVipService.findById(Long.valueOf(59)).get());
-        KtxRoom room5 = new KtxRoom("room5", ktx001.get(), Grade.VIP, ktxSeatVipService.findById(Long.valueOf(60)).get());
-        KtxRoom room6 = new KtxRoom("room6", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(53)).get());
-        KtxRoom room7 = new KtxRoom("room7", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(54)).get());
-        KtxRoom room8 = new KtxRoom("room8", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(55)).get());
-        KtxRoom room9 = new KtxRoom("room9", ktx001.get(), Grade.NORMAL, ktxSeatNormalService.findById(Long.valueOf(56)).get());
-        KtxRoom room10 = new KtxRoom("room10", ktx001.get(), Grade.NORMAL,ktxSeatNormalService.findById(Long.valueOf(57)).get());
-
-        ktxRoomService.saveKtxRoom(room1);
-        ktxRoomService.saveKtxRoom(room2);
-        ktxRoomService.saveKtxRoom(room3);
-        ktxRoomService.saveKtxRoom(room4);
-        ktxRoomService.saveKtxRoom(room5);
-        ktxRoomService.saveKtxRoom(room6);
-        ktxRoomService.saveKtxRoom(room7);
-        ktxRoomService.saveKtxRoom(room8);
-        ktxRoomService.saveKtxRoom(room9);
-        ktxRoomService.saveKtxRoom(room10);
+        List<Ktx> temp = ktxRepository.getAllKtxToSeatFetch();
+        Ktx ktx = temp.get(0);
+        List<KtxRoom> ktxRooms = ktx.getKtxRooms();
+        KtxRoom ktxRoom1 = ktxRooms.get(0);
+        KtxRoomWithNormalSeatDto temp2 = new KtxRoomWithNormalSeatDto(ktxRoom1.getId(), ktxRoom1.getRoomName(), ktxRoom1);
+        System.out.println("temp = " + temp2);
     }
 }

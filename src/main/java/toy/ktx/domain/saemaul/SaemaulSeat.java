@@ -19,10 +19,6 @@ public class SaemaulSeat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    양방향 ㄴㄴ
-//    @OneToOne(mappedBy = "saemaulSeat")
-//    private SaemaulRoom saemaulRoom;
-
     private Boolean s1A;
     private Boolean s2A;
     private Boolean s3A;

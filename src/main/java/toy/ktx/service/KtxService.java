@@ -1,6 +1,8 @@
 package toy.ktx.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toy.ktx.domain.ktx.Ktx;
@@ -27,5 +29,13 @@ public class KtxService {
 
     public List<Ktx> getKtxToSeatWithFetchAndIn(List<Long> ids) {
         return ktxRepository.getKtxToSeatWithFetchAndIn(ids);
+    }
+
+    public List<Ktx> getAllKtxToSeatFetch() {
+        return ktxRepository.getAllKtxToSeatFetch();
+    }
+
+    public Page<Ktx> findAll(Pageable pageable) {
+        return ktxRepository.findAll(pageable);
     }
 }

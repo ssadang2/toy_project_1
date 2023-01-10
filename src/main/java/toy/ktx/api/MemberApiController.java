@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import toy.ktx.domain.Member;
 import toy.ktx.domain.dto.api.MemberWithReservationDto;
-import toy.ktx.domain.dto.api.ReservationDto;
 import toy.ktx.domain.dto.api.ReservationDto2;
 import toy.ktx.domain.enums.Authorizations;
 import toy.ktx.service.MemberService;
@@ -35,22 +34,18 @@ public class MemberApiController {
 
     //batch + paging v3.1
     @GetMapping("/api/members/reservation")
-    public Page<MemberWithReservationDto> findAllMembersWithReservation(Authorizations authorizations, Pageable pageable) {
+    public Page<MemberWithReservationDto> findAllMembersWithReservation(Pageable pageable) {
         Page<Member> members = memberService.findAllByAuthorizations(Authorizations.USER, pageable);
         return members.map(m -> new MemberWithReservationDto(m));
-
     }
 
-//    dto + paging v5
+    //dto + paging v5
     //reservationDto memberId 없는 거, reservationDto2 memberId 있는 거
     //메모리 안에 넣고 돌려서 1+N -> 1+1로 만듦
     @GetMapping("/api/members-dto/reservation")
     public Page<MemberWithReservationDto> findAllMemberDtosWithReservation(Pageable pageable) {
-        //여기 dto로 바로 projection해서 admin 렌더링 안 되게 하기
-        Page<MemberWithReservationDto> memberDtos = memberService.findAllMemberDtos(pageable);
+        Page<MemberWithReservationDto> memberDtos = memberService.findAllMemberDtosByAuthorizations(Authorizations.USER, pageable);
         List<Long> memberIds = memberDtos.stream().map(m -> m.getMemberId()).collect(Collectors.toList());
-        log.info("fuck = {}",memberIds);
-
         List<ReservationDto2> reservationDtos2 = reservationService.findAllReservationDto2ById(memberIds);
 
         Map<Long, List<ReservationDto2>> collect = reservationDtos2.stream().collect(Collectors.groupingBy(reservationDto2 -> reservationDto2.getMemberId()));

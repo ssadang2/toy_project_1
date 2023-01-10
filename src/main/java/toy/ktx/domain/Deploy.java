@@ -38,7 +38,7 @@ public class Deploy {
     @OneToMany(mappedBy = "deploy")
     private List<Reservation> reservations = new ArrayList<>();
 
-    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "train_id")
     private Train train;
 

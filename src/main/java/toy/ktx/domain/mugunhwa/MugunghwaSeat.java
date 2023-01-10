@@ -19,10 +19,6 @@ public class MugunghwaSeat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    양방향 ㄴㄴ
-//    @OneToOne(mappedBy = "mugunghwaSeat")
-//    private MugunghwaRoom mugunghwaRoom;
-
     private Boolean m1;
     private Boolean m2;
     private Boolean m3;

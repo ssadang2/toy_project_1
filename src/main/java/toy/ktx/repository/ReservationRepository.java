@@ -15,7 +15,6 @@ import toy.ktx.domain.dto.api.ReservationWithMemberDeployTrainDto;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
     List<Reservation> findByMember(Member member);

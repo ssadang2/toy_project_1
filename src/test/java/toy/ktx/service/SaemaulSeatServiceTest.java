@@ -5,8 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
+import toy.ktx.domain.Member;
 import toy.ktx.domain.ktx.KtxSeatNormal;
 import toy.ktx.domain.saemaul.SaemaulSeat;
+import toy.ktx.repository.KtxRepository;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,57 +22,16 @@ class SaemaulSeatServiceTest {
     @Autowired
     SaemaulSeatService saemaulSeatService;
 
+    @Autowired
+    KtxRepository ktxRepository;
+
     @Test
-    @Rollback(value = false)
     void save() {
-
-        SaemaulSeat seat1 = new SaemaulSeat( false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false);
-
-        SaemaulSeat seat2 = new SaemaulSeat( false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false);
-
-        SaemaulSeat seat3 = new SaemaulSeat( false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false);
-
-        SaemaulSeat seat4 = new SaemaulSeat( false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false);
-
-        SaemaulSeat seat5 = new SaemaulSeat( false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false);
-
-        saemaulSeatService.save(seat1);
-        saemaulSeatService.save(seat2);
-        saemaulSeatService.save(seat3);
-        saemaulSeatService.save(seat4);
-        saemaulSeatService.save(seat5);
-
+        List<Long> ids = new ArrayList<>();
+        ids.add(Long.valueOf(3));
+        ids.add(Long.valueOf(4));
+        ids.add(Long.valueOf(7));
+        ids.add(Long.valueOf(12));
+        ktxRepository.getKtxToSeatWithFetchAndIn(ids);
     }
-
-
 }

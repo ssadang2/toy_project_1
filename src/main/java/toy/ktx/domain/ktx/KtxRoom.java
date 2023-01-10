@@ -1,15 +1,11 @@
 package toy.ktx.domain.ktx;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.BatchSize;
 import toy.ktx.domain.enums.Grade;
 
 import javax.persistence.*;
-import java.util.List;
-import java.util.Map;
 
 @Entity
 @Data

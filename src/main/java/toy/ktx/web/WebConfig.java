@@ -1,12 +1,19 @@
 package toy.ktx.web;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import toy.ktx.web.converter.StringToLocalDateTimeConverter;
 import toy.ktx.web.interceptor.signInInterceptor;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new StringToLocalDateTimeConverter());
+    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

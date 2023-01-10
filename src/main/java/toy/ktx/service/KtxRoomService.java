@@ -14,7 +14,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class KtxRoomService {
+public class  KtxRoomService {
 
     private final KtxRoomRepository ktxRoomRepository;
 
@@ -41,5 +41,9 @@ public class KtxRoomService {
 
     public List<KtxRoom> getKtxRoomsToSeatByKtxAndGradeWithFetch(Ktx ktx, Grade grade) {
         return ktxRoomRepository.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, grade);
+    }
+
+    public List<KtxRoom> getKtxRoomsToSeat() {
+        return ktxRoomRepository.getKtxRoomsToSeat();
     }
 }

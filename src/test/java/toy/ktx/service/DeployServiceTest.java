@@ -11,6 +11,7 @@ import toy.ktx.domain.Deploy;
 import toy.ktx.domain.Member;
 import toy.ktx.domain.QMember;
 import toy.ktx.domain.Reservation;
+import toy.ktx.domain.ktx.Ktx;
 import toy.ktx.repository.DeployRepository;
 import toy.ktx.repository.KtxRepository;
 import toy.ktx.repository.MugunghwaRepository;
@@ -52,10 +53,8 @@ class DeployServiceTest {
     SaemaulRepository saemaulRepository;
 
     @Test
-    @Rollback(value = false)
     public void saveDeploy() {
-        Deploy deploy = new Deploy();
-        System.out.println("deploy.getClass() = " + deploy.getClass());
-        System.out.println("Deploy.class.getClass() = " + Deploy.class.getClass());
+        ktxRepository.getAllKtxToSeatFetch();
+        em.find(Ktx.class, Long.valueOf(3));
     }
 }

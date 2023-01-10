@@ -20,7 +20,7 @@ public class Train {
 
     private String trainName;
 
-    @OneToOne(mappedBy = "train", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "train", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Deploy deploy;
 
     public Train() {
