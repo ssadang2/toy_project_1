@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import toy.ktx.domain.dto.api.KtxWithRoomSeatDto;
+import toy.ktx.domain.ktx.KtxRoom;
 import toy.ktx.service.DeployService;
 import toy.ktx.service.KtxRoomService;
 import toy.ktx.service.KtxService;
@@ -39,7 +40,9 @@ public class KtxApiController {
         //미리 당기기
         deployService.findAll();
         //미리 당기기 -> 안 하면 프록시 때문에 casting이 안 됨
-        ktxRoomService.getKtxRoomsToSeat();
-        return ktxService.findAll(pageable).map(k -> new KtxWithRoomSeatDto(k));
+        List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatFetch();
+
+        //미리 select한 KtxRooms를 생성자에 넘겨주지 않으면 ktx.getKtxRooms()를 할 때 또 초기화해야 해서 쿼리 하나 더 나감
+        return ktxService.findAll(pageable).map(k -> new KtxWithRoomSeatDto(k, ktxRooms));
     }
 }

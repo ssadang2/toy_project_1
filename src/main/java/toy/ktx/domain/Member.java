@@ -43,4 +43,12 @@ public class Member {
         this.name = name;
         this.age = age;
     }
+
+    public Member(String loginId, String password, String name, Long age, Authorizations authorizations) {
+        this.loginId = loginId;
+        this.password = password;
+        this.name = name;
+        this.age = age;
+        this.authorizations = authorizations;
+    }
 }

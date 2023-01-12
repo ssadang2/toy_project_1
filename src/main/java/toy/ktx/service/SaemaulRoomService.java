@@ -28,4 +28,8 @@ public class SaemaulRoomService {
     public void save(SaemaulRoom saemaulRoom) {
         saemaulRoomRepository.save(saemaulRoom);
     }
+
+    public List<SaemaulRoom> getSaemaulRoomsToSeatFetch() {
+        return saemaulRoomRepository.getSaemaulRoomsToSeatFetch();
+    }
 }

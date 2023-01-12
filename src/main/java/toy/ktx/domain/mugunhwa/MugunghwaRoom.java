@@ -17,11 +17,11 @@ public class MugunghwaRoom {
 
     private String roomName;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mugunghwa_id")
     private Mugunghwa mugunghwa;
 
-    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "seat_id")
     private MugunghwaSeat mugunghwaSeat;
 

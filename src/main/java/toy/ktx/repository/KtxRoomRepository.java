@@ -22,6 +22,6 @@ public interface KtxRoomRepository extends JpaRepository<KtxRoom, Long> {
     List<KtxRoom> getKtxRoomsToSeatByIdWithFetch(@Param("id") Long id);
 
     @Query("select k from KtxRoom k join fetch k.ktxSeat")
-    List<KtxRoom> getKtxRoomsToSeat();
+    List<KtxRoom> getKtxRoomsToSeatFetch();
 
 }

@@ -421,8 +421,6 @@ public class ReservationController {
                     Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
 
                     reservation.setRoomName(optionalMugunghwaRoom.get().getRoomName());
-                    reservation.setGrade(null);
-
                     MugunghwaSeat foundSeat = optionalMugunghwaRoom.get().getMugunghwaSeat();
                     reservation.setSeats(beforeChosenSeats);
                     foundSeat.checkSeats(beforeChosenSeats);
@@ -435,8 +433,6 @@ public class ReservationController {
                     Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
 
                     reservation.setRoomName(optionalSaemaulRoom.get().getRoomName());
-                    reservation.setGrade(null);
-
                     SaemaulSeat foundSeat = optionalSaemaulRoom.get().getSaemaulSeat();
                     reservation.setSeats(beforeChosenSeats);
                     foundSeat.checkSeats(beforeChosenSeats);
@@ -963,12 +959,9 @@ public class ReservationController {
                     Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
 
                     reservation.setRoomName(optionalMugunghwaRoom.get().getRoomName());
-                    reservation.setGrade(null);
-
                     MugunghwaSeat foundSeat = optionalMugunghwaRoom.get().getMugunghwaSeat();
                     reservation.setSeats(beforeChosenSeats);
                     foundSeat.checkSeats(beforeChosenSeats);
-
                 } else {
                     Saemaul saemaul = (Saemaul) deploy.getTrain();
 
@@ -977,8 +970,6 @@ public class ReservationController {
                     Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
 
                     reservation.setRoomName(optionalSaemaulRoom.get().getRoomName());
-                    reservation.setGrade(null);
-
                     SaemaulSeat foundSeat = optionalSaemaulRoom.get().getSaemaulSeat();
                     reservation.setSeats(beforeChosenSeats);
                     foundSeat.checkSeats(beforeChosenSeats);
@@ -1505,8 +1496,6 @@ public class ReservationController {
                     Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
 
                     reservation.setRoomName(optionalMugunghwaRoom.get().getRoomName());
-                    reservation.setGrade(null);
-
                     MugunghwaSeat foundSeat = optionalMugunghwaRoom.get().getMugunghwaSeat();
                     reservation.setSeats(beforeChosenSeats);
                     foundSeat.checkSeats(beforeChosenSeats);
@@ -1519,8 +1508,6 @@ public class ReservationController {
                     Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
 
                     reservation.setRoomName(optionalSaemaulRoom.get().getRoomName());
-                    reservation.setGrade(null);
-
                     SaemaulSeat foundSeat = optionalSaemaulRoom.get().getSaemaulSeat();
                     reservation.setSeats(beforeChosenSeats);
                     foundSeat.checkSeats(beforeChosenSeats);
@@ -1535,8 +1522,6 @@ public class ReservationController {
                 Optional<MugunghwaRoom> optionalMugunghwaRoom2 = mugunghwaRooms2.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
                 reservation2.setRoomName(optionalMugunghwaRoom2.get().getRoomName());
-                reservation2.setGrade(null);
-
                 MugunghwaSeat foundSeat2 = optionalMugunghwaRoom2.get().getMugunghwaSeat();
                 reservation2.setSeats(mugunghwaSeatDto.returnSeats());
                 foundSeat2.mugunghwaDtoToEntity(mugunghwaSeatDto);
@@ -1657,7 +1642,6 @@ public class ReservationController {
             Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
             reservation.setRoomName(optionalMugunghwaRoom.get().getRoomName());
-            reservation.setGrade(null);
 
             //자리차지
             MugunghwaSeat foundSeat = optionalMugunghwaRoom.get().getMugunghwaSeat();
@@ -2053,8 +2037,6 @@ public class ReservationController {
                     Optional<MugunghwaRoom> optionalMugunghwaRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
 
                     reservation.setRoomName(optionalMugunghwaRoom.get().getRoomName());
-                    reservation.setGrade(null);
-
                     MugunghwaSeat foundSeat = optionalMugunghwaRoom.get().getMugunghwaSeat();
                     reservation.setSeats(beforeChosenSeats);
                     foundSeat.checkSeats(beforeChosenSeats);
@@ -2067,8 +2049,6 @@ public class ReservationController {
                     Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(beforeRoomName)).findAny();
 
                     reservation.setRoomName(optionalSaemaulRoom.get().getRoomName());
-                    reservation.setGrade(null);
-
                     SaemaulSeat foundSeat = optionalSaemaulRoom.get().getSaemaulSeat();
                     reservation.setSeats(beforeChosenSeats);
                     foundSeat.checkSeats(beforeChosenSeats);
@@ -2083,8 +2063,6 @@ public class ReservationController {
                 Optional<SaemaulRoom> optionalSaemaulRoom2 = saemaulRooms2.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
                 reservation2.setRoomName(optionalSaemaulRoom2.get().getRoomName());
-                reservation2.setGrade(null);
-
                 SaemaulSeat foundSeat2 = optionalSaemaulRoom2.get().getSaemaulSeat();
                 reservation2.setSeats(saemaulSeatDto.returnSeats());
                 foundSeat2.saemaulDtoToEntity(saemaulSeatDto);
@@ -2205,7 +2183,6 @@ public class ReservationController {
             Optional<SaemaulRoom> optionalSaemaulRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
             reservation.setRoomName(optionalSaemaulRoom.get().getRoomName());
-            reservation.setGrade(null);
 
             //자리차지
             SaemaulSeat foundSeat = optionalSaemaulRoom.get().getSaemaulSeat();

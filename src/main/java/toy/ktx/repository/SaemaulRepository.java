@@ -12,4 +12,7 @@ public interface SaemaulRepository extends JpaRepository<Saemaul, Long> {
 
     @Query("select distinct sae from Saemaul sae join fetch sae.saemaulRooms r join fetch r.saemaulSeat s where sae.deploy.id in :ids")
     List<Saemaul> getSaemaulToSeatWithFetchAndIn(@Param("ids") List<Long> ids);
+
+    @Query("select distinct sae from Saemaul sae join fetch sae.saemaulRooms r join fetch r.saemaulSeat")
+    List<Saemaul> getAllSaemaulToSeatFetch();
 }

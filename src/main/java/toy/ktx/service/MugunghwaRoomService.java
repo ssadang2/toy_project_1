@@ -32,4 +32,8 @@ public class MugunghwaRoomService {
     public void save(MugunghwaRoom mugunghwaRoom) {
         mugunghwaRoomRepository.save(mugunghwaRoom);
     }
+
+    public List<MugunghwaRoom> getMugunghwaRoomsToSeatFetch() {
+        return mugunghwaRoomRepository.getMugunghwaRoomsToSeatFetch();
+    }
 }

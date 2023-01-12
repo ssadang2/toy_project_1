@@ -16,5 +16,8 @@ public interface MugunghwaRoomRepository extends JpaRepository<MugunghwaRoom, Lo
     @Query("select m from MugunghwaRoom m join fetch m.mugunghwaSeat where m.mugunghwa.id= :id")
     List<MugunghwaRoom> getMugunghwaRoomsToSeatByIdWithFetch(@Param("id") Long id);
 
+    @Query("select m from MugunghwaRoom m join fetch m.mugunghwaSeat")
+    List<MugunghwaRoom> getMugunghwaRoomsToSeatFetch();
+
     List<MugunghwaRoom> findAllByMugunghwa(Mugunghwa mugunghwa);
 }

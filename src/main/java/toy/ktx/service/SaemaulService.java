@@ -1,6 +1,8 @@
 package toy.ktx.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toy.ktx.domain.mugunhwa.Mugunghwa;
@@ -23,5 +25,13 @@ public class SaemaulService {
     @Transactional
     public void save(Saemaul saemaul) {
         saemaulRepository.save(saemaul);
+    }
+
+    public List<Saemaul> getAllSaemaulToSeatFetch() {
+        return saemaulRepository.getAllSaemaulToSeatFetch();
+    }
+
+    public Page<Saemaul> findAll(Pageable pageable) {
+        return saemaulRepository.findAll(pageable);
     }
 }

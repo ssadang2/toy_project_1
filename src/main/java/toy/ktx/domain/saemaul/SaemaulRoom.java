@@ -16,11 +16,11 @@ public class SaemaulRoom {
 
     private String roomName;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "saemaul_id")
     private Saemaul saemaul;
 
-    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "seat_id")
     private SaemaulSeat saemaulSeat;
 

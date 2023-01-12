@@ -43,7 +43,7 @@ public class  KtxRoomService {
         return ktxRoomRepository.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, grade);
     }
 
-    public List<KtxRoom> getKtxRoomsToSeat() {
-        return ktxRoomRepository.getKtxRoomsToSeat();
+    public List<KtxRoom> getKtxRoomsToSeatFetch() {
+        return ktxRoomRepository.getKtxRoomsToSeatFetch();
     }
 }

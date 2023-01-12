@@ -26,7 +26,7 @@ public class KtxRoom {
     @JoinColumn(name = "ktx_id")
     private Ktx ktx;
 
-    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "seat_id")
     private KtxSeat ktxSeat;
 

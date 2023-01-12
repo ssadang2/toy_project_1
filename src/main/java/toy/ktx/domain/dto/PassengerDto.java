@@ -6,6 +6,7 @@ import toy.ktx.domain.Train;
 import toy.ktx.domain.enums.Grade;
 import toy.ktx.domain.ktx.Ktx;
 import toy.ktx.domain.mugunhwa.Mugunghwa;
+import toy.ktx.domain.saemaul.Saemaul;
 
 @Data
 public class PassengerDto {
@@ -61,7 +62,7 @@ public class PassengerDto {
             }
             //특실 3만원(대인 기준)
             return Long.valueOf(toddler * 7500 + kids * 15000 + adult * 30000 + senior * 21000);
-        } else if (train instanceof Mugunghwa) {
+        } else if (train instanceof Saemaul) {
             //1만 5천원(대인 기준)
             return Long.valueOf(toddler * 3750 + kids * 7500 + adult * 15000 + senior * 10500);
         } else {

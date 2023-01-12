@@ -4,6 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Profile;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 import toy.ktx.controller.ScheduleController;
@@ -12,16 +13,11 @@ import toy.ktx.domain.Member;
 import toy.ktx.domain.QMember;
 import toy.ktx.domain.Reservation;
 import toy.ktx.domain.ktx.Ktx;
-import toy.ktx.repository.DeployRepository;
-import toy.ktx.repository.KtxRepository;
-import toy.ktx.repository.MugunghwaRepository;
-import toy.ktx.repository.SaemaulRepository;
+import toy.ktx.domain.ktx.KtxRoom;
+import toy.ktx.repository.*;
 
 import javax.persistence.EntityManager;
-import java.time.LocalDateTime;
 import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 
 
@@ -52,9 +48,14 @@ class DeployServiceTest {
     @Autowired
     SaemaulRepository saemaulRepository;
 
+    @Autowired
+    KtxRoomRepository ktxRoomRepository;
+
     @Test
     public void saveDeploy() {
-        ktxRepository.getAllKtxToSeatFetch();
-        em.find(Ktx.class, Long.valueOf(3));
+        List<Deploy> all = deployService.findAll();
+        for (Deploy deploy : all) {
+            System.out.println("deploy = " + deploy);
+        }
     }
 }

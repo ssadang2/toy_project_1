@@ -16,5 +16,8 @@ public interface SaemaulRoomRepository extends JpaRepository<SaemaulRoom, Long> 
     @Query("select s from SaemaulRoom s join fetch s.saemaulSeat where s.saemaul.id= :id")
     List<SaemaulRoom> getSaemaulRoomsToSeatByIdWithFetch(@Param("id") Long id);
 
+    @Query("select s from SaemaulRoom s join fetch s.saemaulSeat")
+    List<SaemaulRoom> getSaemaulRoomsToSeatFetch();
+
     List<SaemaulRoom> findAllBySaemaul(Saemaul saemaul);
 }
