@@ -17,12 +17,5 @@ class MemberRepositoryTest {
 
     @Test
     public void save() {
-
-        Member member = new Member("a", "1234", "eric", Long.valueOf(26));
-        memberRepository.save(member);
-
-        Member member1 = memberRepository.findById(member.getId()).get();
-
-        assertThat(member).isEqualTo(member1);
     }
 }

@@ -119,7 +119,7 @@
                         </div>
 
                         <div class="form-check col-4 text-center">
-                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}" th:disabled="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}" th:disabled="${fullCheck[deployStat.index][0] == false}">
                             <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfGoing')}" th:text="예매하기"></label>
                         </div>
                     </div>
@@ -138,7 +138,7 @@
                         </div>
 
                         <div class="form-check col-4 text-center">
-                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}" th:disabled="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}" th:disabled="${fullCheck[deployStat.index][0] == false}">
                             <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfGoing')}" th:text="예매하기"></label>
                         </div>
                     </div><br><br>
@@ -231,7 +231,7 @@
                         </div>
 
                         <div class="form-check col-4 text-center">
-                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}" th:disabled="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}" th:disabled="${fullCheck2[deployStat.index][0] == false}">
                             <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfComing')}" th:text="예매하기"></label>
                         </div>
                     </div>
@@ -250,7 +250,7 @@
                         </div>
 
                         <div class="form-check col-4 text-center">
-                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}" th:disabled="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}" th:disabled="${fullCheck2[deployStat.index][0] == false}">
                             <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfComing')}" th:text="예매하기"></label>
                         </div>
                     </div><br><br>
@@ -268,7 +268,6 @@
         <input type="hidden" name="arrivalPlace" th:value="${arrivalPlace}">
         <input type="hidden" name="round" th:value="${round}">
 
-        <!--객체 그냥 넘기려다가 th:value에는 스트링밖에 넣을 수 없는 걸 까먹음 -->
         <input type="hidden" name="toddler" th:value="${passengerDto.toddler}">
         <input type="hidden" name="kids" th:value="${passengerDto.kids}">
         <input type="hidden" name="adult" th:value="${passengerDto.adult}">

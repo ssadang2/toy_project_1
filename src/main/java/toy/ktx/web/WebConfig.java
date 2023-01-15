@@ -5,21 +5,21 @@ import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import toy.ktx.web.converter.StringToLocalDateTimeConverter;
-import toy.ktx.web.interceptor.signInInterceptor;
+import toy.ktx.web.interceptor.SignInInterceptor;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
+        //api controller에서 search condition으로 dateTime이 넘어올 때 LocalDateTime으로 바로 받을 수 있게 하기 위한 컨버터
         registry.addConverter(new StringToLocalDateTimeConverter());
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // "/css/**" << 이거 빼고 css 적용됨. 아마 강의 찍은 뒤에 패치되지 않았을까
-        // "/js/**" << 이거 빼고 js 적용됨. 아마 강의 찍은 뒤에 패치되지 않았을까
-        registry.addInterceptor(new signInInterceptor())
+        // 로그인 인증 인터셉터
+        registry.addInterceptor(new SignInInterceptor())
                 .order(1)
                 .addPathPatterns("/**")
                 .excludePathPatterns("/", "/sign-up", "/sign-in", "/css/**", "/js/**", "/*.ico", "/error", "/api/**");

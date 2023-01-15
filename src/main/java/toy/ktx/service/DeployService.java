@@ -1,6 +1,7 @@
 package toy.ktx.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import toy.ktx.domain.Deploy;
@@ -15,6 +16,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class DeployService {
 
     private final DeployRepository deployRepository;
@@ -59,6 +61,7 @@ public class DeployService {
         if (departureTime.format(DateTimeFormatter.ISO_DATE).equals(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE))) {
             departureTime = LocalDateTime.now();
         }
+        log.info("fuck = {}", departureTime);
 
         return deployRepository.searchDeployToTrain(departurePlace, arrivalPlace, departureTime, until);
     }

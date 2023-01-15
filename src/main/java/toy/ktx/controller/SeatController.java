@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Controller
 @Slf4j
 @RequiredArgsConstructor
-public class    SeatController {
+public class SeatController {
 
     private final KtxRoomService ktxRoomService;
     private final MugunghwaRoomService mugunghwaRoomService;

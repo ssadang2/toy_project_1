@@ -615,8 +615,8 @@ public class InitSampleData {
 
             List<SaemaulRoom> saemaulRooms = new ArrayList<>();
             saemaulRooms.add(new SaemaulRoom("room1", saemaul, seat1));
-            saemaulRooms.add(new SaemaulRoom("room3", saemaul, seat2));
-            saemaulRooms.add(new SaemaulRoom("room2", saemaul, seat3));
+            saemaulRooms.add(new SaemaulRoom("room2", saemaul, seat2));
+            saemaulRooms.add(new SaemaulRoom("room3", saemaul, seat3));
             saemaulRooms.add(new SaemaulRoom("room4", saemaul, seat4));
             saemaulRooms.add(new SaemaulRoom("room5", saemaul, seat5));
             saemaul.setSaemaulRooms(saemaulRooms);

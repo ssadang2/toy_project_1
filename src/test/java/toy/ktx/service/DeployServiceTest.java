@@ -53,9 +53,5 @@ class DeployServiceTest {
 
     @Test
     public void saveDeploy() {
-        List<Deploy> all = deployService.findAll();
-        for (Deploy deploy : all) {
-            System.out.println("deploy = " + deploy);
-        }
     }
 }

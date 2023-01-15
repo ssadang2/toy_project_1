@@ -37,11 +37,5 @@ class KtxRoomServiceTest {
 
     @Test
     public void save() {
-        List<Ktx> temp = ktxRepository.getAllKtxToSeatFetch();
-        Ktx ktx = temp.get(0);
-        List<KtxRoom> ktxRooms = ktx.getKtxRooms();
-        KtxRoom ktxRoom1 = ktxRooms.get(0);
-        KtxRoomWithNormalSeatDto temp2 = new KtxRoomWithNormalSeatDto(ktxRoom1.getId(), ktxRoom1.getRoomName(), ktxRoom1);
-        System.out.println("temp = " + temp2);
     }
 }

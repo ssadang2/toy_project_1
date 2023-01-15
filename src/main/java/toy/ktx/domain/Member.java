@@ -2,8 +2,6 @@ package toy.ktx.domain;
 
 import lombok.Data;
 import lombok.ToString;
-import org.hibernate.annotations.ColumnDefault;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import toy.ktx.domain.enums.Authorizations;
 
 import javax.persistence.*;
@@ -28,6 +26,7 @@ public class Member {
 
     private Long age;
 
+    //대부분의 멤버는 user이기 때문에
     @Enumerated(EnumType.STRING)
     private Authorizations authorizations = Authorizations.USER;
 

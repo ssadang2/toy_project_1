@@ -24,7 +24,6 @@ public class SaemaulRoom {
     @JoinColumn(name = "seat_id")
     private SaemaulSeat saemaulSeat;
 
-
     public SaemaulRoom() {
     }
 

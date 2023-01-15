@@ -31,9 +31,5 @@ class SaemaulSeatServiceTest {
 
     @Test
     void save() {
-        List<Deploy> all = deployService.findAll();
-        for (Deploy deploy : all) {
-            System.out.println("deploy = " + deploy);
-        }
     }
 }

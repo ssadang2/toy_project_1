@@ -22,8 +22,4 @@ public class Passenger {
     private Integer adult;
 
     private Integer senior;
-
-//    oneToOne은 query eager 문제로 양방향 끄는 게 좋음
-//    @OneToOne(fetch = FetchType.LAZY, mappedBy = "passenger")
-//    private Reservation reservation;
 }
