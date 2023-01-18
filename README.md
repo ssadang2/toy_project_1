@@ -5,7 +5,7 @@
 기본적으로 네이버에서 자체적으로 제공하는 기차 예약 시스템(서비스)을 레퍼런스로 하고 있는 기차 예약 어플(웹 서비스)입니다.
 
 <br>
-
+  
 사용자는 당연히 회원가입, 로그인, 로그아웃 할 수 있고, 로그인 했을 때만 예약할 수 있습니다.
 
 사용자는 기본적으로 시간표 검색, 예매할 시간표 선택, 선택된 시간표 열차의 호실 및 좌석 선택, 예매 완료 순으로 예약 서비스를 이용하게 됩니다. 
@@ -18,7 +18,15 @@
 
 관리자는 모든 시간표를 볼 수 있으며 출발 시간, 도착 시간을 조건으로 시간표를 검색할 수 있습니다.
 
-또한, 관리자는 시간표를 삭제할 수 있고, 시간표 별 예약 현황을 확인할 수 있으며, 유사시에 문제가 되는 예약 내역을 임의로 삭제할 수 있습니다.
+관리자는 시간표를 삭제할 수 있고, 시간표 별 예약 현황을 확인할 수 있으며, 유사시에 문제가 되는 예약 내역을 임의로 삭제할 수 있습니다.
+
+<br>
+
+많이 쓰일 것 같은 entity 및 join 데이터 위주로 조회 api controller를 만들어 향후, 이 어플에 붙을 수 있는 front framework와 json 통신을 가능하게 했습니다.
+
+<br>
+
+원래 iamport api를 도입해서 결제 logic도 구현하려 했는데 구현시 jquery, javascript 코드를 많이 작성해야 했습니다. 그래서 전 결제 전까지의 예약 logic에 집중하는 것이 spring framework를 더 잘 이해하고 배우게 되는 방향이라는 생각이 들어 구현하지 않았습니다.
 
 <br>
 
@@ -71,7 +79,9 @@ ktx_seat_normal, ktx_seat_vip, mugunghwa_seat, saemaul_seat에 있는 ...과 ski
 ## 기술 스택
 server side rendering 방식으로 앱을 구성했고 사용한 스택은 아래와 같습니다.
 
-<img width="856" alt="스크린샷 2023-01-16 오후 3 05 30" src="https://user-images.githubusercontent.com/95601414/212609238-0337cbd1-b88f-4ee3-b00f-3c5746e069ad.png">
+<img width="852" alt="스크린샷 2023-01-18 오후 2 27 32" src="https://user-images.githubusercontent.com/95601414/213091637-15b14d88-b3b8-4f5d-8a0a-027d96f78f90.png">
+
+
 <br>
 
 ## 핵심 기능
@@ -118,7 +128,7 @@ server side rendering 방식으로 앱을 구성했고 사용한 스택은 아�
 <img width="953" alt="스크린샷 2023-01-16 오후 5 25 52" src="https://user-images.githubusercontent.com/95601414/212631444-8ff70774-4a60-4c2c-9f47-cc0093ef730a.png">
  
 7. 관리자 마이페이지
-    출발 시간, 도착 시간을 조건으로 시간표를 검색할 수 있음
+    출발 시간, 도착 시간을 조건으로 시간표를 검색할 수 있음(queryDsl을 사용한 동적 query)
     
 <img width="1338" alt="스크린샷 2023-01-16 오후 5 31 41" src="https://user-images.githubusercontent.com/95601414/212633407-6a7860b6-a521-4d0a-9579-9576f6f7c6a8.png">
 
@@ -143,7 +153,7 @@ server side rendering 방식으로 앱을 구성했고 사용한 스택은 아�
 
 ## test case
 
-(네이버 기차 예약 레퍼런스)라고 적혀 있는 것의 의미는 해당 테스트를 수행한 이유이자 근거가 차용한 레퍼런스에 있다는 뜻입니다.
+(네이버 기차 예약 레퍼런스)라고 적혀 있는 것의 의미는 해당 기능 및 테스트를 수행한 이유이자 근거가 차용한 레퍼런스에 있다는 뜻입니다.
 
 로그인 기능
 - 로그인 기능이 잘 동작하여 세션이 유지됨 :ok_hand:
@@ -411,15 +421,84 @@ myPage 진입 시 member의 authorization에 따라 다른 page가 보여야 됨
   - 이상한 열차 이름이 입력됐을 때 validation이 잘 동작함 :ok_hand:
   
 * 시간표(Deploy) 관련 Logic
-  - 한 명이라도 해당되는 시간표에 예약을 했으면 그 시간표는 삭제될 수 없음 :ok_hand:
+  - 한 명이라도 해당되는 시간표에 예약을 했으면 그 시간표는 삭제될 수 없음(via disabled button) :ok_hand:
   - 예약현활 버튼을 누르면 해당 deploy의 예약 내역들이 보여야 됨 :ok_hand:
   - X 버튼을 해당 예약 내역을 삭제할 수 있음 :ok_hand:
+  
+@PostConstructor를 사용한 샘플 데이터 자동 insert(InitSampleData)
+- member(user, admin)이 의도한 대로 잘 들어갔음 :ok_hand:
+- 시간표(deploy)가 의도한 대로 잘 들어갔음 :ok_hand:
+- 기차(train)가 의도한 대로 잘 들어갔음 :ok_hand:
+- 예약(reservation)가 의도한 대로 잘 들어갔음 :ok_hand:
+- 승객(passenger)가 의도한 대로 잘 들어갔음 :ok_hand:
+
+- ktx room이 의도한 대로 잘 들어갔음
+- mugunghwa room이 의도한 대로 잘 들어갔음 :ok_hand:
+- saemaul room이 의도한 대로 잘 들어갔음 :ok_hand:
+- ktx seat이 의도한 대로 잘 들어갔음 :ok_hand:
+- ktx normal seat이 의도한 대로 잘 들어갔음 :ok_hand:
+- ktx vip seat이 의도한 대로 잘 들어갔음 :ok_hand:
+- mugunghwa seat이 의도한 대로 잘 들어갔음 :ok_hand:
+- saemaul seat이 의도한 대로 잘 들어갔음 :ok_hand:
+
+조회 api (api이기 default로 dto 반환)
+- deploy(시간표) 관련 조회 api(No join)
+    * 동적 쿼리로 시간표 검색(출발 시간, 도착 시간 조건) + paging 가능 :ok_hand:
+- member 관련 조회 api(oneToMany)
+    * member와 reservation을 fetch join but oneToMany 관계라 no paging :ok_hand:
+    * paging 가능한 member만 조회 후, reservation 초기화 시 batch fetch 기능으로 최적화 :ok_hand:
+    * paging 가능한 dto 조회 + 메모리 작업으로 1+N => 1+1으로 최적화 :ok_hand:
+- reservation(예약) 관련 조회 api(ManyToOne)
+    * join 없이 findAl + paging 가능 :ok_hand:
+    * join 없이 dto 조회 후 + paging 가능 :ok_hand:
+    * fetch join 후 findAll + paging 가능 :ok_hand:
+    * fetch join 후 dto 조회 + paging 가능 :ok_hand:
+- ktx 관련 조회 api(OneToMany)
+    * ktx, ktx room, ktx seat을 fetch join but oneToMany 관계라 no paging :ok_hand:
+    * paging 가능한 ktx 조회 후, ktx room, ktx seat 초기화 시 batch fetch 기능으로 최적화 :ok_hand:
+- mugunghwa(무궁화호) 관련 조회 api(OneToMany)
+    * mugunghwa, mugunghwa room, mugunghwa seat을 fetch join but oneToMany 관계라 no paging :ok_hand:
+    * paging 가능한 mugunghwa 조회 후, mugunghwa room, mugunghwa seat 초기화 시 batch fetch 기능으로 최적화 :ok_hand:
+- saemaul(새마을호) 관련 조회 api(OneToMany)
+    * saemaul, saemaul room, saemaul seat을 fetch join but oneToMany 관계라 no paging :ok_hand:
+    * paging 가능한 saemaul 조회 후, saemaul room, saemaul seat 초기화 시 batch fetch 기능으로 최적화 :ok_hand:
+- 에러가 났을 때(controllerAdvice)
+    * 시간표 search 동적 query를 날릴 때 출발 시간, 도착 시간이 스펙에 안 맞으면 개발자 미리 지정한 객체를 잘 render함 :ok_hand:
+
+컨버터
+- 날짜와 시간을 문자열이 아닌 LocalDateTime type으로 바로 받기 위한 컨버터가 잘 작동함 :ok_hand:
+
+comparator
+- 시간표를 출발 시간으로 1차 정렬하고 열차의 종류에 따라(Ktx, 무궁화호, 새마을호 순) 2차 정렬하는 것이 잘 작동함 :ok_hand:
 
 <br>
 
 ## 문제점 및 해결 방안
-> prob 1. 
-> prob 2.
+**prob 1. oneToOne 관계에서 연관관계 주인이 아닌 쪽을 select 시, 쿼리가 데이터의 개수만큼 나가는 문제**
+
+<img width="695" alt="스크린샷 2023-01-18 오후 4 06 20" src="https://user-images.githubusercontent.com/95601414/213106361-70323371-514d-49ad-8d14-da11af906ca9.png">
+
+보이는 것처럼 train과 Deploy는 oneToOne 관계이며 train은 연관관계의 주인이 아닙니다. 
+
+<img width="207" alt="스크린샷 2023-01-18 오후 4 36 54" src="https://user-images.githubusercontent.com/95601414/213111457-6a7ed9d1-7f3b-4493-8512-5d8f1f6e462e.png">
+<img width="583" alt="스크린샷 2023-01-18 오후 4 10 22" src="https://user-images.githubusercontent.com/95601414/213107799-727b594b-bef8-40fb-9fde-053d41b74b92.png">
+
+이 때, train을 findAll() 하기만 해도 마치 N+1 problem처럼 train 데이터의 개수 만큼 연관된 deploy를 찾는 쿼리가 나가게 됩니다. 이는 oneToOne 관계에서 당연한 것이므로 양방향 연관관계를 맺지 않으면 해결되는 문제이나 해당 양방향을 단방향으로 바꾸면 기존 구조에 꽤 많은 수정이 있어야 했고 전 언젠가 실무에서도 oneToOne 양방향은 써야 되는데 저런 N+1 같은 쿼리가 나가게 되는 상황이 나올 수도 있다고 생각하여 매핑 관계나 구조의 수정 없이 나름 합리적으로 이 문제를 해결하려 했습니다.
+
+<img width="234" alt="스크린샷 2023-01-18 오후 4 35 47" src="https://user-images.githubusercontent.com/95601414/213111279-dff937a6-8324-4e73-ada6-45db7bdf2891.png">
+<img width="998" alt="스크린샷 2023-01-18 오후 4 35 53" src="https://user-images.githubusercontent.com/95601414/213111283-ede1104c-5e34-46d4-980e-96f595c6bb84.png">
+
+그래서, 저는 deploy가 train의 데이터의 개수만큼 하나씩 나가는 걸 막고자 train 관련 로직 전에 deploy를 미리 긁어오는 코드를 넣었습니다. 이를 통해, 쿼리가 마치가 N+1처럼 나가던 것을 1+1로 줄이게 되었습니다. 또한, @transactional이 걸려 있는 service 밖에서 쿼리 2개를 날렸는데 마치 2개의 쿼리가 하나의 영속성 컨텍스트를 쓰는 것 처럼 미리 긁어 오는 작업이 유효합니다. 그 이유는 open session in view가 켜져 있어 서비스 단을 벗어나도 영속성 컨텍스트가 db connection을 물고 살아 있기 때문입니다. 만약 osiv 설정을 끄면 위와 같은 미리 당기기 작업은 원하는대로 동작하지 않게 됩니다.
+
+참고로 예시 코드에서는 데이터가 적어 deploy를 바로 findAll()로 찾아 왔지만 데이터가 많아지거나 쿼리의 최적화가 요구된다면 해당되는 train들의 아이디만을 받아와서 where 조건에 넣어 퍼올리는 데이터의 양을 줄이는 최적화를 할 수 있을 것 같습니다.
+
+**prob 2. Comparator를 통한 이중 정렬**
+
+<img width="852" alt="스크린샷 2023-01-18 오후 4 49 33" src="https://user-images.githubusercontent.com/95601414/213113747-25c90dae-9267-4dfb-8ede-90b4dc5e35ab.png">
+
+저는 레퍼런스에 따라 기차 시간표를 출발 시간 순서로 보여주기로 했습니다. 근데, 만약 출발 시간이 같으면서 열차 종류가 다른 시간표가 있다면 이들을 단순히 db에서 긁어온 순서로 보여주고 싶지 않았고 어떠한 기준에 의거해 보여주고 싶었습니다. 
+
+따라서, 저는 우선 출발 시간 순으로 정렬하고, 출발 시간이 같다면 ktx -> 무궁화호 -> 새마을호 순으로 정렬하자는 임의의 기준을 세웠습니다. 이를 구현하기 위해 정보를 찾던 중 List<E>의 정렬을 가능하게 해주는 Comparator 객체를 알게 됐고, 1차 정렬은 출발 시간으로 하고 2차 정렬은 ktx, 무궁화호, 새마을호 순으로 하게 하는 comparator를 구현해 위 문제를 해결했습니다.
 
 ## reference
 <img width="682" alt="스크린샷 2023-01-16 오후 2 16 39" src="https://user-images.githubusercontent.com/95601414/212604760-0c5da0d3-19b9-43de-887f-6de11cd32f7b.png">
