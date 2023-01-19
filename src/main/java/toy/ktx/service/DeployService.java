@@ -8,8 +8,10 @@ import toy.ktx.domain.Deploy;
 import toy.ktx.repository.DeployRepository;
 import toy.ktx.repository.query.DeploySearchRepository;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,7 +63,6 @@ public class DeployService {
         if (departureTime.format(DateTimeFormatter.ISO_DATE).equals(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE))) {
             departureTime = LocalDateTime.now();
         }
-        log.info("fuck = {}", departureTime);
 
         return deployRepository.searchDeployToTrain(departurePlace, arrivalPlace, departureTime, until);
     }

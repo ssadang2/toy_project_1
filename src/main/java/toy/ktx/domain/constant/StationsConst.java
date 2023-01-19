@@ -1,5 +1,7 @@
 package toy.ktx.domain.constant;
 
+//레퍼런스에 근거한 현존하는 역들의 모음
+//validation 및 자동 완성에서 쓰임
 public abstract class StationsConst {
 
     public static final String[] stations = {"가남역", "가평역", "각계역", "감곡장호원역", "강경역", "강구역", "강릉역", "강촌역", "개포역", "경산역", "계룡역",

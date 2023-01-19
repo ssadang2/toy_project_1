@@ -29,7 +29,6 @@ public class KtxApiController {
     @GetMapping("/api/ktxs/fetch")
     public List<KtxWithRoomSeatDto> getAllKtxToSeatFetch() {
         //미리 당기기 -> 이거 안 하면 oneToOne 때문에 쿼리 엄청 나감
-        //where로 Ktx만 당기는 걸로 나름의 최적화하는 것도 나쁘지 않을 듯
         deployService.findAll();
         return ktxService.getAllKtxToSeatFetch().stream().map(k -> new KtxWithRoomSeatDto(k)).collect(Collectors.toList());
     }

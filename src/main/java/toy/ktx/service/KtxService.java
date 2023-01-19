@@ -38,4 +38,8 @@ public class KtxService {
     public Page<Ktx> findAll(Pageable pageable) {
         return ktxRepository.findAll(pageable);
     }
+
+    public List<Ktx> findAll() {
+        return ktxRepository.findAll();
+    }
 }

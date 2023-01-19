@@ -39,11 +39,13 @@ public class MemberController {
     private final MugunghwaSeatService mugunghwaSeatService;
     private final SaemaulSeatService saemaulSeatService;
 
+    //회원 가입 페이지로 이동하게 하는 컨트롤러
     @GetMapping("/sign-up")
     public String getSignUpPage(@ModelAttribute SignUpForm SignUpForm) {
         return "signUpPage";
     }
 
+    //회원가입 완료 및 validation을 처리하는 컨트롤러
     @PostMapping("/sign-up")
     public String completeSignUp(@Valid @ModelAttribute SignUpForm signUpForm, BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {
@@ -61,12 +63,13 @@ public class MemberController {
         return "redirect:/";
     }
 
-    //컨트롤 api
+    //컨트롤 URI
+    //사용자의 예약 삭제를 처리하는 컨트롤러
     @PostMapping("/my-page/delete-reservation")
     public String cancelReservation(@RequestParam(required = false) Long reservationId) {
 
         //예약 삭제 로직
-        //예상 select 쿼리 2개 -> 실제 3개 select passenger 나가는 이유 => 프록시 초기화해야 pk 값을 가져올 수 있기 때문에
+        //예상 select 쿼리 2개 -> 실제 3개 select passenger 나가는 이유 -> 프록시 초기화해야 pk 값을 가져올 수 있기 때문에
         if (reservationId != null) {
             Optional<Reservation> foundReservation = reservationService.getReservationToTrainByIdWithFetch(reservationId);
             if (foundReservation.isPresent()) {
@@ -81,12 +84,11 @@ public class MemberController {
                     //reservation 등의 entity 뿐만 아니라 seat entity 안의 자리까지 체크 해제해줘야 됨
                     if (ktxRoom.getGrade().equals(Grade.NORMAL)) {
                         ktxSeat = (KtxSeatNormal) ktxSeat;
-                        System.out.println("ktxSeat = " + ktxSeat.getClass());
                     } else {
                         ktxSeat = (KtxSeatVip) ktxSeat;
                     }
-
                     ktxSeatService.updateSeatsWithReflection(ktxSeat, reservation.getSeats());
+
                 } else if (reservation.getDeploy().getTrain().getTrainName().contains("MUGUNGHWA")) {
                     Mugunghwa train = (Mugunghwa) reservation.getDeploy().getTrain();
                     List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(train.getId());

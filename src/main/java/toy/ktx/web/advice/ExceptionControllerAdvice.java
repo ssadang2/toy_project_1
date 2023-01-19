@@ -12,15 +12,12 @@ import toy.ktx.domain.error.ErrorResult;
 
 @Slf4j
 @RestControllerAdvice(annotations = {RestController.class})
+//api error를 처리해주는 컨트롤러 어드바이스
 public class ExceptionControllerAdvice {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ErrorResult exHandler(MethodArgumentTypeMismatchException e) {
-        log.error("fuck = {}", e.getMessage());
-        log.error("fuck = {}", e.getClass());
-        log.error("fuck = {}", e.getName());
-
         return new ErrorResult(e.getClass(), "api 스펙이 틀렸습니다. 날짜를 제대로 입력해주세요", e.getName());
     }
 }

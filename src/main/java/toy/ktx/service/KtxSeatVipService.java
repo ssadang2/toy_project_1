@@ -28,8 +28,4 @@ public class KtxSeatVipService {
     public void save(KtxSeatVip ktxSeatVip) {
         ktxSeatVipRepository.save(ktxSeatVip);
     }
-
-//    public List<KtxSeatVip> findKtxSeatVipWithDeployIdFetch(Long id) {
-//        return ktxSeatVipRepository.findKtxSeatVipWithDeployIdFetch(id);
-//    }
 }

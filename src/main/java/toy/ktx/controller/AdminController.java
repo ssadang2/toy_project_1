@@ -54,11 +54,13 @@ public class AdminController {
     private final KtxSeatVipService ktxSeatVipService;
     private final DeployService deployService;
 
-    //컨트롤 api
+    //컨트롤 URI
+    //시간표 저장을 처리하는 컨트롤러
     @PostMapping("/my-page/save-deploy")
     public String saveDeploy(@Valid @ModelAttribute CreateDeployForm createDeployForm, BindingResult bindingResult,
                              @SessionAttribute(name = SessionConst.LOGIN_MEMBER) Member member, Model model) {
 
+        //여러가지 validation
         if(createDeployForm.getTimeOfGoing().length() != 5) {
             bindingResult.reject("noCorrectTimeFormatGoing", null);
         }
@@ -135,6 +137,7 @@ public class AdminController {
         deploy.setDepartureTime(dateTimeOfGoing);
         deploy.setArrivalTime(dateTimeOfComing);
 
+        //기차가 ktx라면
         if (createDeployForm.getTrainName().contains("KTX")) {
             Ktx ktx = new Ktx();
             ktx.setTrainName(createDeployForm.getTrainName());
@@ -254,6 +257,7 @@ public class AdminController {
             deployService.saveDeploy(deploy);
             return "redirect:/my-page";
 
+        //기차가 무궁화호라면
         } else if (createDeployForm.getTrainName().contains("MUGUNGHWA")) {
             Mugunghwa mugunghwa = new Mugunghwa();
             mugunghwa.setTrainName(createDeployForm.getTrainName());
@@ -330,6 +334,7 @@ public class AdminController {
             deploy.setTrain(mugunghwa);
             deployService.saveDeploy(deploy);
             return "redirect:/my-page";
+            //기차 새마을호라면
         } else {
             Saemaul saemaul = new Saemaul();
             saemaul.setTrainName(createDeployForm.getTrainName());
@@ -399,18 +404,22 @@ public class AdminController {
         }
     }
 
+    //시간표 삭제를 담당하는 컨트롤러
     @PostMapping("/my-page/admin/deploys")
     public String eraseDeployByAdmin(@RequestParam Long deployId) {
+        //관련 기차 관련 기차 호실 관련 기차 좌석 모두 deploy(시간표)가 생명주기를 관리하기 때문에 deploy만 지워줘도 됨
         deployService.deleteById(deployId);
         return "redirect:/my-page";
     }
 
+    //시간표 search query를 처리하는 컨트롤러
     @PostMapping("/my-page/admin/search-deploys")
     public String searchDeploys(@Valid @ModelAttribute DeploySearchDto deploySearchDto,
                                 BindingResult bindingResult,
                                 @SessionAttribute(name = SessionConst.LOGIN_MEMBER) Member member,
                                 Model model) {
 
+        //여러 validation
         if (!StringUtils.hasText(deploySearchDto.getDateOfGoing()) && StringUtils.hasText(deploySearchDto.getTimeOfGoing())) {
             bindingResult.reject("noDateButTime", null);
         }
@@ -504,12 +513,13 @@ public class AdminController {
         return "mypage/adminMyPage";
     }
 
+    //관리자가 어떤 시간표의 예약 현황에 접근하는 것을 처리하는 컨트롤러
     @GetMapping("/my-page/admin/reservations/{deployId}")
     public String getReservationsByAdmin(@PathVariable Long deployId,
                                          @SessionAttribute(name = SessionConst.LOGIN_MEMBER) Member member,
                                          HttpServletResponse response,
                                          Model model) throws IOException {
-        //입터셉터에서 걸려서 딱히 잡을 필요없을 ㅍ듯?
+        //입터셉터에서 걸려서 딱히 잡을 필요없을 듯?
         if (member == null) {
             response.sendError(401, "인증되지 않은 사용자의 접근");
             return null;
@@ -538,6 +548,7 @@ public class AdminController {
         return "mypage/adminReservationsPage";
     }
 
+    //관리자가 어떤 시간표의 예약을 지우는 것을 처리하는 컨트롤러
     @PostMapping("/my-page/admin/reservations/{deployId}")
     public String cancelReservationByAdmin(@RequestParam Long reservationId,
                                            @PathVariable Long deployId,
@@ -558,7 +569,6 @@ public class AdminController {
                     //reservation 등의 entity 뿐만 아니라 seat entity 안의 자리까지 체크 해제해줘야 됨
                     if (ktxRoom.getGrade().equals(Grade.NORMAL)) {
                         ktxSeat = (KtxSeatNormal) ktxSeat;
-                        System.out.println("ktxSeat = " + ktxSeat.getClass());
                     } else {
                         ktxSeat = (KtxSeatVip) ktxSeat;
                     }
@@ -590,11 +600,13 @@ public class AdminController {
         return "redirect:/my-page/admin/reservations/" + deployId;
     }
 
+    //string -> LocalDateTime으로 바꿔주는 메소드
     private LocalDateTime getLocalDateTime(String dateTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
         return LocalDateTime.parse(dateTime, formatter);
     }
 
+    //시간표마다 걸리는 기간을 계산하는 메소드
     private List<String> getDuration(List<Deploy> deploys) {
         List<String> durations = new ArrayList<>();
         for (Deploy deploy : deploys) {

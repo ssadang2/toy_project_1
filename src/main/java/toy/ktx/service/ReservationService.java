@@ -28,7 +28,6 @@ public class ReservationService {
         reservationRepository.save(reservation);
     }
 
-    @Transactional
     public List<Reservation> findByMember(Member member) {
         return reservationRepository.findByMember(member);
     }
@@ -42,7 +41,6 @@ public class ReservationService {
         reservationRepository.deleteById(id);
     }
 
-    @Transactional
     public Optional<Reservation> getReservationToTrainByIdWithFetch(Long id) {
         return reservationRepository.getReservationToTrainByIdWithFetch(id);
     }

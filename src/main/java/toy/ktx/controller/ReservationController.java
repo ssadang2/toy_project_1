@@ -56,11 +56,12 @@ public class ReservationController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     //공유변수 주의하자(동시성 문제)
-    // logic 상 굳이 remove할 필요없을 듯
+    //logic 상 굳이 remove할 필요없을 듯
     private ThreadLocal<String> targetRoomName = new ThreadLocal<>();
-    // logic 상 굳이 remove할 필요없을 듯
+    //logic 상 굳이 remove할 필요없을 듯
     private ThreadLocal<List<String>> okList = new ThreadLocal<>();
 
+    //ktx 일반실 예약을 처리하는 컨트롤러
     @PostMapping("/reservation/ktx/normal")
     public String reserveKtxNormal(@ModelAttribute KtxNormalSeatDto ktxNormalSeatDto,
                           @ModelAttribute DeployForm deployForm,
@@ -85,6 +86,7 @@ public class ReservationController {
         model.addAttribute("passengers", passengerDto.howManyOccupied());
         okList.set(new ArrayList<>());
 
+        //왕복이고 가는 날일 때
         if(round == Boolean.TRUE && going == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
@@ -92,6 +94,8 @@ public class ReservationController {
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
 
+            //호실 변경일 때
+            //select query O(3)
             if(roomChange.isPresent()){
                 for (Object key : map.keySet()) {
                     if (map.get(key) != null) {
@@ -103,7 +107,7 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
 
-                //seat까지 fetch 안 하는 게 맞을까? => 맞음 섣부른 Fetch join임
+                //seat까지 fetch 할 필요 없음 -> 어차피 dto 조회라 영속성 컨텍스트의 도움을 받을 수 없음
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                 Optional<KtxRoom> foundRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
@@ -130,6 +134,8 @@ public class ReservationController {
             }
 
             else {
+                //예약 인원수가 다를 때
+                //select query O(3)
                 if(ktxNormalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Ktx ktx = (Ktx) deploy.getTrain();
@@ -159,10 +165,10 @@ public class ReservationController {
 
                     return "trainseat/chooseKtxNormalSeat";
                 }
-                //success logic
                 //올 때 좌석 유무 체크 및 해당 페이지 이동 Logic
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
 
+                //select query O(2)
                 if (deploy.getTrain().getTrainName().contains("KTX")) {
                     Ktx train = (Ktx) deploy.getTrain();
                     List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
@@ -207,6 +213,7 @@ public class ReservationController {
                     model.addAttribute("beforeChosenSeats", ktxNormalSeatDto.returnSeats());
 
                     return "normalVip";
+                    //select query O(3)
                 } else if (deploy.getTrain().getTrainName().contains("MUGUNGHWA")) {
                     Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
@@ -250,10 +257,10 @@ public class ReservationController {
                     model.addAttribute("beforeChosenSeats", ktxNormalSeatDto.returnSeats());
 
                     return "trainseat/chooseMugunghwaSeat";
+                    //select query O(3)
                 } else {
                     Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-                    //query 몇 개 나가는지 보기
                     List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
                     SaemaulRoom targetRoom = null;
 
@@ -299,6 +306,7 @@ public class ReservationController {
             }
         }
 
+        //왕복인데 오는 날일 때(예약 entity 생성 및 저장되는 단계)
         if(round == Boolean.TRUE && coming == Boolean.TRUE) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
@@ -306,6 +314,8 @@ public class ReservationController {
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
 
+            //호실이 바뀔 때
+            //select query O(3)
             if(roomChange.isPresent()){
                 for (Object key : map.keySet()) {
                     if (map.get(key) != null) {
@@ -347,6 +357,8 @@ public class ReservationController {
             }
 
             else {
+                //예약 인원수와 맞지 않을 때
+                //select query O(3)
                 if(ktxNormalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                     Ktx ktx = (Ktx) deploy.getTrain();
@@ -365,7 +377,6 @@ public class ReservationController {
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
                     model.addAttribute("dateTimeOfComing", afterDateTime);
 
-                    //updated
                     model.addAttribute("beforeRoomName", beforeRoomName);
                     model.addAttribute("beforeNormal", beforeNormal);
                     model.addAttribute("beforeVip", beforeVip);
@@ -383,6 +394,8 @@ public class ReservationController {
                     return "trainseat/chooseKtxNormalSeat";
                 }
                 //success logic
+                //가는 날, 오는 날 예약 저장
+                //select query O(5)
                 Reservation reservation = new Reservation();
                 Reservation reservation2 = new Reservation();
 
@@ -407,7 +420,6 @@ public class ReservationController {
                         reservation.setRoomName(optionalKtxRoom.get().getRoomName());
                         reservation.setGrade(optionalKtxRoom.get().getGrade());
 
-                        //updated point
                         KtxSeatVip foundSeat = (KtxSeatVip) optionalKtxRoom.get().getKtxSeat();
                         reservation.setSeats(beforeChosenSeats);
                         foundSeat.checkSeats(beforeChosenSeats);
@@ -466,7 +478,6 @@ public class ReservationController {
                     reservation2.setMember(foundMember);
                 }
 
-                //passenger entity가 꼭 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
                 Passenger passenger = passengerDto.dtotoPassenger();
                 Passenger passenger2 = passengerDto.dtotoPassenger();
 
@@ -492,6 +503,8 @@ public class ReservationController {
         Map map = objectMapper.convertValue(roomDto, Map.class);
         Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
 
+        //호실 변경
+        //query 3개 나감 O(3)
         if(roomChange.isPresent()){
             for (Object key : map.keySet()) {
                 if (map.get(key) != null) {
@@ -502,11 +515,12 @@ public class ReservationController {
 
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Ktx ktx = (Ktx) deploy.getTrain();
-            //굳이 seat까지 Fetch 안 해도 됨
+
+            //seat까지 fetch 할 필요 없음 -> 어차피 dto 조회라 영속성 컨텍스트의 도움을 받을 수 없음
             List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
             Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
-            //1차 캐시에서 찾아오겠지?? => dto projection이라 1차 캐시에서 못 긁어 오는 듯
+            //1차 캐시에서 찾아오겠지?? -> dto projection이라 1차 캐시에서 못 긁어 오는 듯
             ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(optionalKtxRoom.get().getKtxSeat().getId());
 
             model.addAttribute("going", true);
@@ -527,6 +541,8 @@ public class ReservationController {
         }
 
         else {
+            //예약 인원수가 다름
+            //query 3개 나감 O(3)
             if(ktxNormalSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
@@ -534,7 +550,7 @@ public class ReservationController {
                 List<KtxRoom> ktxRooms = ktxRoomService.findByKtxAndGrade(ktx, Grade.NORMAL);
                 Optional<KtxRoom> optionalKtxRoom = ktxRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
-                //1차 캐시에서 찾아오겠지?? => dto projection이라 1차 캐시에서 못 긁어 오는 듯
+                //1차 캐시에서 찾아오겠지?? -> dto projection이라 1차 캐시에서 못 긁어 오는 듯
                 ktxNormalSeatDto = ktxSeatNormalService.findNormalDtoById(optionalKtxRoom.get().getKtxSeat().getId());
 
 
@@ -557,7 +573,8 @@ public class ReservationController {
                 return "trainseat/chooseKtxNormalSeat";
             }
             //success logic
-            //select query 3개
+            //예약 내역 저장
+            //select query 3개 나감 O(3)
             Reservation reservation = new Reservation();
 
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
@@ -588,7 +605,6 @@ public class ReservationController {
                 reservation.setMember(foundMember);
             }
 
-            //passenger가 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
             Passenger passenger = passengerDto.dtotoPassenger();
             passengerService.save(passenger);
 
@@ -602,6 +618,7 @@ public class ReservationController {
         }
     }
 
+    //ktx 특실 예약을 처리하는 컨트롤러
     @PostMapping("/reservation/ktx/vip")
     public String reserveKtxVip(@ModelAttribute KtxVipSeatDto ktxVipSeatDto,
                           @ModelAttribute DeployForm deployForm,
@@ -633,6 +650,7 @@ public class ReservationController {
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
 
+            //select query O(3)
             if(roomChange.isPresent()){
                 for (Object key : map.keySet()) {
                     if (map.get(key) != null) {
@@ -669,6 +687,7 @@ public class ReservationController {
             }
 
             else {
+                //select query O(3)
                 if(ktxVipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Ktx ktx = (Ktx) deploy.getTrain();
@@ -702,6 +721,7 @@ public class ReservationController {
                 //올 때 좌석 유무 체크 및 해당 페이지 이동 Logic
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
 
+                //select query O(2)
                 if (deploy.getTrain().getTrainName().contains("KTX")) {
                     Ktx train = (Ktx) deploy.getTrain();
                     List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
@@ -746,6 +766,7 @@ public class ReservationController {
                     model.addAttribute("beforeChosenSeats", ktxVipSeatDto.returnSeats());
 
                     return "normalVip";
+                    //select query O(3)
                 } else if (deploy.getTrain().getTrainName().contains("MUGUNGHWA")) {
                     Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
@@ -790,6 +811,7 @@ public class ReservationController {
                     model.addAttribute("beforeChosenSeats", ktxVipSeatDto.returnSeats());
 
                     return "trainseat/chooseMugunghwaSeat";
+                    //select query O(3)
                 } else {
                     Saemaul saemaul = (Saemaul) deploy.getTrain();
 
@@ -845,6 +867,7 @@ public class ReservationController {
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
 
+            //select query O(3)
             if(roomChange.isPresent()){
                 for (Object key : map.keySet()) {
                     if (map.get(key) != null) {
@@ -869,7 +892,6 @@ public class ReservationController {
                 model.addAttribute("dateTimeOfGoing", beforeDateTime);
                 model.addAttribute("dateTimeOfComing", afterDateTime);
 
-                //updated
                 model.addAttribute("beforeRoomName", beforeRoomName);
                 model.addAttribute("beforeNormal", beforeNormal);
                 model.addAttribute("beforeVip", beforeVip);
@@ -888,6 +910,7 @@ public class ReservationController {
             }
 
             else {
+                //select query O(3)
                 if(ktxVipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                     Ktx ktx = (Ktx) deploy.getTrain();
@@ -906,7 +929,6 @@ public class ReservationController {
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
                     model.addAttribute("dateTimeOfComing", afterDateTime);
 
-                    //updated
                     model.addAttribute("beforeRoomName", beforeRoomName);
                     model.addAttribute("beforeNormal", beforeNormal);
                     model.addAttribute("beforeVip", beforeVip);
@@ -921,6 +943,7 @@ public class ReservationController {
                     return "trainseat/chooseKtxVipSeat";
                 }
                 //success logic
+                //select query O(5)
                 Reservation reservation = new Reservation();
                 Reservation reservation2 = new Reservation();
 
@@ -945,7 +968,6 @@ public class ReservationController {
                         reservation.setRoomName(optionalKtxRoom.get().getRoomName());
                         reservation.setGrade(optionalKtxRoom.get().getGrade());
 
-                        //updated point
                         KtxSeatVip foundSeat = (KtxSeatVip) optionalKtxRoom.get().getKtxSeat();
                         reservation.setSeats(beforeChosenSeats);
                         foundSeat.checkSeats(beforeChosenSeats);
@@ -997,14 +1019,12 @@ public class ReservationController {
                 HttpSession session = request.getSession();
                 String loginId = (String) session.getAttribute(SessionConst.LOGIN_MEMBER_ID);
                 Member foundMember = memberService.findByLoginId(loginId).orElse(null);
-                log.info("시발 = {}",foundMember);
 
                 if (foundMember != null) {
                     reservation.setMember(foundMember);
                     reservation2.setMember(foundMember);
                 }
 
-                //passenger가 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
                 Passenger passenger = passengerDto.dtotoPassenger();
                 Passenger passenger2 = passengerDto.dtotoPassenger();
 
@@ -1030,6 +1050,7 @@ public class ReservationController {
         Map map = objectMapper.convertValue(roomDto, Map.class);
         Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
 
+        //select query O(3)
         if(roomChange.isPresent()){
             for (Object key : map.keySet()) {
                 if (map.get(key) != null) {
@@ -1063,6 +1084,7 @@ public class ReservationController {
         }
 
         else {
+            //select query O(3)
             if(ktxVipSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Ktx ktx = (Ktx) deploy.getTrain();
@@ -1083,7 +1105,6 @@ public class ReservationController {
                 Map seatMap = objectMapper.convertValue(ktxVipSeatDto, Map.class);
                 model.addAttribute("map", seatMap);
                 model.addAttribute("ktxRooms", ktxRooms);
-                //이거 빠져 있었음
                 model.addAttribute("roomName", roomName);
 
                 Map checkMap = objectMapper.convertValue(checkRoomDto, Map.class);
@@ -1091,8 +1112,8 @@ public class ReservationController {
 
                 return "trainseat/chooseKtxVipSeat";
             }
-
             //success logic
+            //select query O(3)
             Reservation reservation = new Reservation();
 
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
@@ -1120,7 +1141,6 @@ public class ReservationController {
                 reservation.setMember(foundMember);
             }
 
-            //passenger가 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
             Passenger passenger = passengerDto.dtotoPassenger();
             passengerService.save(passenger);
 
@@ -1134,6 +1154,7 @@ public class ReservationController {
         }
     }
 
+    //무궁화호 예약을 처리하는 컨트롤러
     @PostMapping("/reservation/mugunghwa")
     public String reserveMugunghwa(@ModelAttribute MugunghwaSeatDto mugunghwaSeatDto,
                                    @ModelAttribute DeployForm deployForm,
@@ -1165,6 +1186,7 @@ public class ReservationController {
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
 
+            //select query O(3)
             if(roomChange.isPresent()){
                 for (Object key : map.keySet()) {
                     if (map.get(key) != null) {
@@ -1175,7 +1197,6 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-                //query 몇 개 나가는지 보기 => 3개 나감 dto 조회는 1차 캐시에서 찾아오는 작업을 거치지 않는 듯 2개 x
                 List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
                 Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
@@ -1202,6 +1223,7 @@ public class ReservationController {
             }
 
             else {
+                //select query O(3)
                 if(mugunghwaSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
@@ -1235,6 +1257,7 @@ public class ReservationController {
                 //올 때 좌석 유무 체크 및 해당 페이지 이동 Logic
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
 
+                //select query O(2)
                 if (deploy.getTrain().getTrainName().contains("KTX")) {
                     Ktx train = (Ktx) deploy.getTrain();
                     List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
@@ -1279,6 +1302,7 @@ public class ReservationController {
                     model.addAttribute("beforeChosenSeats", mugunghwaSeatDto.returnSeats());
 
                     return "normalVip";
+                    //select query O(3)
                 } else if (deploy.getTrain().getTrainName().contains("MUGUNGHWA")) {
                     Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
@@ -1323,6 +1347,7 @@ public class ReservationController {
                     model.addAttribute("beforeChosenSeats", mugunghwaSeatDto.returnSeats());
 
                     return "trainseat/chooseMugunghwaSeat";
+                    //select query O(3)
                 } else {
                     Saemaul saemaul = (Saemaul) deploy.getTrain();
 
@@ -1379,6 +1404,7 @@ public class ReservationController {
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
 
+            //select query O(3)
             if(roomChange.isPresent()){
                 for (Object key : map.keySet()) {
                     if (map.get(key) != null) {
@@ -1389,7 +1415,6 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                 Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-//                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
                 List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
                 Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
@@ -1421,11 +1446,11 @@ public class ReservationController {
             }
 
             else {
+                //select query O(3)
                 if(mugunghwaSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                     Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-//                    List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
                     List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
                     Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
@@ -1440,7 +1465,6 @@ public class ReservationController {
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
                     model.addAttribute("dateTimeOfComing", afterDateTime);
 
-                    //updated
                     model.addAttribute("beforeRoomName", beforeRoomName);
                     model.addAttribute("beforeNormal", beforeNormal);
                     model.addAttribute("beforeVip", beforeVip);
@@ -1458,6 +1482,7 @@ public class ReservationController {
                     return "trainseat/chooseMugunghwaSeat";
                 }
                 //success logic
+                //select query O(5)
                 Reservation reservation = new Reservation();
                 Reservation reservation2 = new Reservation();
 
@@ -1482,7 +1507,6 @@ public class ReservationController {
                         reservation.setRoomName(optionalKtxRoom.get().getRoomName());
                         reservation.setGrade(optionalKtxRoom.get().getGrade());
 
-                        //updated point
                         KtxSeatVip foundSeat = (KtxSeatVip) optionalKtxRoom.get().getKtxSeat();
                         reservation.setSeats(beforeChosenSeats);
                         foundSeat.checkSeats(beforeChosenSeats);
@@ -1540,7 +1564,6 @@ public class ReservationController {
                     reservation2.setMember(foundMember);
                 }
 
-                //passenger entity가 꼭 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
                 Passenger passenger = passengerDto.dtotoPassenger();
                 Passenger passenger2 = passengerDto.dtotoPassenger();
 
@@ -1566,6 +1589,7 @@ public class ReservationController {
         Map map = objectMapper.convertValue(roomDto, Map.class);
         Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
 
+        //select query O(3)
         if(roomChange.isPresent()){
             for (Object key : map.keySet()) {
                 if (map.get(key) != null) {
@@ -1577,11 +1601,10 @@ public class ReservationController {
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-//            List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
             List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
             Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
-            //1차 캐시에서 찾아오겠지?? => dto projection이라 1차 캐시에서 못 긁어 오는 듯
+            //1차 캐시에서 찾아오겠지?? -> dto projection이라 1차 캐시에서 못 긁어 오는 듯
             mugunghwaSeatDto = mugunghwaSeatService.findMugunghwaSeatDtoById(foundRoom.get().getMugunghwaSeat().getId());
 
             model.addAttribute("going", true);
@@ -1602,11 +1625,11 @@ public class ReservationController {
         }
 
         else {
+            //select query O(3)
             if(mugunghwaSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
-//                List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.getMugunghwaRoomsToSeatByIdWithFetch(mugunghwa.getId());
                 List<MugunghwaRoom> mugunghwaRooms = mugunghwaRoomService.findAllByMugunghwa(mugunghwa);
                 Optional<MugunghwaRoom> foundRoom = mugunghwaRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
@@ -1631,6 +1654,7 @@ public class ReservationController {
                 return "trainseat/chooseMugunghwaSeat";
             }
             //success logic
+            //select query O(3)
             Reservation reservation = new Reservation();
 
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
@@ -1660,7 +1684,6 @@ public class ReservationController {
                 reservation.setMember(foundMember);
             }
 
-            //passenger가 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
             Passenger passenger = passengerDto.dtotoPassenger();
             passengerService.save(passenger);
 
@@ -1674,6 +1697,7 @@ public class ReservationController {
         }
     }
 
+    //새마을호 예약을 처리하는 컨트롤러
     @PostMapping("/reservation/saemaul")
     public String reserveSaemaul(@ModelAttribute SaemaulSeatDto saemaulSeatDto,
                                    @ModelAttribute DeployForm deployForm,
@@ -1705,6 +1729,7 @@ public class ReservationController {
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
 
+            //select query O(3)
             if(roomChange.isPresent()){
                 for (Object key : map.keySet()) {
                     if (map.get(key) != null) {
@@ -1716,7 +1741,6 @@ public class ReservationController {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-//                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
                 List<SaemaulRoom> saemaulRooms = saemaulRoomService.findAllBySaemaul(saemaul);
                 Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
@@ -1743,11 +1767,11 @@ public class ReservationController {
             }
 
             else {
+                //select query O(3)
                 if(saemaulSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                     Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-//                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
                     List<SaemaulRoom> saemaulRooms = saemaulRoomService.findAllBySaemaul(saemaul);
                     Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
@@ -1777,6 +1801,7 @@ public class ReservationController {
                 //올 때 좌석 유무 체크 및 해당 페이지 이동 Logic
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
 
+                //select query O(2)
                 if (deploy.getTrain().getTrainName().contains("KTX")) {
                     Ktx train = (Ktx) deploy.getTrain();
                     List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByIdWithFetch(train.getId());
@@ -1821,6 +1846,7 @@ public class ReservationController {
                     model.addAttribute("beforeChosenSeats", saemaulSeatDto.returnSeats());
 
                     return "normalVip";
+                    //select query O(3)
                 } else if (deploy.getTrain().getTrainName().contains("MUGUNGHWA")) {
                     Mugunghwa mugunghwa = (Mugunghwa) deploy.getTrain();
 
@@ -1865,6 +1891,7 @@ public class ReservationController {
                     model.addAttribute("beforeChosenSeats", saemaulSeatDto.returnSeats());
 
                     return "trainseat/chooseMugunghwaSeat";
+                    //select query O(3)
                 } else {
                     Saemaul saemaul = (Saemaul) deploy.getTrain();
 
@@ -1921,6 +1948,7 @@ public class ReservationController {
             Map map = objectMapper.convertValue(roomDto, Map.class);
             Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
 
+            //select query O(3)
             if(roomChange.isPresent()){
                 for (Object key : map.keySet()) {
                     if (map.get(key) != null) {
@@ -1962,11 +1990,11 @@ public class ReservationController {
             }
 
             else {
+                //select query O(3)
                 if(saemaulSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                     Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfComing());
                     Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-//                    List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
                     List<SaemaulRoom> saemaulRooms = saemaulRoomService.findAllBySaemaul(saemaul);
                     Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
@@ -1981,7 +2009,6 @@ public class ReservationController {
                     model.addAttribute("dateTimeOfGoing", beforeDateTime);
                     model.addAttribute("dateTimeOfComing", afterDateTime);
 
-                    //updated
                     model.addAttribute("beforeRoomName", beforeRoomName);
                     model.addAttribute("beforeNormal", beforeNormal);
                     model.addAttribute("beforeVip", beforeVip);
@@ -1999,6 +2026,7 @@ public class ReservationController {
                     return "trainseat/chooseSaemaulSeat";
                 }
                 //success logic
+                //select query O(5)
                 Reservation reservation = new Reservation();
                 Reservation reservation2 = new Reservation();
 
@@ -2081,7 +2109,6 @@ public class ReservationController {
                     reservation2.setMember(foundMember);
                 }
 
-                //passenger entity가 꼭 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
                 Passenger passenger = passengerDto.dtotoPassenger();
                 Passenger passenger2 = passengerDto.dtotoPassenger();
 
@@ -2107,6 +2134,7 @@ public class ReservationController {
         Map map = objectMapper.convertValue(roomDto, Map.class);
         Optional roomChange = map.values().stream().filter(r -> r != null).findFirst();
 
+        //select query O(3)
         if(roomChange.isPresent()){
             for (Object key : map.keySet()) {
                 if (map.get(key) != null) {
@@ -2118,11 +2146,10 @@ public class ReservationController {
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
             Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-//            List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
             List<SaemaulRoom> saemaulRooms = saemaulRoomService.findAllBySaemaul(saemaul);
             Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(targetRoomName.get())).findAny();
 
-            //1차 캐시에서 찾아오겠지?? => dto projection이라 1차 캐시에서 못 긁어 오는 듯
+            //1차 캐시에서 찾아오겠지?? -> dto projection이라 1차 캐시에서 못 긁어 오는 듯
             saemaulSeatDto = saemaulSeatService.findSaemaulSeatDtoById(foundRoom.get().getSaemaulSeat().getId());
 
             model.addAttribute("going", true);
@@ -2143,11 +2170,11 @@ public class ReservationController {
         }
 
         else {
+            //select query O(3)
             if(saemaulSeatDto.howManyOccupied() != passengerDto.howManyOccupied()) {
                 Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
                 Saemaul saemaul = (Saemaul) deploy.getTrain();
 
-//                List<SaemaulRoom> saemaulRooms = saemaulRoomService.getSaemaulRoomsToSeatByIdWithFetch(saemaul.getId());
                 List<SaemaulRoom> saemaulRooms = saemaulRoomService.findAllBySaemaul(saemaul);
                 Optional<SaemaulRoom> foundRoom = saemaulRooms.stream().filter(r -> r.getRoomName().equals(roomName)).findAny();
 
@@ -2172,6 +2199,7 @@ public class ReservationController {
                 return "trainseat/chooseSaemaulSeat";
             }
             //success logic
+            //select query O(3)
             Reservation reservation = new Reservation();
 
             Deploy deploy = deployService.getDeployToTrainById(deployForm.getDeployIdOfGoing());
@@ -2201,7 +2229,6 @@ public class ReservationController {
                 reservation.setMember(foundMember);
             }
 
-            //passenger가 있어야 되나?? => 어떤 고객층이 많이 이용하는지에 대한 통계성 쿼리 낼 때 사용하면 될 듯
             Passenger passenger = passengerDto.dtotoPassenger();
             passengerService.save(passenger);
 

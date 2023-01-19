@@ -34,7 +34,8 @@ public class GradeController {
     private final KtxSeatNormalService ktxSeatNormalService;
     private final KtxSeatVipService ktxSeatVipService;
 
-    //동시성 제어 => 원래 쓰레드 로컬은 로직이 끝나면 Remove하는 게 맞으나 postMapping 호출하자마자 new ArrayList를 set하므로 remove 굳이 필요없을 듯
+    //동시성 제어 => 원래 쓰레드 로컬은 로직이 끝나면 Remove하는 게 맞으나
+    //postMapping 호출하자마자 new ArrayList를 set하므로 remove 굳이 필요없을 듯
     private ThreadLocal<List<String>> okList = new ThreadLocal<>();
 
     @PostMapping("/grade")
@@ -61,6 +62,8 @@ public class GradeController {
 
         okList.set(new ArrayList<>());
 
+        //ktx 일반실인데 왕복이고 오는 날 등급을 고르는 상황일 때
+        //query 개수 3개 O(3)
         if (normal != null && round == true && coming == Boolean.TRUE) {
             model.addAttribute("beforeNormal", beforeNormal);
             model.addAttribute("beforeVip", beforeVip);
@@ -74,7 +77,6 @@ public class GradeController {
             Ktx ktx = (Ktx) deploy.getTrain();
 
             List<KtxRoom> ktxRooms = ktxRoomService.getKtxRoomsToSeatByKtxAndGradeWithFetch(ktx, Grade.NORMAL);
-            log.info("fuck = {}",ktxRooms);
             KtxRoom targetRoom = null;
 
             for (KtxRoom ktxRoom : ktxRooms) {
@@ -98,7 +100,6 @@ public class GradeController {
             Map map = objectMapper.convertValue(ktxNormalSeatDto, Map.class);
             model.addAttribute("map", map);
 
-            log.info("fuck = {}",ktxRooms);
             model.addAttribute("ktxRooms", ktxRooms);
             model.addAttribute("round", true);
             model.addAttribute("coming", true);
@@ -111,6 +112,8 @@ public class GradeController {
             return "trainseat/chooseKtxNormalSeat";
         }
 
+        //ktx 일반실인데 왕복이고 가는 날 등급을 고르는 상황일 때
+        //query 개수 3개 O(3)
         else if (normal != null && round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
@@ -153,6 +156,8 @@ public class GradeController {
             return "trainseat/chooseKtxNormalSeat";
         }
 
+        //ktx 일반실인데 편도고 가는 날 등급을 고를 때
+        //query 개수 3개 O(3)
         if (normal != null) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
 
@@ -193,6 +198,8 @@ public class GradeController {
         }
 
 // normal vs vip -------------------------------------------------------------------------------------------------------------------------------------
+        //ktx 특실인데 왕복이고 오는 날 등급을 고르는 상황일 때
+        //query 개수 3개 O(3)
         if (vip != null && round == true && coming == Boolean.TRUE) {
             model.addAttribute("beforeNormal", beforeNormal);
             model.addAttribute("beforeVip", beforeVip);
@@ -240,6 +247,8 @@ public class GradeController {
             return "trainseat/chooseKtxVipSeat";
         }
 
+        //ktx 특실인데 왕복이고 가는 날 등급을 고르는 상황일 때
+        //query 개수 3개 O(3)
         else if (vip != null && round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
             LocalDateTime afterDateTime = getLocalDateTime(dateTimeOfComing);
@@ -282,6 +291,8 @@ public class GradeController {
             return "trainseat/chooseKtxVipSeat";
         }
 
+        //ktx 특실인데 편도고 가는 날 등급을 고르는 상황일 때
+        //query 개수 3개 O(3)
         else {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
 

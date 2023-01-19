@@ -88,11 +88,9 @@ public class KtxVipSeatDto {
         for (Object key : map.keySet()) {
             if ((Boolean) map.get(key).equals(Boolean.TRUE)) {
                 seats += (String) key + " ";
-                log.info("시발={}", seats);
             }
         }
         seats = seats.substring(0, seats.length() - 1);
-        log.info("시발={}", seats);
         return seats;
     }
 }

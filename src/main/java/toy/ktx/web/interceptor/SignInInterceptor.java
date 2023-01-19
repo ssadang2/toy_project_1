@@ -16,12 +16,7 @@ public class SignInInterceptor implements HandlerInterceptor {
         String requestURI = request.getRequestURI();
         HttpSession session = request.getSession();
 
-//        if((session == null || session.getAttribute(SessionConst.LOGIN_MEMBER) == null)
-//                && (requestURI.equals("/schedule") || requestURI.equals("/seat"))) {
-//            response.sendRedirect("/sign-in");
-//            return false;
-//        }
-
+        //세션이 없거나 로그인 멤버 Key로 된 값이 없다면 로그인되지 않은 것으로 판단
         if(session == null || session.getAttribute(SessionConst.LOGIN_MEMBER) == null) {
             response.sendRedirect("/sign-in?redirectURL=" + requestURI);
             return false;

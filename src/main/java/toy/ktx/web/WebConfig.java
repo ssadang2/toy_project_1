@@ -18,7 +18,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 로그인 인증 인터셉터
+        //로그인 인증 인터셉터
         registry.addInterceptor(new SignInInterceptor())
                 .order(1)
                 .addPathPatterns("/**")

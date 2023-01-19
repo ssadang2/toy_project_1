@@ -1,5 +1,6 @@
 package toy.ktx.domain.constant;
 
+//임의로 가정한 존재하는 열차의 이름들
 public abstract class TrainNameConst {
 
     public static final String[] trains = {"KTX001", "KTX002", "KTX003", "KTX004", "KTX005", "KTX006", "KTX007", "KTX008",

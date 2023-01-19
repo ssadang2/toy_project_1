@@ -8,6 +8,8 @@ import toy.ktx.domain.saemaul.Saemaul;
 import java.util.Comparator;
 
 public final class DeployComparator implements Comparator<Deploy> {
+    //시간표 List를 정렬하기 위한 Comparator
+
     @Override
     public int compare(Deploy deploy1, Deploy deploy2) {
         if (deploy1.getDepartureTime().isBefore(deploy2.getDepartureTime())) {

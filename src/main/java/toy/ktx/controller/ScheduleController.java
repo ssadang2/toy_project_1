@@ -41,6 +41,7 @@ public class ScheduleController {
     private final MugunghwaService mugunghwaService;
     private final SaemaulService saemaulService;
 
+    //시간표 정보를 받고 처리 및 validation 하는 컨트롤러
     @PostMapping("/schedule")
     public String getSchedule(@Valid @ModelAttribute ScheduleForm scheduleForm,
                               BindingResult bindingResult,
@@ -75,9 +76,9 @@ public class ScheduleController {
             }
         }
 
-//        if(passengerDto.howManyOccupied() > Long.valueOf(9)) {
-//            bindingResult.reject("tooManyPassengers", null);
-//        }
+        if(passengerDto.howManyOccupied() > Long.valueOf(9)) {
+            bindingResult.reject("tooManyPassengers", null);
+        }
 
         if(!StringUtils.hasText(scheduleForm.getDateOfGoing())) {
             bindingResult.reject("noDepartureDate", null);
@@ -119,6 +120,7 @@ public class ScheduleController {
         model.addAttribute("after", after); //오는 날
 
         //query 8개 나감 O(8)
+        //시간표에서 왕복을 선택했을 때
         if(scheduleForm.getRound() == true) {
             //fetch
             List<Deploy> deploysWhenGoing = deployService.searchDeployToTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
@@ -129,12 +131,14 @@ public class ScheduleController {
             Collections.sort(deploysWhenComing, new DeployComparator());
 
             if(deploysWhenGoing.isEmpty() == true || deploysWhenComing.isEmpty() == true) {
+                //가는 날, 오는 날 모두 시간표가 없을 때
                 if(deploysWhenGoing.isEmpty() == true && deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("emptyWhenComing", true);
                     return "schedule";
                 }
 
+                //가는 날만 시간표가 없을 때
                 if(deploysWhenGoing.isEmpty() == true) {
                     model.addAttribute("emptyWhenGoing", true);
                     model.addAttribute("deploysWhenComing", deploysWhenComing);
@@ -165,6 +169,7 @@ public class ScheduleController {
                     return "schedule";
                 }
 
+                //오는 날만 시간표가 없을 때
                 if(deploysWhenComing.isEmpty() == true) {
                     model.addAttribute("emptyWhenComing", true);
                     model.addAttribute("deploysWhenGoing", deploysWhenGoing);
@@ -194,7 +199,7 @@ public class ScheduleController {
                     return "schedule";
                 }
             }
-            //success logic
+            //가는 날, 오는 날 모두 시간표가 있을 때
             if(deploysWhenGoing.isEmpty() == false && deploysWhenComing.isEmpty() == false) {
                 model.addAttribute("deploysWhenGoing", deploysWhenGoing);
                 model.addAttribute("deploysWhenComing", deploysWhenComing);
@@ -211,6 +216,7 @@ public class ScheduleController {
                 List<Long> deploys2 = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
 
                 //미리 당기기
+                //미리 당기지 않으면 데이터 개수만큼 쿼리가 나감
                 ktxService.getKtxToSeatWithFetchAndIn(deploys);
                 mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
                 saemaulService.getSaemaulToSeatWithFetchAndIn(deploys);
@@ -287,15 +293,12 @@ public class ScheduleController {
             }
         }
 // Round vs one-way--------------------------------------------------------------------------------------------------------------
-//success logic
         //select query 데이터 개수 상관없이 4개 나감 O(4)
-        //seat을 기준으로 객체 탐색을 하는 건 deploy, reservation 등의 주 테이블에서 탐색해야 된다는 원칙에서 위배됨 -> 자연스럽지 못한 듯
-        //왜 deploys를 긁어 올 때 seat까지 같이 긁지 않는 것인가? => 연관관계를 가지는 train이 부모 클래스라서 자식 클래스인 ktx로 객체 탐색이 불가함(내가 하는 방법을 모르는 걸 수도)
-        //예상 1 + N = > 1 + N(라고 보기는 애매함 1:1 관계에서의 문제라서) => in 절로 해결하자 => 해결
+        //왜 deploys를 긁어 올 때 seat까지 같이 긁지 않는 것인가? => 연관관계를 가지는 train이 부모 클래스라서 자식 클래스인 ktx로 객체 탐색이 불가함
+        //oneToOne query 개수만큼 나가는 것 => in 절로 해결하자 => 해결
+
         //fetch
         List<Deploy> deploysWhenGoing = deployService.searchDeployToTrain(scheduleForm.getDeparturePlace(), scheduleForm.getArrivalPlace(), before);
-        log.info("fuck = {}", before);
-        log.info("fuck = {}", deploysWhenGoing);
         Collections.sort(deploysWhenGoing, new DeployComparator());
 
         if(deploysWhenGoing.isEmpty() == true) {
@@ -309,10 +312,8 @@ public class ScheduleController {
         List<List<Boolean>> fullCheck = new ArrayList<>();
         List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
 
-        //select query를 1/10로 줄임 (oneToOne + batch fetch 때문에 일어난 문제인 듯)
-        //필기에는 트랜잭션 하나에 영속성 컨텍스트 하나가 대응되는 그렇다면 multiple services가 같은 Tx를 쓰는 건가?
+        //select query를 1/10로 줄임 (oneToOne 때문에 일어난 문제인 듯)
         //oneToOne query 많이 나가는 거 막으려고 미리 당기는 작업
-        //얘는 반복되는 대로 1차 캐시에서 안 찾고 쿼리를 날림 => Pk 조회가 아니어서 그런 듯
         //미리 당기기 => 미리 안 당기면 Deploys 개수만큼 쿼리가 나가야 됨
         ktxService.getKtxToSeatWithFetchAndIn(deploys);
         mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
@@ -336,6 +337,7 @@ public class ScheduleController {
         return "schedule";
     }
 
+    //이 기차가 선택된 인원수로 예약이 가능한지 아닌지 알려주는 check List를 생성 후 넘기는 메소드
     private void doCheck(List<Long> deploys, PassengerDto passengerDto, List<List<Boolean>> fullCheck) {
         for (Long deployId : deploys) {
             Deploy deploy = deployService.findDeploy(deployId).get();
@@ -360,9 +362,6 @@ public class ScheduleController {
                         }
                     }
                 }
-
-                log.info("doCheck = {}",normalReserveOkList);
-                log.info("doCheck = {}",vipReserveOkList);
 
                 List<Boolean> check = new ArrayList<>();
 
@@ -399,8 +398,6 @@ public class ScheduleController {
                     }
                 }
 
-                log.info("doCheck = {}",reserveOkList);
-
                 List<Boolean> check = new ArrayList<>();
 
                 if (reserveOkList.isEmpty()) {
@@ -421,8 +418,6 @@ public class ScheduleController {
                         reserveOkList.add(saemaulRoom.getRoomName());
                     }
                 }
-
-                log.info("doCheck = {}",reserveOkList);
 
                 List<Boolean> check = new ArrayList<>();
 

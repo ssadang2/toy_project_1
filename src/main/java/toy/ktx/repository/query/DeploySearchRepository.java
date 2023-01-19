@@ -21,6 +21,7 @@ import static toy.ktx.domain.QTrain.*;
 
 @Repository
 @Slf4j
+//queryDsl를 써야 하고 보통의 Repo와는 수정의 라이프 사이클의 달라 분리했음
 public class DeploySearchRepository {
 
     private final EntityManager em;
@@ -31,17 +32,18 @@ public class DeploySearchRepository {
         this.queryFactory = new JPAQueryFactory(em);
     }
 
+    //출발 시간, 도착 시간을 조건으로 시간표 찾아오는 동적 쿼리
     public List<Deploy> searchDeploys(LocalDateTime goingTimeCond, LocalDateTime comingTimeCond) {
         return queryFactory.selectFrom(deploy)
                 .where(dateTimeOfGoingGreaterThanEqual(goingTimeCond), dateTimeOfComingLessThanEqual(comingTimeCond))
                 .fetch();
     }
 
+    //출발 시간, 도착 시간을 조건으로 시간표 찾아오는 동적 쿼리
+    //2023/1 기준 결과를 제대로 찾아오지 못하는 querydsl의 버그로 content를 가져오는 쿼리와 total query를 무조건 분리하여 날려야 됨
     public Page<DeployWithTrainDto> searchDeployDtos(LocalDateTime goingTimeCond, LocalDateTime comingTimeCond, Pageable pageable) {
-        log.info("fuck = {}", pageable.getOffset());
-        log.info("fuck = {}", pageable.getPageSize());
-
         BooleanBuilder booleanBuilder = new BooleanBuilder();
+
         if (goingTimeCond != null) {
             booleanBuilder.and(deploy.departureTime.goe(goingTimeCond));
         }
@@ -71,8 +73,6 @@ public class DeploySearchRepository {
         Long total = queryFactory.select(deploy.count())
                 .from(deploy)
                 .fetchOne();
-        log.info("fuck = {}", content);
-        log.info("fuck = {}", total);
 
         return new PageImpl<>(content, pageable, total);
     }
@@ -89,7 +89,7 @@ public class DeploySearchRepository {
         if (comingTimeCond == null) {
             return null;
         } else {
-            return deploy.departureTime.loe(comingTimeCond);
+            return deploy.arrivalTime.loe(comingTimeCond);
         }
     }
 

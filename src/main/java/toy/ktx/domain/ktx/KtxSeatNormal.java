@@ -174,7 +174,6 @@ public class KtxSeatNormal extends KtxSeat{
 
     public void checkSeats(String beforeChosenSeats) {
         String[] split = beforeChosenSeats.split(" ");
-        log.info("fuck = {}", split);
         try {
             Class clazz = Class.forName("toy.ktx.domain.ktx.KtxSeatNormal");
             for (String s : split) {

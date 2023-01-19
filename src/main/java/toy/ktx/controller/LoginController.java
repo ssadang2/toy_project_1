@@ -21,11 +21,13 @@ public class LoginController {
 
     private final LoginService loginService;
 
+    //로그인 페이지로 접근하게 하는 컨트롤러
     @GetMapping("/sign-in")
     public String getLoginPage(@ModelAttribute("loginForm") LoginForm loginForm) {
         return "loginPage";
     }
 
+    //로그인 완료를 처리하는 컨트롤러
     @PostMapping("/sign-in")
     public String completeLogin(@Valid @ModelAttribute("loginForm") LoginForm loginForm,
                                 BindingResult bindingResult,
@@ -33,7 +35,6 @@ public class LoginController {
                                 HttpServletRequest request) {
 
         if(bindingResult.hasErrors()) {
-            log.info("errors={}", bindingResult);
             return "loginPage";
         }
 
@@ -50,6 +51,7 @@ public class LoginController {
         return "redirect:" + redirectURL;
     }
 
+    //로그아웃을 처리하는 컨트롤러
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);

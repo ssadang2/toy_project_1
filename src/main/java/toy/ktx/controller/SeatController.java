@@ -45,11 +45,10 @@ public class SeatController {
     private final MugunghwaSeatService mugunghwaSeatService;
     private final SaemaulSeatService saemaulSeatService;
 
-    //final으로 쓰기가 불가함으로 threadLocal에 넣을 필요없을 듯
-    private final String[] alpha = {"A", "B", "C", "D"};
-
+    //logic상 굳이 remove 해 줄 필요 없음
     private ThreadLocal<List<String>> okList = new ThreadLocal<>();
 
+    //좌석 선택 페이지로 가는 로직을 처리하는 컨트롤러
     @PostMapping("/seat")
     public String chooseSeat(@ModelAttribute DeployForm deployForm,
                              BindingResult bindingResult,
@@ -72,6 +71,7 @@ public class SeatController {
 
         okList.set(new ArrayList<>());
 
+        //왕복일 때
         //이동시 going, coming 둘 다 deploys가 존재하면 8개 한 개만 존재하면 4개 아무것도 없으면 2개만 나가는 구조
         if (round == true) {
             LocalDateTime beforeDateTime = getLocalDateTime(dateTimeOfGoing);
@@ -81,9 +81,10 @@ public class SeatController {
             Boolean noBefore = false;
             Boolean noAfter = false;
 
+            //가는 날 기준 이전 시간표 보기
             if (prevGoing != null) {
                 LocalDateTime newTime = beforeDateTime.minusDays(1);
-                //updated point
+
                 List<Deploy> deploysWhenGoing = null;
                 List<Deploy> deploysWhenComing = deployService.searchDeployToTrain(arrivalPlace, departurePlace, afterDateTime);
 
@@ -119,7 +120,6 @@ public class SeatController {
                     deploysWhenGoing = deployService.searchDeployToTrain(departurePlace, arrivalPlace, dateTime);
                 }
 
-                //updated
                 Collections.sort(deploysWhenGoing, new DeployComparator());
                 Collections.sort(deploysWhenComing, new DeployComparator());
 
@@ -142,7 +142,6 @@ public class SeatController {
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
 
-                    //updated point!!!!!!
                     ktxService.getKtxToSeatWithFetchAndIn(deploys);
                     mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
                     saemaulService.getSaemaulToSeatWithFetchAndIn(deploys);
@@ -174,7 +173,7 @@ public class SeatController {
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
-                    //updated
+
                     ktxService.getKtxToSeatWithFetchAndIn(deploys);
                     mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
                     saemaulService.getSaemaulToSeatWithFetchAndIn(deploys);
@@ -286,6 +285,7 @@ public class SeatController {
                 return "schedule";
             }
 
+            //가는 날 기준 이후 시간표 보기
             if (nextGoing != null) {
                 LocalDateTime newTime = beforeDateTime.plusDays(1);
 
@@ -348,7 +348,6 @@ public class SeatController {
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenComing.stream().map(d -> d.getId()).collect(Collectors.toList());
-                    log.info("fuck 555 = {}", deploys);
 
                     ktxService.getKtxToSeatWithFetchAndIn(deploys);
                     mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
@@ -492,6 +491,7 @@ public class SeatController {
                 return "schedule";
             }
 
+            //오는 날 기준 이전 시간표 보기
             if (prevComing != null) {
                 LocalDateTime newTime = afterDateTime.minusDays(1);
 
@@ -551,7 +551,7 @@ public class SeatController {
 
                     List<List<Boolean>> fullCheck = new ArrayList<>();
                     List<Long> deploys = deploysWhenGoing.stream().map(d -> d.getId()).collect(Collectors.toList());
-                    //updated
+
                     ktxService.getKtxToSeatWithFetchAndIn(deploys);
                     mugunghwaService.getMugunghwaToSeatWithFetchAndIn(deploys);
                     saemaulService.getSaemaulToSeatWithFetchAndIn(deploys);
@@ -694,6 +694,7 @@ public class SeatController {
                 return "schedule";
             }
 
+            //오는 날 기준 이후 시간표 보기
             if (nextComing != null) {
                 LocalDateTime newTime = afterDateTime.plusDays(1);
 
@@ -1014,6 +1015,7 @@ public class SeatController {
         Boolean noBefore = false;
         Boolean noAfter = false;
 
+        //가는 날 이전 시간표 보기
         if (prevGoing != null) {
             LocalDateTime newTime = beforeDateTime.minusDays(1);
             List<Deploy> deploysWhenGoing = null;
@@ -1085,6 +1087,7 @@ public class SeatController {
             return "schedule";
         }
 
+        //가는 날 이후 시간표 보기
         if (nextGoing != null) {
             LocalDateTime newTime = beforeDateTime.plusDays(1);
             List<Deploy> deploysWhenGoing = null;

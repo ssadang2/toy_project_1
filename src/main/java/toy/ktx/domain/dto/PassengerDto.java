@@ -69,7 +69,5 @@ public class PassengerDto {
             //1만원(대인 기준)
             return Long.valueOf(toddler * 2500 + kids * 5000 + adult * 10000 + senior * 7000);
         }
-
-
     }
 }

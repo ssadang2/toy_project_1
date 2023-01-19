@@ -31,6 +31,7 @@ import java.util.List;
 @Profile("local")
 @Component
 @RequiredArgsConstructor
+//샘플 데이터 PostConstruct 자동 insert
 public class InitSampleData {
     private final InitSampleDataService initSampleDataService;
 

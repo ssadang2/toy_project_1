@@ -4,35 +4,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import toy.ktx.domain.Deploy;
 import toy.ktx.domain.Member;
 import toy.ktx.domain.Reservation;
 import toy.ktx.domain.comparator.DeployComparator;
 import toy.ktx.domain.constant.SessionConst;
-import toy.ktx.domain.constant.StationsConst;
-import toy.ktx.domain.constant.TrainNameConst;
 import toy.ktx.domain.dto.CreateDeployForm;
 import toy.ktx.domain.dto.DeploySearchDto;
 import toy.ktx.domain.dto.ScheduleForm;
 import toy.ktx.domain.enums.Authorizations;
-import toy.ktx.domain.enums.Grade;
-import toy.ktx.domain.ktx.*;
-import toy.ktx.domain.mugunhwa.Mugunghwa;
-import toy.ktx.domain.mugunhwa.MugunghwaRoom;
-import toy.ktx.domain.mugunhwa.MugunghwaSeat;
-import toy.ktx.domain.saemaul.Saemaul;
-import toy.ktx.domain.saemaul.SaemaulRoom;
-import toy.ktx.domain.saemaul.SaemaulSeat;
-import toy.ktx.repository.KtxRepository;
 import toy.ktx.service.*;
 
-import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import java.io.IOException;
+
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,23 +28,10 @@ import java.util.*;
 @RequiredArgsConstructor
 public class HomeController {
 
-    private final KtxRepository ktxRepository;
-    private final EntityManager em;
-
     private final ReservationService reservationService;
-    private final KtxRoomService ktxRoomService;
-    private final MugunghwaRoomService mugunghwaRoomService;
-    private final SaemaulRoomService saemaulRoomService;
-    private final KtxSeatService ktxSeatService;
-    private final MugunghwaSeatService mugunghwaSeatService;
-    private final SaemaulSeatService saemaulSeatService;
-    private final KtxService ktxService;
-    private final MugunghwaService mugunghwaService;
-    private final SaemaulService saemaulService;
-    private final KtxSeatNormalService ktxSeatNormalService;
-    private final KtxSeatVipService ktxSeatVipService;
     private final DeployService deployService;
 
+    //home 접근을 처리하는 컨트롤러
     @GetMapping("/")
     public String getHome(Model model,
                           @SessionAttribute(name = SessionConst.LOGIN_MEMBER, required = false) Member member,
@@ -80,6 +51,8 @@ public class HomeController {
         return "index";
     }
 
+    //마이 페이지 접근을 처리하는 컨트롤러
+    //일반 사용자면 사용자 마이페이지로 관리자 마이페이지면 관리자 메이페이지로
     @GetMapping("/my-page")
     public String getMyPage(@SessionAttribute(name = SessionConst.LOGIN_MEMBER) Member member,
                             Model model) {
@@ -93,6 +66,7 @@ public class HomeController {
                 Deploy deploy = reservation.getDeploy();
                 deploys.add(deploy);
             }
+            //select query data 개수에 따라 다르지만 batch fetch로 최적화
             List<String> durations = getDuration(deploys);
 
             if (reservations.isEmpty() != true) {
@@ -102,6 +76,7 @@ public class HomeController {
 
             model.addAttribute("localDateTime", LocalDateTime.now());
             model.addAttribute("member", member);
+
             return "mypage/userMyPage";
         }
 
@@ -119,11 +94,13 @@ public class HomeController {
         return "mypage/adminMyPage";
     }
 
+    //string -> LocalDateTime으로 바꿔주는 메소드
     private LocalDateTime getLocalDateTime(String dateTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
         return LocalDateTime.parse(dateTime, formatter);
     }
 
+    //시간표마다 걸리는 기간을 계산하는 메소드
     private List<String> getDuration(List<Deploy> deploys) {
         List<String> durations = new ArrayList<>();
         for (Deploy deploy : deploys) {

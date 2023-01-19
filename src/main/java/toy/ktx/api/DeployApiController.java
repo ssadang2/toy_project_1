@@ -18,6 +18,7 @@ public class DeployApiController {
     private final DeploySearchRepository deploySearchRepository;
 
     //paging + dto 조회 + queryDsl
+    //출발 시간, 도착 시간을 조건으로 시간표 찾아오는 동적 쿼리
     @GetMapping("/api/deploys")
     public Page<DeployWithTrainDto> searchDeploys(@RequestParam(required = false)LocalDateTime goingTimeCond,
                                                   @RequestParam(required = false)LocalDateTime comingTimeCond,
