@@ -1,42 +1,32 @@
 package toy.ktx.domain;
 
-import com.sun.istack.NotNull;
 import lombok.Data;
+import lombok.ToString;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "train")
-@Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn
 @Data
+@ToString(exclude = "deploy")
+//toString stackOverFlow 막으려고
+//아니면 @data를 빼버려도 될 듯
 public class Train {
 
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "departure_time")
-    @NotBlank
-    private LocalDateTime departureTime;
+    private String trainName;
 
-    @Column(name = "arrival_time")
-    @NotBlank
-    private LocalDateTime arrivalTime;
+    @OneToOne(mappedBy = "train", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Deploy deploy;
 
-    @Column(name = "departure_place")
-    @NotBlank
-    private String departurePlace;
+    public Train() {
+    }
 
-    @Column(name = "arrival_place")
-    @NotBlank
-    private String arrivalPlace;
-
-    @NotBlank
-    private Long charge;
-
-    @OneToOne(mappedBy = "train")
-    private Reservation reservation;
-
+    public Train(String trainName) {
+        this.trainName = trainName;
+    }
 }

@@ -2,22 +2,34 @@ package toy.ktx.domain.saemaul;
 
 import lombok.Data;
 import toy.ktx.domain.enums.Grade;
-import toy.ktx.domain.mugunhwa.Mugunhwa;
 
 import javax.persistence.*;
 
 @Entity
 @Data
+@Table(name = "saemaul_room")
 public class SaemaulRoom {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    private String roomName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "saemaul_id")
     private Saemaul saemaul;
 
-    @Enumerated(EnumType.STRING)
-    private Grade grade;
+    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
+    @JoinColumn(name = "seat_id")
+    private SaemaulSeat saemaulSeat;
+
+    public SaemaulRoom() {
+    }
+
+    public SaemaulRoom(String roomName, Saemaul saemaul, SaemaulSeat saemaulSeat) {
+        this.roomName = roomName;
+        this.saemaul = saemaul;
+        this.saemaulSeat = saemaulSeat;
+    }
 }

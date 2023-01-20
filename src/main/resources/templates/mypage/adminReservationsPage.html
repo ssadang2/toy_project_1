@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+<head>
+    <meta charset="UTF-8">
+    <title>adminReservationsPage</title>
+</head>
+<body>
+    <h2 class="text-center" th:text="|ADMIN(${member.name})님, 환영합니다|"></h2>
+    <h2 class="text-center" th:text="|deploy id (${deploy.id})의 예약 현황|"></h2><br><br>
+
+    <h4 th:if="${reservations == null}" class="text-warning text-center">예약이 없습니다</h4>
+
+    <form th:action method="post">
+        <div class="container" th:if="${reservations != null}">
+            <th:block th:each="reservation, reservationStat : ${reservations}" >
+                <div class="row border border-secondary align-items-center">
+                    <div class="col-8 text-center">
+                        <p th:text="|${reservation.deploy.departurePlace}  -->  ${reservation.deploy.arrivalPlace}|" class="text-center"></p>
+                        <p th:text="|${#temporals.monthName(reservation.deploy.departureTime)} ${#temporals.day(reservation.deploy.departureTime)}일 (${#temporals.dayOfWeekNameShort(reservation.deploy.departureTime)})|" class="text-center"></p>
+                        <p th:text="${reservation.deploy.train.trainName}"></p>
+
+                        <span th:text="|${#temporals.format(reservation.deploy.departureTime, 'HH:mm')} --> ${#temporals.format(reservation.deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                        <span th:text="${durations[reservationStat.index]}"></span><br><br>
+                        <span th:text="|${#strings.substring(reservation.roomName, 4, )}호차|"></span>&nbsp;&nbsp;
+                        <span th:text="|좌석: ${reservation.seats}|"></span><br><br>
+
+                        <span th:text="|예약자 아이디: ${member.id}|"></span> &nbsp;
+                        <span th:text="|요금: ${reservation.fee}원|"></span><br><br>
+
+                        <span th:text="|유아: ${reservation.passenger.toddler}명|" th:if="${reservation.passenger.toddler != 0}"></span>
+                        <span th:text="|어린이: ${reservation.passenger.kids}명|" th:if="${reservation.passenger.kids != 0}"></span>
+                        <span th:text="|성인: ${reservation.passenger.adult}명|" th:if="${reservation.passenger.adult != 0}"></span>
+                        <span th:text="|경로: ${reservation.passenger.senior}명|" th:if="${reservation.passenger.senior != 0}"></span>
+                    </div>
+
+                    <div class="form-check col-4 text-center">
+                        <button type="submit" class="btn-close" th:name="reservationId" th:value="${reservation.id}"></button>
+                    </div>
+                </div><br><br>
+            </th:block>
+        </div>
+    </form><br><br><br>
+
+    <div class="d-flex flex-row-reverse">
+        <div class="p-2">
+            <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/my-page}'|">my page로 이동</button>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+</body>
+</html>

@@ -9,5 +9,4 @@ public class KtxApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(KtxApplication.class, args);
 	}
-
 }

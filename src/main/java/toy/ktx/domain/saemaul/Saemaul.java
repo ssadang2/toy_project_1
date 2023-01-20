@@ -1,18 +1,28 @@
 package toy.ktx.domain.saemaul;
 
+import lombok.Getter;
+import lombok.Setter;
 import toy.ktx.domain.Train;
-import toy.ktx.domain.mugunhwa.MugunhwaRoom;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
-import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "saemaul")
+@Getter @Setter
 public class Saemaul extends Train {
 
-    @OneToMany(mappedBy = "saemaul")
-    private List<SaemaulRoom> saemaulRoomList = new ArrayList<>();
+    @OneToMany(mappedBy = "saemaul", orphanRemoval = true, cascade = CascadeType.ALL)
+    private List<SaemaulRoom> saemaulRooms = new ArrayList<>();
+
+    public Saemaul() {
+
+    }
+
+    public Saemaul(String trainName) {
+        super(trainName);
+    }
 }
+

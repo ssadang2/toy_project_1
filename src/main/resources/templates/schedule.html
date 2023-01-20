@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<link th:href = "@{../css/bootstrap.min.css}" rel = "stylesheet">
+<!--더보기 버튼을 위한 jquery source-->
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <title>schedule</title>
+    <style>
+        .list1 {
+        }
+        .list1 div {
+          opacity: 1;
+        }
+        .list1 div.is-hidden {
+          opacity: 0;
+          height: 0;
+          margin: 0;
+        }
+
+        .list2 {
+        }
+        .list2 div {
+          opacity: 1;
+        }
+        .list2 div.is-hidden {
+          opacity: 0;
+          height: 0;
+          margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <form th:action="@{/seat}" method="post" th:object="${deployForm}">
+        <h2 class="text-center">시간표</h2><br><br>
+
+        <div th:if="${#fields.hasGlobalErrors()}">
+            <h4 th:each="err : ${#fields.globalErrors()}" th:text = "${err}" class="text-danger text-center"></h4>
+        </div><br>
+
+        <div th:if="${emptyWhenGoing == true}" class="container">
+            <h4 class="text-center">가는날 기차</h4><br><br>
+
+            <div class="row">
+                <div class="col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="prevGoing" value="prevGoing"><</button>
+                </div>
+
+                <h4 th:text="|${#temporals.monthName(before)} ${#temporals.day(before)}일 (${#temporals.dayOfWeekNameShort(before)})|" class="text-secondary text-center col-8"></h4><br>
+
+                <div class=" col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="nextGoing" value="nextGoing">></button>
+                </div>
+            </div><br>
+
+            <h2 class="text-center">이용 가능한 노선이 없습니다.</h2>
+            <h2 class="text-center">출발 · 도착 위치와 시간을 확인하고,</h2>
+            <h2 class="text-center">다시 조회해 보세요.</h2><br>
+
+            <div class="d-flex flex-row-reverse">
+                <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/}'|">다시 선택하기</button>
+            </div>
+        </div>
+
+        <div th:if="${deploysWhenGoing != null}" class="container">
+            <h4 class="text-center">가는날 기차</h4><br><br>
+
+            <h4 th:text="|${deploysWhenGoing[0].departurePlace} --> ${deploysWhenGoing[0].arrivalPlace}|" class="text-secondary text-center"></h4><br>
+
+            <div class="row">
+                <div class="col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="prevGoing" value="prevGoing"><</button>
+                </div>
+
+                <h4 th:text="|${#temporals.monthName(before)} ${#temporals.day(before)}일 (${#temporals.dayOfWeekNameShort(before)})|" class="text-secondary text-center col-8"></h4><br>
+
+                <div class=" col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="nextGoing" value="nextGoing">></button>
+                </div>
+            </div><br>
+
+            <div class="overflow-auto container list1" style="height: 500px;">
+                <th:block th:each="deploy, deployStat : ${deploysWhenGoing}">
+                    <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'ktx')}" class="row border border-primary align-items-center">
+                        <div class="col-8 text-center">
+                            <p th:text="${deploy.train.trainName}"></p>
+                            <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                            <span th:text="${durationsWhenGoing[deployStat.index]}"></span><br><br>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == true && fullCheck[deployStat.index][1] == true}" th:text="|일반 예매가능 특 예매가능|"></p>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == true && fullCheck[deployStat.index][1] == false}" th:text="|일반 예매가능 특 불가|"></p>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == true}" th:text="|일반 불가 특 예매가능|"></p>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}" th:text="|일반 불가 특 불가|"></p>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}" th:text="매진" class="text-danger"></p>
+                        </div>
+
+                        <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}" th:disabled="${fullCheck[deployStat.index][0] == false && fullCheck[deployStat.index][1] == false}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfGoing')}" th:text="예매하기"></label>
+                        </div>
+                    </div>
+
+                    <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'mugunghwa')}" class="row border border-warning align-items-center">
+                        <div class="col-8 text-center">
+                            <p th:text="${deploy.train.trainName}"></p>
+                            <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                            <span th:text="${durationsWhenGoing[deployStat.index]}"></span><br><br>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == true}" th:text="|예매가능|"></p>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == false}" th:text="|예매불가|"></p>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == false}" th:text="매진" class="text-danger"></p>
+                        </div>
+
+                        <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}" th:disabled="${fullCheck[deployStat.index][0] == false}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfGoing')}" th:text="예매하기"></label>
+                        </div>
+                    </div>
+
+                    <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'saemaul')}" class="row border border-success align-items-center">
+                        <div class="col-8 text-center">
+                            <p th:text="${deploy.train.trainName}"></p>
+                            <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                            <span th:text="${durationsWhenGoing[deployStat.index]}"></span><br><br>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == true}" th:text="|예매가능|"></p>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == false}" th:text="|예매불가|"></p>
+
+                            <p th:if="${fullCheck[deployStat.index][0] == false}" th:text="매진" class="text-danger"></p>
+                        </div>
+
+                        <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfGoing}" th:value="${deploy.id}" th:disabled="${fullCheck[deployStat.index][0] == false}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfGoing')}" th:text="예매하기"></label>
+                        </div>
+                    </div><br><br>
+                </th:block>
+            </div>
+
+            <div class="text-center more1">
+                <button type="button" class="btn btn-outline-secondary">더보기</button>
+            </div>
+        </div><br><br>
+
+        <!--오는 날-->
+        <div th:if="${emptyWhenComing == true}" class="container">
+            <h4 class="text-center">오는날 기차</h4><br><br>
+
+            <div class="row">
+                <div class="col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="prevComing" value="prevComing"><</button>
+                </div>
+
+                <h4 th:text="|${#temporals.monthName(after)} ${#temporals.day(after)}일 (${#temporals.dayOfWeekNameShort(after)})|" class="text-secondary text-center col-8"></h4><br>
+
+                <div class=" col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="nextComing" value="nextComing">></button>
+                </div>
+            </div><br>
+
+            <h2 class="text-center">이용 가능한 노선이 없습니다.</h2>
+            <h2 class="text-center">출발 · 도착 위치와 시간을 확인하고,</h2>
+            <h2 class="text-center">다시 조회해 보세요.</h2><br>
+
+            <div class="d-flex flex-row-reverse">
+                <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/}'|">다시 선택하기</button>
+            </div>
+        </div>
+
+        <div th:if="${deploysWhenComing != null}" class="container">
+            <h4 class="text-center">오는날 기차</h4><br><br>
+
+            <h4 th:text="|${deploysWhenComing[0].departurePlace} --> ${deploysWhenComing[0].arrivalPlace}|" class="text-secondary text-center"></h4><br>
+
+            <div class="row">
+                <div class="col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="prevComing" value="prevComing"><</button>
+                </div>
+
+                <h4 th:text="|${#temporals.monthName(after)} ${#temporals.day(after)}일 (${#temporals.dayOfWeekNameShort(after)})|" class="text-secondary text-center col-8"></h4><br>
+
+                <div class=" col-2 text-center">
+                    <button type="submit" class="btn btn-outline-secondary" name="nextComing" value="nextComing">></button>
+                </div>
+            </div>
+
+            <div class="overflow-auto container list2" style="height: 500px;">
+                <th:block th:each="deploy, deployStat : ${deploysWhenComing}">
+                    <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'ktx')}" class="row border border-primary align-items-center">
+                        <div class="col-8 text-center">
+                            <p th:text="${deploy.train.trainName}"></p>
+                            <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                            <span th:text="${durationsWhenComing[deployStat.index]}"></span><br><br>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == true && fullCheck2[deployStat.index][1] == true}" th:text="|일반 예매가능 특 예매가능|"></p>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == true && fullCheck2[deployStat.index][1] == false}" th:text="|일반 예매가능 특 불가|"></p>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == true}" th:text="|일반 불가 특 예매가능|"></p>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}" th:text="|일반 불가 특 불가|"></p>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}" th:text="매진" class="text-danger"></p>
+                        </div>
+
+                        <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}" th:disabled="${fullCheck2[deployStat.index][0] == false && fullCheck2[deployStat.index][1] == false}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfComing')}" th:text="예매하기"></label>
+                        </div>
+                    </div>
+
+                    <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'mugunghwa')}" class="row border border-warning align-items-center">
+                        <div class="col-8 text-center">
+                            <p th:text="${deploy.train.trainName}"></p>
+                            <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                            <span th:text="${durationsWhenComing[deployStat.index]}"></span><br><br>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == true}" th:text="|예매가능|"></p>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == false}" th:text="|예매불가|"></p>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == false}" th:text="매진" class="text-danger"></p>
+                        </div>
+
+                        <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}" th:disabled="${fullCheck2[deployStat.index][0] == false}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfComing')}" th:text="예매하기"></label>
+                        </div>
+                    </div>
+
+                    <div th:if="${#strings.containsIgnoreCase(deploy.train.trainName, 'saemaul')}" class="row border border-success align-items-center">
+                        <div class="col-8 text-center">
+                            <p th:text="${deploy.train.trainName}"></p>
+                            <span th:text="|${#temporals.format(deploy.departureTime, 'HH:mm')} --> ${#temporals.format(deploy.arrivalTime, 'HH:mm')}|"></span>&nbsp;&nbsp;
+                            <span th:text="${durationsWhenComing[deployStat.index]}"></span><br><br>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == true}" th:text="|예매가능|"></p>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == false}" th:text="|예매불가|"></p>
+
+                            <p th:if="${fullCheck2[deployStat.index][0] == false}" th:text="매진" class="text-danger"></p>
+                        </div>
+
+                        <div class="form-check col-4 text-center">
+                            <input class="btn-check" type="radio" th:field="${deployForm.deployIdOfComing}" th:value="${deploy.id}" th:disabled="${fullCheck2[deployStat.index][0] == false}">
+                            <label class="btn btn-outline-secondary" th:for="${#ids.prev('deployIdOfComing')}" th:text="예매하기"></label>
+                        </div>
+                    </div><br><br>
+                </th:block>
+            </div>
+
+            <div class="text-center more2">
+                <button type="button" class="btn btn-outline-secondary">더보기</button>
+            </div>
+        </div>
+
+        <input type="hidden" name="dateTimeOfGoing" th:value="${dateTimeOfGoing}">
+        <input type="hidden" name="dateTimeOfComing" th:value="${dateTimeOfComing}">
+        <input type="hidden" name="departurePlace" th:value="${departurePlace}">
+        <input type="hidden" name="arrivalPlace" th:value="${arrivalPlace}">
+        <input type="hidden" name="round" th:value="${round}">
+
+        <input type="hidden" name="toddler" th:value="${passengerDto.toddler}">
+        <input type="hidden" name="kids" th:value="${passengerDto.kids}">
+        <input type="hidden" name="adult" th:value="${passengerDto.adult}">
+        <input type="hidden" name="senior" th:value="${passengerDto.senior}">
+
+        <div th:if="${(round == true && emptyWhenGoing != true && emptyWhenComing != true) or (round == false && emptyWhenGoing != true)}" class="d-flex flex-row-reverse">
+            <div class="p-2">
+                <button type="button" class="btn btn-outline-secondary" th:onclick="|location.href='@{/}'|">홈으로 가기</button>
+            </div>
+
+            <div class="p-2" th:if="${disableSeatButton != true}">
+                <button type="submit" class="btn btn-outline-secondary">좌석 선택하기</button>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        var moreNum = 5; //5개 씩 보여주기
+        $(".list1 div:nth-child(n + " + (moreNum + 1) + ")").addClass("is-hidden");
+        $(".more1").on("click", function () {
+          $(".list1 div.is-hidden").slice(0, moreNum).removeClass("is-hidden");
+          if ($(".list1 div.is-hidden").length == 0) {
+            $(".more1").fadeOut();
+          }
+        });
+
+        $(".list2 div:nth-child(n + " + (moreNum + 1) + ")").addClass("is-hidden");
+        $(".more2").on("click", function () {
+          $(".list2 div.is-hidden").slice(0, moreNum).removeClass("is-hidden");
+          if ($(".list2 div.is-hidden").length == 0) {
+            $(".more2").fadeOut();
+          }
+        });
+    </script>
+    <script src="../js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
