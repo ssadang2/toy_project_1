@@ -1,41 +1,35 @@
-# 기차 예약 시스템 with spring framework
----
+# 기차 예약 시스템 with spring boot
 
-## 어플 컨셉 및 조건
-기본적으로 네이버에서 자체적으로 제공하는 기차 예약 시스템(서비스)을 레퍼런스로 하고 있는 기차 예약 어플(웹 서비스)입니다.
-
-<br>
+## 시스템 컨셉 및 조건
+**개요**
+- 기본적으로 네이버에서 자체적으로 제공하는 기차 예약 시스템(서비스)을 레퍼런스로 하고 있는 기차 예약 어플(웹 서비스)입니다.
   
-사용자는 당연히 회원가입, 로그인, 로그아웃 할 수 있고, 로그인 했을 때만 예약할 수 있습니다.
+- 사용자는 당연히 회원가입, 로그인, 로그아웃 할 수 있고, 로그인 했을 때만 예약할 수 있습니다.
 
-사용자는 기본적으로 시간표 검색, 예매할 시간표 선택, 선택된 시간표 열차의 호실 및 좌석 선택, 예매 완료 순으로 예약 서비스를 이용하게 됩니다. 
+- 사용자는 기본적으로 시간표 검색, 예매할 시간표 선택, 선택된 시간표 열차의 호실 및 좌석 선택, 예매 완료 순으로 예약 서비스를 이용하게 됩니다. 
 
-사용자는 자신의 예약 내역을 마이페이지에서 확인할 수 있다고 예매 티켓의 사용 기간이 지나지 않았다면, 예매 취소를 할 수 있습니다.
+- 사용자는 자신의 예약 내역을 마이페이지에서 확인할 수 있다고 예매 티켓의 사용 기간이 지나지 않았다면, 예매 취소를 할 수 있습니다.
 
-<br>
+- 관리자는 admin page를 이용하여 스크립트를 직접 짜서 시간표 데이터를 밀어 넣을 필요없이 만들어진 form에 알맞는 정보만 입력해서 시간표 데이터를 넣을 수 있습니다.
 
-관리자는 admin page를 이용하여 스크립트를 직접 짜서 시간표 데이터를 밀어 넣을 필요없이 만들어진 form에 알맞는 정보만 입력해서 시간표 데이터를 넣을 수 있습니다.
+- 관리자는 모든 시간표를 볼 수 있으며 출발 시간, 도착 시간을 조건으로 시간표를 검색할 수 있습니다.
 
-관리자는 모든 시간표를 볼 수 있으며 출발 시간, 도착 시간을 조건으로 시간표를 검색할 수 있습니다.
+- 관리자는 시간표를 삭제할 수 있고, 시간표 별 예약 현황을 확인할 수 있으며, 유사시에 문제가 되는 예약 내역을 임의로 삭제할 수 있습니다.<br><br>
 
-관리자는 시간표를 삭제할 수 있고, 시간표 별 예약 현황을 확인할 수 있으며, 유사시에 문제가 되는 예약 내역을 임의로 삭제할 수 있습니다.
-
-<br>
-
-api
+**API**
 - 많이 쓰일 것 같은 entity 및 join 데이터 위주로 조회 api controller를 만들어 향후, 이 어플에 붙을 수 있는 front framework와 json 통신을 가능하게 했습니다.
 
 <br>
 
-@PostConstruct를 사용해서 어플 실행시 샘플 데이터를 자동 insert하게 했으므로, application.properties에서 datasource만 사용자의 db에 맞게 설정하면 따로 sample data insert 없이 어플의 기능을 사용하거나 테스트해 볼 수 있습니다.
+- @PostConstruct를 사용해서 어플 실행시 샘플 데이터를 자동 insert하게 했으므로, application.properties에서 datasource만 사용자의 db에 맞게 설정하면 따로 sample data insert 없이 어플의 기능을 사용하거나 테스트해 볼 수 있습니다.
 
 <br>
 
-원래 iamport api를 도입해서 결제 logic도 구현하려 했는데 구현시 jquery, javascript 코드를 많이 작성해야 했습니다. 그래서 전 결제 전까지의 예약 logic에 집중하는 것이 spring framework를 더 잘 이해하고 배우게 되는 방향이라는 생각이 들어 구현하지 않았습니다.
-
+- 원래 iamport api를 도입해서 결제 logic도 구현하려 했는데 구현시 jquery, javascript 코드를 많이 작성해야 했습니다. 그래서 전 결제 전까지의 예약 logic에 집중하는 것이 spring framework를 더 잘 이해하고 배우게 되는 방향이라는 생각이 들어 구현하지 않았습니다.
+  
 <br>
 
-가정 및 제약 조건
+**가정 및 제약 조건**
 
 - 레퍼런스에 따르면 하나의 예약은 하나의 호실에서만 이뤄져야 합니다. 예를 들어 4명이 예약을 하려 하는데 1호차에 2명, 2호차에 2명 이런 식으로 예약할 수 없습니다.
 - 이 서비스에서는 ktx, 무궁화호, 새마을호만 다루고 itx-청춘, srt는 배제하였는데, 실제 검색해 보면 나오다시피 itx-청춘, srt는 거의 배차가 없었고 두 열차의 종류를 굳이 추가한다고 해서
@@ -48,19 +42,12 @@ api
 
 <br>
 
-## ERD(FINAL VER)
+## ERD
 <img width="1061" alt="스크린샷 2023-01-16 오후 2 26 20" src="https://user-images.githubusercontent.com/95601414/212604749-151fffe4-c865-4bcb-bb96-eb578e8a7712.png">
 
 [ERDCloud URL](https://www.erdcloud.com/d/vzbcpBsPGFhpEhbCB)
 
-ktx_seat_normal, ktx_seat_vip, mugunghwa_seat, saemaul_seat에 있는 ...과 skip은 좌석을 의미하는 column이 너무 많아 다 표현하지 않은 것으로
-
-- ktx_seat_normal(ktx 일반실 좌석)은 K1A, K1B, K1C, K1D, K2A ... K14D 이렇게 총 56(column)자리,
-- ktx_seat_vip(ktx 특실 좌석)은 K1A, K1B, K1C, K2A, K2B ... K14C 이렇게 총 42(column)자리, 
-- mugunghwa_seat(무궁화호 좌석)은 M1, M2, M3, M4 ... M72 이렇게 총 72(column)자리, 
-- saemaul_seat(새마을호 좌석)은 S1A, S1B, S1C, S1D, S2A ... S14D 이렇게 총 56(column)자리가 있습니다.
-
-테이블의 역할
+**테이블의 역할**
 
 - member: 말 그대로 서비스에 가입한 멤버입니다. 권한에 따라 평범한 사용자와 관리자로 나뉩니다.
 - reservation: 말 그대로 사용자들의 예약 내역을 담은 테이블로 요금, 예약한 사용자의 id 등의 정보를 가지고 있습니다.  
@@ -78,6 +65,15 @@ ktx_seat_normal, ktx_seat_vip, mugunghwa_seat, saemaul_seat에 있는 ...과 ski
 - ktx_seat_vip: ktx 특실 좌석에 해당되는 테이블입니다.
 - mugunghwa_seat: 무궁화호 좌석에 해당되는 테이블입니다.
 - saemaul_seat: 새마을호 좌석에 해당되는 테이블입니다.
+
+<br>
+
+**PS**
+- ktx_seat_normal, ktx_seat_vip, mugunghwa_seat, saemaul_seat에 있는 ...과 skip은 좌석을 의미하는 column이 너무 많아 다 표현하지 않은 것으로
+- ktx_seat_normal(ktx 일반실 좌석)은 K1A, K1B, K1C, K1D, K2A ... K14D 이렇게 총 56(column)자리,
+- ktx_seat_vip(ktx 특실 좌석)은 K1A, K1B, K1C, K2A, K2B ... K14C 이렇게 총 42(column)자리, 
+- mugunghwa_seat(무궁화호 좌석)은 M1, M2, M3, M4 ... M72 이렇게 총 72(column)자리, 
+- saemaul_seat(새마을호 좌석)은 S1A, S1B, S1C, S1D, S2A ... S14D 이렇게 총 56(column)자리가 있습니다.
 
 <br>
 
